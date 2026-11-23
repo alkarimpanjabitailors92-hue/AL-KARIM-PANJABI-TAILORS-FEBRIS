@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Al-Karim Tailors">
     <title>আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স — Dorji ERP</title>
+    <link id="appFavicon" rel="icon" type="image/png" href="">
+    <link id="appleTouchIcon" rel="apple-touch-icon" href="">
+    <link id="appManifestLink" rel="manifest" href="">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -47,6 +55,76 @@
     <!-- 👇 ১. এডিটিং সেকশন: এখান থেকে দোকানের তথ্য, মাপের ঘর ও ফায়ারবেজ বদলান 👇 -->
     <!-- ===================================================================== -->
     <script>
+        // এক ফাইল থেকেই রাজকীয় সোনালি-সবুজ Al-Karim লোগো আইকন ও Chrome Install App (PWA) সক্রিয় করা
+        (function setupSingleFilePWA() {
+            const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <defs>
+                    <linearGradient id="goldRing" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#fde047"/>
+                        <stop offset="50%" stop-color="#d97706"/>
+                        <stop offset="100%" stop-color="#fef08a"/>
+                    </linearGradient>
+                    <radialGradient id="creamBg" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#fffbeb"/>
+                        <stop offset="100%" stop-color="#fef3c7"/>
+                    </radialGradient>
+                </defs>
+                <rect width="512" height="512" rx="110" fill="#052e16"/>
+                <circle cx="256" cy="256" r="236" fill="url(#goldRing)"/>
+                <circle cx="256" cy="256" r="222" fill="#064e3b"/>
+                <circle cx="256" cy="256" r="210" fill="url(#goldRing)"/>
+                <circle cx="256" cy="256" r="200" fill="url(#creamBg)"/>
+                <path d="M256 78 C275 78 288 94 285 112 C282 128 268 138 256 138 C244 138 230 128 227 112 C224 94 237 78 256 78 Z" fill="none" stroke="#b45309" stroke-width="8"/>
+                <path d="M180 235 C185 175 215 150 256 150 C297 150 327 175 332 235" fill="none" stroke="#b45309" stroke-width="10" stroke-linecap="round"/>
+                <circle cx="256" cy="175" r="5" fill="#d97706"/>
+                <circle cx="256" cy="195" r="5" fill="#d97706"/>
+                <circle cx="256" cy="215" r="5" fill="#d97706"/>
+                <text x="165" y="295" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-style="italic" font-size="86" fill="#b45309">Al-</text>
+                <text x="325" y="295" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-style="italic" font-size="86" fill="#064e3b">Karim</text>
+                <text x="256" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="25" fill="#052e16">Panjabi Tailors &amp; Fabrics</text>
+                <path d="M145 372 Q256 392 367 372" fill="none" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+            </svg>`;
+
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 512, 512);
+                const pngDataUrl = canvas.toDataURL('image/png');
+
+                document.getElementById('appFavicon').href = pngDataUrl;
+                document.getElementById('appleTouchIcon').href = pngDataUrl;
+
+                const manifestObj = {
+                    name: "আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স",
+                    short_name: "Al-Karim Tailors",
+                    start_url: window.location.href.split('#')[0],
+                    display: "standalone",
+                    background_color: "#052e16",
+                    theme_color: "#064e3b",
+                    icons: [
+                        { src: pngDataUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+                        { src: pngDataUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+                    ]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+                document.getElementById('appManifestLink').href = URL.createObjectURL(manifestBlob);
+            };
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+            }
+        })();
+
         const APP_SETTINGS = {
             shopName: "আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স",
             shopPhone: "01787265892",
