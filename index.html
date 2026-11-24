@@ -54,9 +54,56 @@
             }
             @page { size: A4 portrait; margin: 5mm; }
         }
+        #authLoginOverlay {
+            background: radial-gradient(circle at top, #065f46 0%, #042f2e 60%, #021817 100%);
+        }
     </style>
 </head>
 <body class="pb-16 lg:pb-6">
+
+    <!-- মোবাইল নম্বর ও পাসওয়ার্ড লগইন স্ক্রিন -->
+    <div id="authLoginOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-2 border-amber-400/70 space-y-4">
+            <div class="text-center space-y-1.5">
+                <div class="w-14 h-14 mx-auto rounded-2xl gold-accent flex items-center justify-center text-emerald-950 text-2xl shadow-md border border-amber-200">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider bg-emerald-950 text-amber-300 px-3 py-0.5 rounded-full">
+                    Profile &amp; Role Access
+                </span>
+                <h2 class="text-lg font-extrabold text-emerald-950">আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স</h2>
+                <p class="text-xs text-gray-500">আপনার মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে প্রোফাইলে প্রবেশ করুন</p>
+            </div>
+
+            <form id="profileLoginForm" onsubmit="handleProfileLogin(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="font-bold text-gray-700 block mb-1">মোবাইল নম্বর *</label>
+                    <input type="tel" id="authPhoneInput" required placeholder="যেমন: 01787265892" class="w-full border-2 border-emerald-200 focus:border-emerald-600 rounded-xl px-3.5 py-2.5 font-bold text-sm focus:outline-none bg-emerald-50/30">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-700 block mb-1">পাসওয়ার্ড *</label>
+                    <div class="relative">
+                        <input type="password" id="authPasswordInput" required placeholder="আপনার পাসওয়ার্ড লিখুন" class="w-full border-2 border-emerald-200 focus:border-emerald-600 rounded-xl px-3.5 py-2.5 pr-10 font-bold text-sm focus:outline-none bg-emerald-50/30">
+                        <button type="button" onclick="toggleLoginPasswordVisibility()" class="absolute right-3 top-2.5 text-gray-500 hover:text-emerald-800">
+                            <i id="authPassEyeIcon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="authLoginErrorMsg" class="hidden bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-3 py-2 text-[11px] font-bold"></div>
+
+                <button type="submit" class="w-full royal-gradient hover:opacity-95 text-amber-300 py-3 rounded-xl font-extrabold text-sm shadow-lg border border-amber-400/40 transition">
+                    <i class="fas fa-sign-in-alt mr-1.5"></i> প্রোফাইলে লগইন করুন
+                </button>
+            </form>
+
+            <div class="bg-amber-50/90 border border-amber-200 rounded-2xl p-3 text-[11px] text-gray-700 space-y-1">
+                <div class="font-extrabold text-amber-950"><i class="fas fa-key text-amber-600 mr-1"></i> ডিফল্ট প্রোফাইল তথ্য:</div>
+                <div>• <b>মাস্টার অ্যাডমিন:</b> <span class="font-mono font-bold">01787265892</span> / পাসওয়ার্ড: <span class="font-mono font-bold">admin123</span></div>
+                <div>• <b>স্টাফ / কারিগর:</b> <span class="font-mono font-bold">01882221510</span> / পাসওয়ার্ড: <span class="font-mono font-bold">staff123</span></div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===================================================================== -->
     <!-- 👇 ১. কনফিগারেশন সেকশন: দোকানের তথ্য, পিন কোড ও ফায়ারবেজ সেটআপ 👇 -->
@@ -115,9 +162,8 @@
             shopSubtitle: "প্রিমিয়াম পাঞ্জাবী, জুব্বা ও শেরওয়ানি ডিজাইন স্টুডিও",
             shopPhone: "01787265892",
             shopAddress: "সৈয়দ আহম্মেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল।",
-            defaultAdminPin: "1234", // মালিকের ডিফল্ট PIN কোড (সেটিংস থেকে পরিবর্তনযোগ্য)
+            defaultAdminPin: "1234",
 
-            // 🔥 আপনার ফায়ারবেজ কনফিগারেশন কোড যুক্ত করা হয়েছে 🔥
             firebaseConfig: {
                 apiKey: "AIzaSyBTgzhGTGazRsoV4O287kCcEPGNTwOaLZg",
                 authDomain: "al-karim-panjabi-tailors.firebaseapp.com",
@@ -132,40 +178,68 @@
         const DEFAULT_TAILOR_CONFIG = {
             adminPin: "1234",
             garments: [
-                { id: "g1", name: "এরাবিয়ান ক্লাসিক", custPrice: 750, karigorCost: 300, icon: "🕌" },
-                { id: "g2", name: "এরাবিয়ান স্পেশাল", custPrice: 850, karigorCost: 350, icon: "✨" },
-                { id: "g3", name: "এরাবিয়ান প্রিন্সেস", custPrice: 900, karigorCost: 380, icon: "👑" },
-                { id: "g4", name: "কাবুলি সেট", custPrice: 1100, karigorCost: 450, icon: "🧥" },
-                { id: "g5", name: "একছাঁট সাফারি গলা", custPrice: 700, karigorCost: 280, icon: "👔" },
-                { id: "g6", name: "কটি ও পাঞ্জাবি", custPrice: 1200, karigorCost: 500, icon: "🦺" },
-                { id: "g7", name: "ফতুয়া", custPrice: 550, karigorCost: 220, icon: "👕" },
-                { id: "g8", name: "নরমাল পায়জামা", custPrice: 300, karigorCost: 120, icon: "👖" },
-                { id: "g9", name: "আলিগড় / চুড়িদার", custPrice: 350, karigorCost: 150, icon: "🩳" },
-                { id: "g10", name: "জুব্বা / বোরকা", custPrice: 1000, karigorCost: 400, icon: "👘" },
-                { id: "g11", name: "শার্ট", custPrice: 500, karigorCost: 200, icon: "👔" },
-                { id: "g12", name: "প্যান্ট", custPrice: 600, karigorCost: 250, icon: "👖" }
+                { id: "g1", name: "এরাবিয়ান ক্লাসিক", custPrice: 550, karigorCost: 150, icon: "🕌" },
+                { id: "g2", name: "এরাবিয়ান স্পেশাল", custPrice: 750, karigorCost: 150, icon: "✨" },
+                { id: "g3", name: "এরাবিয়ান প্রিমিয়াম", custPrice: 1050, karigorCost: 230, icon: "👑" },
+                { id: "g4", name: "একছাটা ছাইট ফারা", custPrice: 550, karigorCost: 150, icon: "👔" },
+                { id: "g5", name: "কল্লিদার গোল", custPrice: 550, karigorCost: 150, icon: "🧥" },
+                { id: "g6", name: "কল্লিদার ছাইটফারা", custPrice: 550, karigorCost: 150, icon: "🦺" },
+                { id: "g7", name: "ফতুয়া", custPrice: 350, karigorCost: 100, icon: "👕" },
+                { id: "g8", name: "নরমাল পাজামা", custPrice: 250, karigorCost: 60, icon: "👖" },
+                { id: "g9", name: "প্যান্ট কাটিং পাজামা", custPrice: 350, karigorCost: 70, icon: "🩳" },
+                { id: "g10", name: "মাদ্রাসা ড্রেস পাজামা", custPrice: 200, karigorCost: 40, icon: "👘" },
+                { id: "g11", name: "ছারছীনা কাটিং", custPrice: 550, karigorCost: 150, icon: "🕌" },
+                { id: "g12", name: "একছাটা গোল", custPrice: 550, karigorCost: 150, icon: "👔" }
             ],
             measurements: [
-                "লম্বা", "বডি", "কোমর", "হিপ", "হাতার লম্বা", "হাতার মোহরি",
-                "গলা", "ঘের চওড়া", "হাই", "পুট", "পেট চওড়া", "পকেট চওড়া"
+                "লম্বা", "বডি", "কোমড়", "তিরা", "হাতার লম্বা", "হাতার মোহড়া",
+                "গলা", "বেন্ড চওড়া", "ঘের", "লুচ", "প্লেট ফারা", "পকেট ফাড়া"
             ],
             designDropdowns: [
-                { id: "dd1", label: "স্ন্যাপ বাটন", options: ["সাধারণ বোতাম", "স্ন্যাপ বাটন", "গোপন বাটন", "মেটাল বাটন"] },
-                { id: "dd2", label: "স্টিচ ডিজাইন", options: ["নরমাল স্টিচ", "ডাবল স্টিচ", "চিকন স্টিচ", "পাইপিং স্টিচ"] },
-                { id: "dd3", label: "সাইড পকেট ডিজাইন", options: ["সাইড পকেট", "বুক পকেট + সাইড", "পকেট ছাড়া", "চেইন পকেট"] },
-                { id: "dd4", label: "প্লেট ডিজাইন", options: ["সাধারণ প্লেট", "গোপন প্লেট", "এরাবিয়ান প্লেট", "কন্ট্রাস্ট প্লেট"] },
-                { id: "dd5", label: "কলার ডিজাইন", options: ["ব্যান্ড কলার", "হাই কলার", "শার্ট কলার", "গোল গলা"] },
-                { id: "dd6", label: "পুট ও হাতা ডিজাইন", options: ["নরমাল হাতা", "কাফ হাতা", "প্লেট হাতা", "ডাবল পুট"] }
+                { id: "dd1", label: "স্ন্যাপ বাটন মডেল", options: ["সাধারণ বোতাম", "স্ন্যাপ বাটন ১০১", "স্ন্যাপ বাটন ১০২", "স্ন্যাপ বাটন ১০৩", "মেটাল বাটন 113"] },
+                { id: "dd2", label: "প্লেট ও কলার ডিজাইন", options: ["বেন্ড ওপেন প্লেট", "সেরওয়ানি বেন্ড", "সার্ট কলার + কফলিন", "গোল গলা"] },
+                { id: "dd3", label: "কফ ও হাতা ডিজাইন", options: ["রিং কফ হবে না", "রিং কফ হবে", "হাতায় কফ হবে", "কফলিন হবে"] },
+                { id: "dd4", label: "পকেট ডিজাইন", options: ["সাইড পকেট", "সামনে ২ পকেট", "সাইট পকেটে চেইন হবে", "পকেট হবে না"] }
             ],
             specialDesigns: [
                 { id: "sp1", name: "স্ন্যাপ বাটন", custExtra: 20, karigorExtra: 10 },
-                { id: "sp2", name: "রং কাফ হাত", custExtra: 30, karigorExtra: 15 },
-                { id: "sp3", name: "হাই কলার + কাফ হাতা", custExtra: 150, karigorExtra: 70 },
-                { id: "sp4", name: "খাটো কলার + কলার স্টিক", custExtra: 50, karigorExtra: 25 },
-                { id: "sp5", name: "শার্ট কলার + কাফহাতা", custExtra: 100, karigorExtra: 50 },
-                { id: "sp6", name: "এমব্রয়ডারি কাজ", custExtra: 200, karigorExtra: 120 },
-                { id: "sp7", name: "গোল ঘের / পকেট পার্ট", custExtra: 30, karigorExtra: 15 },
-                { id: "sp8", name: "কলারের নিচে কালো কাপড়", custExtra: 40, karigorExtra: 20 }
+                { id: "sp2", name: "কলারের নিচে কাল কাপড়", custExtra: 40, karigorExtra: 20 },
+                { id: "sp3", name: "সার্ট কলার + কফলিন", custExtra: 150, karigorExtra: 70 },
+                { id: "sp4", name: "এমব্রয়ডারি কাজ", custExtra: 200, karigorExtra: 120 },
+                { id: "sp5", name: "সাইট পকেটে চেইন হবে", custExtra: 30, karigorExtra: 15 },
+                { id: "sp6", name: "প্লেটে কলারে চেইন", custExtra: 50, karigorExtra: 25 }
+            ],
+            staffProfiles: [
+                {
+                    id: "master_admin",
+                    name: "এইচ এম জাহিদ রায়হান",
+                    phone: "01787265892",
+                    password: "admin123",
+                    role: "master_admin",
+                    roleLabel: "মাস্টার অ্যাডমিন",
+                    permissions: {
+                        viewReports: true,
+                        viewExpenses: true,
+                        manageStock: true,
+                        accessSettings: true,
+                        deleteRecords: true
+                    }
+                },
+                {
+                    id: "staff_shihab",
+                    name: "শিহাব (স্টাফ / কারিগর)",
+                    phone: "01882221510",
+                    password: "staff123",
+                    role: "staff",
+                    roleLabel: "স্টাফ / কারিগর",
+                    permissions: {
+                        viewReports: false,
+                        viewExpenses: false,
+                        manageStock: false,
+                        accessSettings: false,
+                        deleteRecords: false
+                    }
+                }
             ]
         };
     </script>
@@ -194,6 +268,14 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <div id="activeProfileBadge" class="hidden sm:flex items-center gap-1.5 bg-emerald-950/80 border border-amber-400/40 px-2.5 py-1 rounded-xl text-[11px]">
+                    <span id="activeProfileNameText" class="font-bold text-white"></span>
+                    <span id="activeProfileRoleTag" class="bg-amber-400 text-emerald-950 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold"></span>
+                </div>
+                <button onclick="logoutActiveProfile()" id="profileLogoutBtn" class="bg-rose-900/80 hover:bg-rose-800 border border-rose-400/40 text-rose-100 px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition" title="প্রোফাইল থেকে লগআউট">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden md:inline">লগআউট</span>
+                </button>
                 <button onclick="toggleAdminLock()" id="adminLockBtn" class="bg-emerald-900/90 hover:bg-emerald-800 border border-amber-400/50 text-amber-300 px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition" title="মালিকানা রিপোর্ট ও ডিলিট সুরক্ষা">
                     <i id="adminLockIcon" class="fas fa-lock"></i>
                     <span id="adminLockText" class="hidden sm:inline">লক করা</span>
@@ -625,7 +707,7 @@
                     <button onclick="switchSettingsTab('measurements')" id="stab-measurements" class="s-tab-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl">২. শরীরের মাপের ঘর</button>
                     <button onclick="switchSettingsTab('dropdowns')" id="stab-dropdowns" class="s-tab-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl">৩. ডিজাইন ড্রপডাউন</button>
                     <button onclick="switchSettingsTab('specials')" id="stab-specials" class="s-tab-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl">৪. স্পেশাল চার্জ</button>
-                    <button onclick="switchSettingsTab('security')" id="stab-security" class="s-tab-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl">৫. PIN ও ব্যাকআপ</button>
+                    <button onclick="switchSettingsTab('security')" id="stab-security" class="s-tab-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl">৫. PIN ও ডাটা ইম্পোর্ট</button>
                 </div>
 
                 <div id="spanel-garments" class="s-panel bg-white p-4 rounded-2xl border border-gray-200 space-y-3">
@@ -666,12 +748,38 @@
                 </div>
 
                 <div id="spanel-security" class="s-panel hidden bg-white p-4 rounded-2xl border border-gray-200 space-y-4 text-xs">
+                    <!-- ১-ক্লিক Dorji.app (.mhtml / .html) ফাইল ইম্পোর্টার -->
+                    <div class="bg-indigo-50 border-2 border-indigo-300 p-4 rounded-2xl space-y-2.5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-indigo-950 text-sm"><i class="fas fa-file-import text-indigo-700 mr-1"></i> ১-ক্লিক পুরনো অ্যাপ (.mhtml / .html) ডাটা ইম্পোর্ট</span>
+                            <span class="bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">১০০% নির্ভুল মাপ ও মেমো</span>
+                        </div>
+                        <p class="text-[11px] text-gray-700 leading-relaxed">
+                            আপনার ক্রোম ব্রাউজার থেকে সেভ করা <b>Dorji.App.mhtml</b> ফাইলটি নিচে সিলেক্ট করুন। এটি থেকে সব মেমো নম্বর, কাস্টমার নাম, ফোন, শরীরের মাপ, ডিজাইন, বিল ও বকেয়া স্বয়ংক্রিয়ভাবে লোড হয়ে যাবে:
+                        </p>
+                        <label class="cursor-pointer flex items-center justify-center gap-2 w-full royal-gradient text-amber-300 py-3 rounded-xl font-extrabold text-xs shadow-md hover:opacity-95 transition">
+                            <i class="fas fa-folder-open text-base"></i>
+                            <span>সেভ করা ফাইল (.mhtml / .html) সিলেক্ট করে ইম্পোর্ট করুন</span>
+                            <input type="file" accept=".mhtml,.mht,.html,.htm,.txt" onchange="importDorjiMhtmlSnapshot(event)" class="hidden">
+                        </label>
+                    </div>
+
+                    <!-- মোবাইল দিয়ে কপি-পেস্ট ইম্পোর্টার -->
+                    <div class="bg-amber-50/80 border border-amber-300 p-3.5 rounded-2xl space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-amber-950 text-sm"><i class="fas fa-mobile-alt text-amber-700 mr-1"></i> কপি-পেস্ট ইম্পোর্টার (যদি লেখা কপি করা থাকে)</span>
+                        </div>
+                        <textarea id="mobilePasteRawText" rows="4" placeholder="অথবা পুরনো অ্যাপ থেকে কপি করা লেখা / HTML কোড এখানে পেস্ট করুন..." class="w-full border border-amber-300 rounded-xl p-2.5 bg-white text-[11px] focus:outline-emerald-700"></textarea>
+                        <button type="button" onclick="parseAndImportMobileCopiedData()" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-950 py-2 rounded-xl font-extrabold shadow-sm">
+                            <i class="fas fa-magic mr-1"></i> পেস্ট করা ডাটা ইম্পোর্ট করুন
+                        </button>
+                    </div>
+
                     <div class="bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-2xl space-y-2.5">
                         <div class="flex justify-between items-center">
                             <span class="font-extrabold text-emerald-950 text-sm"><i class="fas fa-cloud text-emerald-700 mr-1"></i> অনলাইন ক্লাউড কানেকশন (Firebase Setup)</span>
                             <span id="fbSetupStatusText" class="text-[10px] font-bold bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded-full">অনলাইন যুক্ত আছে</span>
                         </div>
-                        <p class="text-[11px] text-gray-600">আপনার Firebase প্রজেক্ট <b>al-karim-panjabi-tailors</b> স্থায়ীভাবে যুক্ত করা হয়েছে। প্রয়োজনে এখান থেকে পরিবর্তনও করতে পারবেন:</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="text-[10px] font-bold text-gray-700 block mb-0.5">Firebase API Key *</label>
@@ -697,8 +805,30 @@
                         <input type="text" maxlength="4" id="settingAdminPinInput" placeholder="যেমন: 1234" class="border rounded-xl px-3 py-2 font-extrabold tracking-widest w-40">
                         <p class="text-[11px] text-gray-500">পরিবর্তন করার পর উপরে "সব সেটিংস সেভ করুন" বাটনে চাপুন।</p>
                     </div>
+
+                    <!-- স্টাফ / কারিগর প্রোফাইল ও অ্যাক্সেস নিয়ন্ত্রণ -->
+                    <div class="border-t pt-4 space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <div>
+                                <div class="font-extrabold text-emerald-950 text-sm"><i class="fas fa-users-cog text-emerald-700 mr-1"></i> স্টাফ / কারিগর প্রোফাইল ও পাসওয়ার্ড ব্যবস্থাপনা</div>
+                                <p class="text-[11px] text-gray-500">অন্যদের জন্য আলাদা মোবাইল নম্বর, পাসওয়ার্ড এবং অ্যাক্সেস সীমাবদ্ধতা নির্ধারণ করুন</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
+                            <input type="text" id="newStaffNameInput" placeholder="নাম (যেমন: কারিগর রফিক)" class="border rounded-lg px-2.5 py-1.5 bg-white font-semibold">
+                            <input type="tel" id="newStaffPhoneInput" placeholder="মোবাইল নম্বর (017...)" class="border rounded-lg px-2.5 py-1.5 bg-white font-semibold">
+                            <input type="text" id="newStaffPasswordInput" placeholder="পাসওয়ার্ড দিন" class="border rounded-lg px-2.5 py-1.5 bg-white font-semibold">
+                            <button type="button" onclick="addStaffProfileEntry()" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg py-1.5 font-extrabold">
+                                + প্রোফাইল যোগ করুন
+                            </button>
+                        </div>
+
+                        <div id="settingsStaffProfilesList" class="space-y-2.5"></div>
+                    </div>
+
                     <div class="border-t pt-3 space-y-2">
-                        <div class="font-bold text-gray-800">ডেটা ব্যাকআপ ও রিস্টোর:</div>
+                        <div class="font-bold text-gray-800">ডেটা ব্যাকআপ ও রিস্টোর (JSON):</div>
                         <div class="flex flex-wrap gap-2">
                             <button onclick="exportFullBackupJson()" class="bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold"><i class="fas fa-download mr-1"></i> ব্যাকআপ ডাউনলোড করুন</button>
                             <label class="cursor-pointer bg-gray-100 hover:bg-gray-200 border px-4 py-2 rounded-xl font-bold text-gray-800">
@@ -1104,6 +1234,10 @@
             if (document.getElementById('settingAdminPinInput')) {
                 document.getElementById('settingAdminPinInput').value = window.tailorConfig.adminPin || APP_SETTINGS.defaultAdminPin;
             }
+            if (!Array.isArray(window.tailorConfig.staffProfiles) || window.tailorConfig.staffProfiles.length === 0) {
+                window.tailorConfig.staffProfiles = JSON.parse(JSON.stringify(DEFAULT_TAILOR_CONFIG.staffProfiles));
+            }
+            applyLoggedInProfilePermissions();
             buildMeasurementModalInputs();
             renderSettingsAdminPanels();
             refreshAllUI();
@@ -1292,8 +1426,28 @@
             localStorage.setItem('erp_fabrics', JSON.stringify(window.fabricsData));
             localStorage.setItem('erp_karigors', JSON.stringify(window.karigorsData));
             localStorage.setItem('erp_expenses', JSON.stringify(window.expensesData));
+
+            if (!useLocal && db) {
+                try {
+                    if (parsed.newOrdersOnly && Array.isArray(parsed.newOrdersOnly)) {
+                        for (const ord of parsed.newOrdersOnly) {
+                            const { id, ...cleanOrd } = ord;
+                            await addDoc(collection(db, "orders"), { ...cleanOrd, createdAt: serverTimestamp() });
+                        }
+                    }
+                    if (parsed.newFabricsOnly && Array.isArray(parsed.newFabricsOnly)) {
+                        for (const fab of parsed.newFabricsOnly) {
+                            const { id, ...cleanFab } = fab;
+                            await addDoc(collection(db, "fabrics_inventory"), { ...cleanFab, createdAt: serverTimestamp() });
+                        }
+                    }
+                } catch (err) {
+                    console.error("Cloud sync error:", err);
+                }
+            }
+
             await loadAllSystemData();
-            showToast("ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!");
+            showToast("ডেটা সফলভাবে সেভ ও ক্লাউডে সিঙ্ক হয়েছে!");
         };
 
         loadAllSystemData();
@@ -1312,6 +1466,155 @@
         let activeRestockFabric = null;
         window.isAdminUnlocked = false;
         let pendingProtectedRoute = null;
+        let currentActiveView = 'dashboard';
+        let lastBackPressTime = 0;
+        const ACTIVE_PROFILE_STORAGE_KEY = 'alkarim_logged_profile_v1';
+
+        function normalizeBdPhone(raw) {
+            return String(raw || '').replace(/\D/g, '').trim();
+        }
+
+        function getActiveProfile() {
+            try {
+                return JSON.parse(localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY) || 'null');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function isMasterProfile() {
+            const prof = getActiveProfile();
+            return Boolean(prof && prof.role === 'master_admin');
+        }
+
+        function hasStaffPermission(permName) {
+            const prof = getActiveProfile();
+            if (!prof) return false;
+            if (prof.role === 'master_admin') return true;
+            return Boolean(prof.permissions && prof.permissions[permName]);
+        }
+
+        function toggleLoginPasswordVisibility() {
+            const inp = document.getElementById('authPasswordInput');
+            const icon = document.getElementById('authPassEyeIcon');
+            if (!inp || !icon) return;
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        function handleProfileLogin(event) {
+            event.preventDefault();
+            const phone = normalizeBdPhone(document.getElementById('authPhoneInput')?.value);
+            const password = document.getElementById('authPasswordInput')?.value || '';
+            const errBox = document.getElementById('authLoginErrorMsg');
+
+            const profiles = (window.tailorConfig?.staffProfiles && window.tailorConfig.staffProfiles.length > 0)
+                ? window.tailorConfig.staffProfiles
+                : DEFAULT_TAILOR_CONFIG.staffProfiles;
+
+            const matched = profiles.find(
+                p => normalizeBdPhone(p.phone) === phone && String(p.password) === password
+            );
+
+            if (!matched) {
+                if (errBox) {
+                    errBox.innerText = "ভুল মোবাইল নম্বর বা পাসওয়ার্ড দিয়েছেন। সঠিক তথ্য দিয়ে চেষ্টা করুন।";
+                    errBox.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (errBox) errBox.classList.add('hidden');
+            localStorage.setItem(ACTIVE_PROFILE_STORAGE_KEY, JSON.stringify({
+                id: matched.id,
+                name: matched.name,
+                phone: matched.phone,
+                role: matched.role,
+                roleLabel: matched.roleLabel || (matched.role === 'master_admin' ? 'মাস্টার অ্যাডমিন' : 'স্টাফ / কারিগর'),
+                permissions: matched.permissions || {}
+            }));
+
+            if (matched.role === 'master_admin') {
+                window.isAdminUnlocked = true;
+                updateAdminLockUI();
+            } else {
+                window.isAdminUnlocked = false;
+                updateAdminLockUI();
+            }
+
+            document.getElementById('profileLoginForm')?.reset();
+            applyLoggedInProfilePermissions();
+            showToast(`স্বাগতম ${matched.name}!`);
+        }
+
+        function logoutActiveProfile() {
+            localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
+            window.isAdminUnlocked = false;
+            updateAdminLockUI();
+            applyLoggedInProfilePermissions();
+            showToast("প্রোফাইল থেকে লগআউট হয়েছেন");
+        }
+
+        function applyLoggedInProfilePermissions() {
+            const prof = getActiveProfile();
+            const overlay = document.getElementById('authLoginOverlay');
+            const badgeBox = document.getElementById('activeProfileBadge');
+            const nameEl = document.getElementById('activeProfileNameText');
+            const roleEl = document.getElementById('activeProfileRoleTag');
+
+            if (!prof) {
+                if (overlay) overlay.classList.remove('hidden');
+                if (badgeBox) badgeBox.classList.add('hidden');
+                return;
+            }
+
+            if (overlay) overlay.classList.add('hidden');
+            if (badgeBox) badgeBox.classList.remove('hidden');
+            if (nameEl) nameEl.innerText = prof.name;
+            if (roleEl) roleEl.innerText = prof.roleLabel || (prof.role === 'master_admin' ? 'মাস্টার অ্যাডমিন' : 'স্টাফ / কারিগর');
+
+            const isMaster = prof.role === 'master_admin';
+            const canViewReports = isMaster || hasStaffPermission('viewReports');
+            const canViewExpenses = isMaster || hasStaffPermission('viewExpenses');
+            const canAccessSettings = isMaster || hasStaffPermission('accessSettings');
+            const canManageStock = isMaster || hasStaffPermission('manageStock');
+
+            // রিপোর্ট, খরচ ও সেটিংস নেভিগেশন নিয়ন্ত্রণ
+            const navReports = document.getElementById('nav-reports');
+            const navSettings = document.getElementById('nav-settings');
+            const navExpenses = document.getElementById('nav-expenses');
+            const navFabrics = document.getElementById('nav-fabrics');
+
+            if (navReports) navReports.style.display = canViewReports ? '' : 'none';
+            if (navSettings) navSettings.style.display = canAccessSettings ? '' : 'none';
+            if (navExpenses) navExpenses.style.display = canViewExpenses ? '' : 'none';
+            if (navFabrics) navFabrics.style.display = canManageStock ? '' : 'none';
+
+            // মোবাইল কুইক বাটন (খরচ ও রিপোর্ট) নিয়ন্ত্রণ
+            document.querySelectorAll("button[onclick*=\"navigate('expenses')\"]").forEach(btn => {
+                if (!btn.id) btn.style.display = canViewExpenses ? '' : 'none';
+            });
+            document.querySelectorAll("button[onclick*=\"navigate('reports')\"]").forEach(btn => {
+                if (!btn.id) btn.style.display = canViewReports ? '' : 'none';
+            });
+
+            // ডিলিট বাটন নিয়ন্ত্রণ
+            const canDelete = isMaster || hasStaffPermission('deleteRecords');
+            document.querySelectorAll("button[onclick*='deleteRecordDb']").forEach(btn => {
+                btn.style.display = canDelete ? '' : 'none';
+            });
+
+            // মাস্টার না হলে সীমাবদ্ধ পেজে থাকলে ড্যাশবোর্ডে ফিরিয়ে আনা
+            if (!canViewReports && currentActiveView === 'reports') navigate('dashboard', false);
+            if (!canAccessSettings && currentActiveView === 'settings') navigate('dashboard', false);
+            if (!canViewExpenses && currentActiveView === 'expenses') navigate('dashboard', false);
+            if (!canManageStock && currentActiveView === 'fabrics') navigate('dashboard', false);
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
@@ -1319,14 +1622,78 @@
             const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
             document.getElementById('posDeliveryDate').value = nextWeek;
             buildMeasurementModalInputs();
-            navigate('dashboard');
+
+            history.replaceState({ view: 'dashboard' }, '', '#dashboard');
+            applyLoggedInProfilePermissions();
+            navigate('dashboard', false);
         });
 
-        function navigate(viewName) {
+        window.addEventListener('popstate', (event) => {
+            const modalIds = [
+                'measurementModal', 'cloneOrderModal', 'receiptModal',
+                'dueCollectModal', 'newFabricModal', 'addKarigorModal',
+                'addExpenseModal', 'fabricSellModal', 'adminPinModal', 'restockModal'
+            ];
+            let closedAnyModal = false;
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.classList.contains('hidden')) {
+                    el.classList.add('hidden');
+                    closedAnyModal = true;
+                }
+            });
+
+            if (closedAnyModal) {
+                history.pushState({ view: currentActiveView }, '', '#' + currentActiveView);
+                return;
+            }
+
+            if (event.state && event.state.view) {
+                navigate(event.state.view, false);
+            } else if (currentActiveView !== 'dashboard') {
+                history.pushState({ view: 'dashboard' }, '', '#dashboard');
+                navigate('dashboard', false);
+            } else {
+                const now = Date.now();
+                if (now - lastBackPressTime < 2000) return;
+                lastBackPressTime = now;
+                history.pushState({ view: 'dashboard' }, '', '#dashboard');
+                showToast("অ্যাপ থেকে বের হতে আবার ব্যাক বাটন চাপুন");
+            }
+        });
+
+        function navigate(viewName, pushHistory = true) {
+            if (!getActiveProfile()) {
+                applyLoggedInProfilePermissions();
+                return;
+            }
+
+            if (viewName === 'reports' && !isMasterProfile() && !hasStaffPermission('viewReports')) {
+                showToast("আপনার প্রোফাইলে রিপোর্ট দেখার অনুমতি নেই!", true);
+                return;
+            }
+            if (viewName === 'settings' && !isMasterProfile() && !hasStaffPermission('accessSettings')) {
+                showToast("আপনার প্রোফাইলে সেটিংস ব্যবহারের অনুমতি নেই!", true);
+                return;
+            }
+            if (viewName === 'expenses' && !isMasterProfile() && !hasStaffPermission('viewExpenses')) {
+                showToast("আপনার প্রোফাইলে খরচ দেখার অনুমতি নেই!", true);
+                return;
+            }
+            if (viewName === 'fabrics' && !isMasterProfile() && !hasStaffPermission('manageStock')) {
+                showToast("আপনার প্রোফাইলে স্টক দেখার অনুমতি নেই!", true);
+                return;
+            }
+
             if ((viewName === 'reports' || viewName === 'settings') && !window.isAdminUnlocked) {
                 pendingProtectedRoute = viewName;
                 openAdminPinModal();
                 return;
+            }
+
+            currentActiveView = viewName;
+            if (pushHistory) {
+                history.pushState({ view: viewName }, '', '#' + viewName);
             }
 
             document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
@@ -1445,7 +1812,7 @@
             document.getElementById('toastMessage').innerText = msg;
             icon.className = isError ? 'fas fa-exclamation-circle text-rose-400 text-base' : 'fas fa-check-circle text-amber-400 text-base';
             box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 3000);
+            setTimeout(() => box.classList.add('hidden'), 3500);
         }
 
         function switchPosStudioTab(tab) {
@@ -1533,7 +1900,7 @@
 
             const cloneSel = document.getElementById('posCloneOrderSelect');
             cloneSel.innerHTML = '<option value="">🔄 পুরনো অর্ডার থেকে মাপ কপি করুন (১-ক্লিক ক্লোন)</option>' +
-                orders.slice(0, 30).map(o => `<option value="${o.id}">#${o.order_no} - ${o.customer_name} (${o.customer_phone})</option>`).join('');
+                orders.slice(0, 50).map(o => `<option value="${o.id}">#${o.order_no} - ${o.customer_name} (${o.customer_phone})</option>`).join('');
 
             const kSel = document.getElementById('mModalKarigor');
             kSel.innerHTML = '<option value="নির্ধারিত নয়">-- কারিগর বাছুন --</option>' +
@@ -1547,6 +1914,7 @@
             renderKarigorsList();
             renderExpensesList();
             renderReportsSummary(totalSales, totalPaid, totalDue, totalExp);
+            applyLoggedInProfilePermissions();
         }
 
         function renderPosCatalogs() {
@@ -1821,7 +2189,12 @@
             const netTotal = Math.max(0, subtotal - discount);
             const paid = Number(document.getElementById('posPaid').value || 0);
             const due = Math.max(0, netTotal - paid);
-            const nextSerial = 5655 + (window.ordersData || []).length;
+
+            const maxOrderNo = (window.ordersData || []).reduce((max, o) => {
+                const n = Number(o.order_no || 0);
+                return !isNaN(n) && n > max ? n : max;
+            }, 5655);
+            const nextSerial = maxOrderNo + 1;
 
             const orderObj = {
                 order_no: String(nextSerial),
@@ -1897,7 +2270,7 @@
                 <tr><td class="border-r border-gray-400 px-1.5 py-0.5 font-bold bg-gray-50">Due</td><td class="px-1.5 py-0.5 text-right font-extrabold">৳${due.toLocaleString('en-US')}</td></tr>
             `;
 
-            const garmentItems = items.filter(it => it.type === 'garment' || it.measurements);
+            const garmentItems = items.filter(it => it.type === 'garment' || (it.measurements && Object.keys(it.measurements).length > 0));
             const slipsGrid = document.getElementById('recKarigorSlipsGrid');
 
             if (garmentItems.length === 0) {
@@ -2288,6 +2661,237 @@
             reader.readAsText(file);
         }
 
+        // Quoted-Printable ডিকোডার (.mhtml ফাইলের জন্য)
+        function decodeQuotedPrintableUtf8(str) {
+            if (!str.includes('=3D') && !str.includes('=\r\n') && !str.includes('=\n')) return str;
+            const cleaned = str.replace(/=\r?\n/g, '');
+            const bytes = [];
+            for (let i = 0; i < cleaned.length; i++) {
+                if (cleaned[i] === '=' && /^[0-9A-Fa-f]{2}$/.test(cleaned.substr(i + 1, 2))) {
+                    bytes.push(parseInt(cleaned.substr(i + 1, 2), 16));
+                    i += 2;
+                } else {
+                    bytes.push(cleaned.charCodeAt(i));
+                }
+            }
+            try {
+                return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+            } catch (e) {
+                return cleaned;
+            }
+        }
+
+        // Dorji.app স্ন্যাপশট (.mhtml / .html) থেকে data-page JSON এক্সট্র্যাক্ট ও ইম্পোর্ট
+        async function processDorjiSnapshotRawContent(rawText) {
+            const decodedText = decodeQuotedPrintableUtf8(rawText);
+            const match = decodedText.match(/data-page="([^"]+)"/) || decodedText.match(/data-page='([^']+)'/);
+
+            if (!match) {
+                return false;
+            }
+
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = match[1];
+            const pageData = JSON.parse(textarea.value);
+            const rawOrders = pageData?.props?.orders?.data || [];
+
+            if (rawOrders.length === 0) {
+                showToast("ফাইলটিতে কোনো অর্ডার পাওয়া যায়নি।", true);
+                return true;
+            }
+
+            const statusMap = {
+                'pending': 'পেন্ডিং',
+                'cutting': 'কাটিং',
+                'sewing': 'সেলাই চলছে',
+                'in_progress': 'সেলাই চলছে',
+                'ironing': 'রেডি',
+                'completed': 'রেডি',
+                'delivered': 'ডেলিভারি হয়েছে'
+            };
+
+            const existingOrderNos = new Set((window.ordersData || []).map(o => String(o.order_no)));
+            const existingFabricsMap = new Map((window.fabricsData || []).map(f => [f.fabric_name, f]));
+
+            const newOrders = [];
+            const newFabrics = [];
+            const newKarigors = [...(window.karigorsData || [])];
+            const existingKarigorNames = new Set(newKarigors.map(k => k.name));
+
+            for (const o of rawOrders) {
+                const invNo = String(o.invoice_no || o.id);
+                if (existingOrderNos.has(invNo)) continue;
+
+                // কাস্টমার নাম ও ফোন (কখনো কখনো উল্টো এন্ট্রি থাকলে ঠিক করে নেওয়া)
+                let cName = (o.customer?.name || 'গ্রাহক').trim();
+                let cPhone = (o.customer?.phone || '').trim();
+                if (/^01\d{8,9}$/.test(cName) && cPhone && !/^01\d/.test(cPhone)) {
+                    const tmp = cName;
+                    cName = cPhone;
+                    cPhone = tmp;
+                }
+
+                const orderDate = (o.order_date || '').split(' ')[0] || new Date().toISOString().split('T')[0];
+                let deliveryDate = o.delivery_at ? String(o.delivery_at).split(' ')[0] : '';
+
+                const mappedItems = (o.order_items || []).map(it => {
+                    const isProd = Boolean(it.is_it_product) || String(it.itemable_type || '').includes('Product');
+                    const itemName = it.itemable?.name || 'আইটেম';
+                    const qty = Number(it.quantity || 1);
+                    const rate = Number(it.rate || 0);
+                    const total = Number(it.total || (qty * rate));
+
+                    if (!deliveryDate && it.delivery_at) {
+                        deliveryDate = String(it.delivery_at).split(' ')[0];
+                    }
+
+                    // প্রোডাক্ট/কাপড় স্টক আপডেট
+                    if (isProd && it.itemable && !existingFabricsMap.has(itemName)) {
+                        const unitId = it.itemable.sale_unit_id;
+                        const unitLabel = unitId === 7 ? 'পিস' : 'গজ';
+                        const fabObj = {
+                            id: 'imp_f_' + (it.itemable.id || Date.now()) + '_' + newFabrics.length,
+                            category: unitLabel === 'পিস' ? 'product' : 'fabric',
+                            fabric_name: itemName,
+                            stock_quantity: Math.max(0, Number(it.itemable.stock || 0)),
+                            unit: unitLabel,
+                            buy_price: Number(it.itemable.purchase_price || 0),
+                            sell_price: Number(it.itemable.sale_price || rate),
+                            createdAt: new Date().toISOString()
+                        };
+                        existingFabricsMap.set(itemName, fabObj);
+                        newFabrics.push(fabObj);
+                    }
+
+                    // কারিগর নাম থাকলে যোগ করা
+                    let karigorName = 'নির্ধারিত নয়';
+                    if (it.karigor && it.karigor.name) {
+                        karigorName = it.karigor.name;
+                        if (!existingKarigorNames.has(karigorName)) {
+                            existingKarigorNames.add(karigorName);
+                            newKarigors.push({
+                                id: 'imp_k_' + (it.karigor.id || Date.now()),
+                                name: karigorName,
+                                phone: '',
+                                role: 'কারিগর',
+                                createdAt: new Date().toISOString()
+                            });
+                        }
+                    }
+
+                    // ডিজাইন অপশনগুলো সাজানো
+                    const dropdowns = {};
+                    const specials = [];
+                    if (it.designs && typeof it.designs === 'object') {
+                        Object.entries(it.designs).forEach(([dk, dv]) => {
+                            if (Array.isArray(dv) && dv.length > 0) {
+                                dv.forEach(s => specials.push(s));
+                            } else if (typeof dv === 'string' && dv.trim()) {
+                                dropdowns[dk] = dv.trim();
+                            }
+                        });
+                    }
+
+                    const karigorFeePerUnit = Number(it.itemable?.karigor_price || 0);
+
+                    return {
+                        type: isProd ? 'fabric' : 'garment',
+                        name: isProd ? `${itemName} (${qty})` : itemName,
+                        qty: qty,
+                        rate: rate,
+                        total: total,
+                        karigorTotalCost: isProd ? 0 : Math.round(qty * karigorFeePerUnit),
+                        priority: it.priority === 'urgent' ? 'Urgent' : 'Normal',
+                        measurements: (!isProd && it.measurements && !Array.isArray(it.measurements)) ? it.measurements : {},
+                        designs: { dropdowns, specials },
+                        karigor: karigorName,
+                        note: it.note || o.note || ''
+                    };
+                });
+
+                if (!deliveryDate) deliveryDate = orderDate;
+
+                const discountVal = Number(o.discount || 0);
+                const rawTotal = Number(o.total || 0);
+                const paidVal = Number(o.paid || 0);
+                const dueVal = Number(o.due || 0);
+                // Dorji.app তে total হলো ছাড়ের আগের বা পরের মোট; paid + due = নিট বিল
+                const netBill = (paidVal + dueVal) > 0 ? (paidVal + dueVal) : Math.max(0, rawTotal - discountVal);
+
+                newOrders.push({
+                    id: 'imp_o_' + invNo + '_' + Date.now(),
+                    order_no: invNo,
+                    order_date: orderDate,
+                    delivery_date: deliveryDate,
+                    customer_name: cName,
+                    customer_phone: cPhone,
+                    customer_address: '',
+                    items: mappedItems,
+                    subtotal: netBill + discountVal,
+                    discount: discountVal,
+                    total_bill: netBill,
+                    previous_due: Number(o.previous_due || 0),
+                    paid_amount: paidVal,
+                    due_amount: dueVal,
+                    payment_method: o.payments?.[0]?.payment_method?.name || 'Cash',
+                    status: statusMap[o.status] || 'পেন্ডিং'
+                });
+                existingOrderNos.add(invNo);
+            }
+
+            if (newOrders.length === 0 && newFabrics.length === 0) {
+                showToast("এই ফাইলের সব অর্ডার ও কাপড় ইতিমধ্যেই আপনার অ্যাপে যুক্ত আছে!");
+                return true;
+            }
+
+            window.ordersData = [...newOrders, ...(window.ordersData || [])];
+            window.fabricsData = [...newFabrics, ...(window.fabricsData || [])];
+            window.karigorsData = newKarigors;
+
+            await importBackupToDb({
+                orders: window.ordersData,
+                fabrics: window.fabricsData,
+                karigors: window.karigorsData,
+                newOrdersOnly: newOrders,
+                newFabricsOnly: newFabrics
+            });
+
+            showToast(`সফল! ${newOrders.length} টি অর্ডার ও ${newFabrics.length} টি কাপড়/পণ্য ইম্পোর্ট হয়েছে!`);
+            return true;
+        }
+
+        function importDorjiMhtmlSnapshot(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            showToast("ফাইল পড়া হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...");
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const ok = await processDorjiSnapshotRawContent(e.target.result);
+                    if (!ok) {
+                        showToast("এই ফাইলে Dorji.app ডাটা পাওয়া যায়নি!", true);
+                    }
+                } catch (err) {
+                    showToast("ইম্পোর্ট সমস্যা: " + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function parseAndImportMobileCopiedData() {
+            const raw = (document.getElementById('mobilePasteRawText')?.value || '').trim();
+            if (!raw) {
+                showToast("আগে লেখা বা স্ন্যাপশট কোড এখানে পেস্ট করুন!", true);
+                return;
+            }
+            const handledSnapshot = await processDorjiSnapshotRawContent(raw);
+            if (handledSnapshot) {
+                document.getElementById('mobilePasteRawText').value = "";
+                return;
+            }
+            showToast("সঠিক ফাইল বা কপি করা ডাটা দিন!", true);
+        }
+
         function switchSettingsTab(tabName) {
             document.querySelectorAll('.s-panel').forEach(p => p.classList.add('hidden'));
             document.getElementById('spanel-' + tabName).classList.remove('hidden');
@@ -2359,6 +2963,86 @@
                     <button onclick="window.tailorConfig.specialDesigns.splice(${idx}, 1); renderSettingsAdminPanels();" class="text-rose-500 hover:text-rose-700 px-2 pt-3"><i class="fas fa-trash"></i></button>
                 </div>
             `).join('');
+
+            const profiles = cfg.staffProfiles || [];
+            document.getElementById('settingsStaffProfilesList').innerHTML = profiles.map((p, idx) => {
+                const isMaster = p.role === 'master_admin';
+                const perms = p.permissions || {};
+                return `
+                <div class="p-3 border rounded-xl ${isMaster ? 'bg-amber-50/50 border-amber-300' : 'bg-gray-50 border-gray-200'} space-y-2.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2 flex-1">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold ${isMaster ? 'bg-amber-400 text-emerald-950' : 'bg-emerald-100 text-emerald-900'}">
+                                ${p.roleLabel || (isMaster ? 'মাস্টার অ্যাডমিন' : 'স্টাফ / কারিগর')}
+                            </span>
+                            <input type="text" value="${p.name}" onchange="window.tailorConfig.staffProfiles[${idx}].name = this.value" class="border rounded-lg px-2 py-1 bg-white font-bold text-xs">
+                            <input type="tel" value="${p.phone}" onchange="window.tailorConfig.staffProfiles[${idx}].phone = this.value" class="border rounded-lg px-2 py-1 bg-white font-mono font-bold text-xs w-32">
+                            <input type="text" value="${p.password}" onchange="window.tailorConfig.staffProfiles[${idx}].password = this.value" placeholder="পাসওয়ার্ড" class="border rounded-lg px-2 py-1 bg-white font-mono font-bold text-xs w-28">
+                        </div>
+                        ${!isMaster ? `<button type="button" onclick="window.tailorConfig.staffProfiles.splice(${idx}, 1); renderSettingsAdminPanels();" class="text-rose-600 hover:text-rose-800 px-2 py-1 font-bold text-xs"><i class="fas fa-trash mr-1"></i> মুছুন</button>` : ''}
+                    </div>
+                    ${!isMaster ? `
+                    <div class="flex flex-wrap gap-3 pt-1 border-t border-gray-200/80 text-[11px] font-semibold text-gray-700">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" ${perms.viewReports ? 'checked' : ''} onchange="window.tailorConfig.staffProfiles[${idx}].permissions.viewReports = this.checked" class="accent-emerald-700">
+                            <span>লাভ ও রিপোর্ট</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" ${perms.viewExpenses ? 'checked' : ''} onchange="window.tailorConfig.staffProfiles[${idx}].permissions.viewExpenses = this.checked" class="accent-emerald-700">
+                            <span>দৈনন্দিন খরচ</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" ${perms.manageStock ? 'checked' : ''} onchange="window.tailorConfig.staffProfiles[${idx}].permissions.manageStock = this.checked" class="accent-emerald-700">
+                            <span>কাপড় ও স্টক</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" ${perms.accessSettings ? 'checked' : ''} onchange="window.tailorConfig.staffProfiles[${idx}].permissions.accessSettings = this.checked" class="accent-emerald-700">
+                            <span>সেটিংস</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" ${perms.deleteRecords ? 'checked' : ''} onchange="window.tailorConfig.staffProfiles[${idx}].permissions.deleteRecords = this.checked" class="accent-emerald-700">
+                            <span>ডিলিট অনুমতি</span>
+                        </label>
+                    </div>` : `<div class="text-[10px] text-amber-900 font-bold">মাস্টার অ্যাডমিন প্রোফাইলে সব ধরনের অ্যাক্সেস সক্রিয় রয়েছে।</div>`}
+                </div>`;
+            }).join('');
+        }
+
+        function addStaffProfileEntry() {
+            const name = (document.getElementById('newStaffNameInput')?.value || '').trim();
+            const phone = normalizeBdPhone(document.getElementById('newStaffPhoneInput')?.value);
+            const password = (document.getElementById('newStaffPasswordInput')?.value || '').trim();
+
+            if (!name || !phone || !password) {
+                showToast("নাম, মোবাইল নম্বর এবং পাসওয়ার্ড তিনটিই দিন!", true);
+                return;
+            }
+
+            if (!Array.isArray(window.tailorConfig.staffProfiles)) {
+                window.tailorConfig.staffProfiles = [];
+            }
+
+            window.tailorConfig.staffProfiles.push({
+                id: "staff_" + Date.now(),
+                name,
+                phone,
+                password,
+                role: "staff",
+                roleLabel: "স্টাফ / কারিগর",
+                permissions: {
+                    viewReports: false,
+                    viewExpenses: false,
+                    manageStock: false,
+                    accessSettings: false,
+                    deleteRecords: false
+                }
+            });
+
+            document.getElementById('newStaffNameInput').value = "";
+            document.getElementById('newStaffPhoneInput').value = "";
+            document.getElementById('newStaffPasswordInput').value = "";
+            renderSettingsAdminPanels();
+            showToast("নতুন স্টাফ প্রোফাইল যুক্ত হয়েছে — উপরে 'সব সেটিংস সেভ করুন' চাপুন");
         }
 
         function addSettingGarment() {
