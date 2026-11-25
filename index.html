@@ -597,27 +597,27 @@
                             <option value="ডেলিভারি হয়েছে">ডেলিভারি হয়েছে</option>
                         </select>
                         <button onclick="navigate('pos')" class="royal-gradient text-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-extrabold">+ নতুন অর্ডার</button>
-                    </div>
                 </div>
+            </div>
 
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-emerald-50 text-emerald-950 border-b font-extrabold">
-                                <th class="p-3">মেমো #</th>
-                                <th class="p-3">কাস্টমার</th>
-                                <th class="p-3">পোশাক ও ডেলিভারি</th>
-                                <th class="p-3">টাকার হিসাব</th>
-                                <th class="p-3">অবস্থা (Status)</th>
-                                <th class="p-3 text-right">অ্যাকশন</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody" class="divide-y divide-gray-100"></tbody>
-                    </table>
-                </div>
-            </section>
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-emerald-50 text-emerald-950 border-b font-extrabold">
+                            <th class="p-3">মেমো #</th>
+                            <th class="p-3">কাস্টমার</th>
+                            <th class="p-3">পোশাক ও ডেলিভারি <span class="text-[10px] font-normal text-emerald-700">(ক্লিক করে কাটিং করুন)</span></th>
+                            <th class="p-3">টাকার হিসাব</th>
+                            <th class="p-3">অবস্থা (Status)</th>
+                            <th class="p-3 text-right">অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </section>
 
-            <!-- ৪. কাস্টমার তালিকা ও বকেয়া লেজার -->
+        <!-- ৪. কাস্টমার তালিকা ও বকেয়া লেজার -->
             <section id="view-customers" class="app-view hidden space-y-3">
                 <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-sm flex flex-wrap justify-between items-center gap-2">
                     <h2 class="text-base font-extrabold text-emerald-950">কাস্টমার তালিকা ও বকেয়া লেজার</h2>
@@ -1184,11 +1184,44 @@
                 </div>
 
                 <div id="recKarigorSlipsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1"></div>
+        </div>
+    </div>
+</div>
+
+<!-- কাটিং স্টুডিও মডাল (অর্ডার ও মাপ দেখে কাটিং ডান করার জন্য) -->
+<div id="cuttingStudioModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-4 space-y-3 my-auto shadow-2xl border-2 border-emerald-500">
+        <div class="royal-gradient text-white p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider bg-amber-400 text-emerald-950 px-2.5 py-0.5 rounded-full">
+                    <i class="fas fa-cut mr-1"></i> Cutting Master Desk
+                </span>
+                <h3 id="cutModalTitle" class="text-base font-extrabold text-amber-300 mt-1">মেমো #0000 — কাটিং শীট</h3>
+                <p id="cutModalCustMeta" class="text-[11px] text-emerald-200"></p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openReceiptFromCuttingModal()" class="bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <i class="fas fa-print mr-1"></i> A4 মেমো
+                </button>
+                <button onclick="closeModal('cuttingStudioModal')" class="text-2xl text-white hover:text-amber-300 px-1 leading-none">&times;</button>
+            </div>
+        </div>
+
+        <div id="cutModalItemsList" class="space-y-3 max-h-[62vh] overflow-y-auto pr-1"></div>
+
+        <div class="flex flex-wrap justify-between items-center gap-2 border-t pt-3 text-xs">
+            <div id="cutModalProgressSummary" class="font-extrabold text-emerald-950"></div>
+            <div class="flex gap-2">
+                <button onclick="closeModal('cuttingStudioModal')" class="px-4 py-2 border rounded-xl font-bold text-gray-600">বন্ধ করুন</button>
+                <button id="cutMarkAllDoneBtn" onclick="markAllItemsCuttingDone()" class="gold-accent hover:opacity-95 text-gray-950 px-5 py-2 rounded-xl font-extrabold shadow">
+                    <i class="fas fa-check-double mr-1"></i> সব আইটেম কাটিং ডান করুন
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="dueCollectModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+<div id="dueCollectModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-sm font-extrabold text-emerald-950">বকেয়া টাকা আদায় করুন</h3>
@@ -1855,6 +1888,7 @@
         let activeEditingFabric = null;
         let activeEditingKarigor = null;
         let activeEditingExpense = null;
+        let activeCuttingOrderId = null;
         window.isAdminUnlocked = false;
         let pendingProtectedRoute = null;
         let currentActiveView = 'dashboard';
@@ -2019,7 +2053,7 @@
             const modalIds = [
                 'measurementModal', 'editOrderModal', 'editCustomerModal', 'editFabricModal',
                 'editKarigorModal', 'editExpenseModal', 'cloneOrderModal', 'receiptModal',
-                'dueCollectModal', 'newFabricModal', 'addKarigorModal',
+                'cuttingStudioModal', 'dueCollectModal', 'newFabricModal', 'addKarigorModal',
                 'addExpenseModal', 'fabricSellModal', 'adminPinModal', 'restockModal'
             ];
             let closedAnyModal = false;
@@ -2944,16 +2978,29 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(o => `
-                <tr class="hover:bg-emerald-50/40">
-                    <td class="p-3 font-extrabold text-emerald-950">#${o.order_no}<div class="text-[10px] text-gray-400 font-normal">${o.order_date}</div></td>
-                    <td class="p-3">
+            tbody.innerHTML = filtered.map(o => {
+                const garmentItems = (o.items || []).filter(it => it.type === 'garment' || (it.measurements && Object.keys(it.measurements).length > 0));
+                const cutDoneCount = garmentItems.filter(it => it.cutting_done).length;
+                const cutBadge = garmentItems.length > 0
+                    ? `<span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${cutDoneCount === garmentItems.length ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">
+                        <i class="fas fa-cut mr-1"></i>কাটিং: ${cutDoneCount}/${garmentItems.length}
+                       </span>`
+                    : '';
+
+                return `
+                <tr class="hover:bg-emerald-50/50 transition">
+                    <td onclick="openCuttingStudioModal('${o.id}')" class="cursor-pointer p-3 font-extrabold text-emerald-950" title="ক্লিক করে কাটিং শীট খুলুন">
+                        <span class="underline decoration-emerald-400">#${o.order_no}</span>
+                        <div class="text-[10px] text-gray-400 font-normal">${o.order_date}</div>
+                    </td>
+                    <td onclick="openCuttingStudioModal('${o.id}')" class="cursor-pointer p-3" title="ক্লিক করে কাটিং শীট খুলুন">
                         <div class="font-bold text-gray-900">${o.customer_name}</div>
                         <div class="text-[11px] text-gray-500">${o.customer_phone}</div>
                     </td>
-                    <td class="p-3">
-                        ${(o.items || []).map(it => `<div class="text-[11px] font-medium">• ${it.qty}x ${it.name}</div>`).join('')}
+                    <td onclick="openCuttingStudioModal('${o.id}')" class="cursor-pointer p-3 group" title="ক্লিক করে মাপ ও কাটিং দেখুন">
+                        ${(o.items || []).map(it => `<div class="text-[11px] font-medium group-hover:text-emerald-800">• ${it.qty}x ${it.name} ${it.cutting_done ? '<i class="fas fa-check-circle text-emerald-600 ml-1"></i>' : ''}</div>`).join('')}
                         <div class="text-[10px] text-rose-600 font-extrabold mt-0.5">ডেলিভারি: ${o.delivery_date}</div>
+                        ${cutBadge}
                     </td>
                     <td class="p-3">
                         <div>মোট: <b>৳${o.total_bill}</b></div>
@@ -2966,6 +3013,7 @@
                         </select>
                     </td>
                     <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                        <button onclick="openCuttingStudioModal('${o.id}')" class="bg-emerald-800 hover:bg-emerald-900 text-amber-300 px-2.5 py-1 rounded-lg text-[11px] font-extrabold" title="কাটিং শীট ও মাপ"><i class="fas fa-cut mr-1"></i>কাটিং</button>
                         <button onclick='openEditOrderModal(${JSON.stringify(o).replace(/'/g, "&apos;")})' class="bg-sky-700 hover:bg-sky-800 text-white px-2 py-1 rounded-lg text-[11px]" title="অর্ডার এডিট"><i class="fas fa-edit"></i></button>
                         <button onclick='shareMemoToWhatsApp(${JSON.stringify(o).replace(/'/g, "&apos;")})' class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[11px]" title="WhatsApp মেমো"><i class="fab fa-whatsapp"></i></button>
                         <button onclick='openOrderReceipt(${JSON.stringify(o).replace(/'/g, "&apos;")})' class="bg-gray-800 text-white px-2 py-1 rounded-lg text-[11px]" title="প্রিন্ট রশিদ"><i class="fas fa-print"></i></button>
@@ -2973,7 +3021,158 @@
                         ${canDelete ? `<button onclick="deleteRecordDb('orders', '${o.id}', 'orders')" class="text-rose-500 hover:text-rose-700 px-1.5"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+
+        function openCuttingStudioModal(orderId) {
+            activeCuttingOrderId = orderId;
+            renderCuttingStudioContent();
+            document.getElementById('cuttingStudioModal').classList.remove('hidden');
+        }
+
+        function openReceiptFromCuttingModal() {
+            const ord = (window.ordersData || []).find(o => o.id === activeCuttingOrderId);
+            if (!ord) return;
+            closeModal('cuttingStudioModal');
+            openOrderReceipt(ord);
+        }
+
+        function renderCuttingStudioContent() {
+            const ord = (window.ordersData || []).find(o => o.id === activeCuttingOrderId);
+            if (!ord) return;
+
+            document.getElementById('cutModalTitle').innerText = `মেমো #${ord.order_no} — ${ord.customer_name}`;
+            document.getElementById('cutModalCustMeta').innerText = `মোবাইল: ${ord.customer_phone} | অর্ডার: ${ord.order_date} | ডেলিভারি: ${ord.delivery_date} | বর্তমান অবস্থা: ${ord.status}`;
+
+            const items = ord.items || [];
+            const karigors = window.karigorsData || [];
+            let garmentCount = 0;
+            let doneCount = 0;
+
+            document.getElementById('cutModalItemsList').innerHTML = items.map((it, idx) => {
+                const isGarment = it.type === 'garment' || (it.measurements && Object.keys(it.measurements).length > 0);
+                if (isGarment) {
+                    garmentCount++;
+                    if (it.cutting_done) doneCount++;
+                }
+
+                const measEntries = it.measurements ? Object.entries(it.measurements) : [];
+                const ddList = it.designs?.dropdowns ? Object.entries(it.designs.dropdowns).map(([k, v]) => `${k}: <b>${v}</b>`) : [];
+                const spList = it.designs?.specials ? it.designs.specials : [];
+
+                return `
+                <div class="p-3.5 rounded-2xl border-2 ${it.cutting_done ? 'bg-emerald-50/70 border-emerald-400' : 'bg-white border-gray-200'} shadow-sm space-y-2.5">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl ${it.cutting_done ? 'bg-emerald-700 text-white' : 'bg-amber-100 text-amber-950'} flex items-center justify-center font-extrabold text-xs">
+                                ${idx + 1}
+                            </span>
+                            <div>
+                                <div class="font-extrabold text-sm text-gray-900">${it.name} <span class="text-xs font-bold text-emerald-800">(পরিমাণ: ${it.qty} পিস)</span></div>
+                                <div class="text-[11px] text-gray-500">
+                                    প্রায়োরিটি: <b class="${it.priority === 'Urgent' ? 'text-rose-600' : 'text-gray-700'}">${it.priority || 'Normal'}</b>
+                                    ${it.cutting_done_at ? ` | <span class="text-emerald-700 font-bold">কাটিং সম্পন্ন: ${it.cutting_done_at}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${isGarment ? `
+                            <select onchange="assignKarigorFromCutting(${idx}, this.value)" class="border border-gray-300 rounded-xl px-2.5 py-1.5 text-xs font-bold bg-gray-50">
+                                <option value="নির্ধারিত নয়" ${(it.karigor === 'নির্ধারিত নয়' || !it.karigor) ? 'selected' : ''}>-- কারিগর দিন --</option>
+                                ${karigors.map(k => `<option value="${k.name}" ${it.karigor === k.name ? 'selected' : ''}>${k.name}</option>`).join('')}
+                            </select>
+                            <button onclick="toggleItemCuttingDone(${idx})" class="${it.cutting_done ? 'bg-emerald-700 hover:bg-emerald-800 text-white' : 'royal-gradient hover:opacity-95 text-amber-300'} px-3.5 py-1.5 rounded-xl text-xs font-extrabold shadow transition">
+                                <i class="fas ${it.cutting_done ? 'fa-check-circle' : 'fa-cut'} mr-1"></i>
+                                ${it.cutting_done ? 'কাটিং ডান ✓' : 'কাটিং ডান করুন'}
+                            </button>` : `<span class="bg-purple-100 text-purple-900 px-2.5 py-1 rounded-xl text-[11px] font-bold">কাপড় / রেডিমেড পণ্য</span>`}
+                        </div>
+                    </div>
+
+                    ${measEntries.length > 0 ? `
+                    <div>
+                        <div class="text-[11px] font-extrabold text-emerald-950 mb-1.5"><i class="fas fa-ruler-combined mr-1 text-emerald-700"></i> শরীরের মাপসমূহ:</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                            ${measEntries.map(([k, v]) => `
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-xl px-2 py-1.5 text-center">
+                                    <div class="text-[10px] font-bold text-gray-600">${k}</div>
+                                    <div class="text-sm font-extrabold text-emerald-950">${v}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>` : (isGarment ? `<div class="text-xs text-gray-400 italic">এই পোশাকের জন্য আলাদা মাপ লেখা নেই</div>` : '')}
+
+                    ${(ddList.length > 0 || spList.length > 0 || it.note) ? `
+                    <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 text-xs space-y-1">
+                        ${ddList.length > 0 ? `<div class="text-gray-800"><span class="font-extrabold text-amber-950">ডিজাইন:</span> ${ddList.join(' | ')}</div>` : ''}
+                        ${spList.length > 0 ? `<div class="text-gray-800"><span class="font-extrabold text-amber-950">স্পেশাল কাজ:</span> ${spList.join(', ')}</div>` : ''}
+                        ${it.note ? `<div class="text-rose-800 font-bold"><i class="fas fa-sticky-note mr-1"></i>নোট: ${it.note}</div>` : ''}
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+            document.getElementById('cutModalProgressSummary').innerText =
+                garmentCount > 0 ? `কাটিং অগ্রগতি: ${doneCount} / ${garmentCount} টি পোশাক সম্পন্ন` : 'এই মেমোতে কাটিংযোগ্য পোশাক নেই';
+
+            const allBtn = document.getElementById('cutMarkAllDoneBtn');
+            if (garmentCount === 0 || doneCount === garmentCount) {
+                allBtn.classList.add('hidden');
+            } else {
+                allBtn.classList.remove('hidden');
+            }
+        }
+
+        async function assignKarigorFromCutting(itemIdx, karigorName) {
+            const ord = (window.ordersData || []).find(o => o.id === activeCuttingOrderId);
+            if (!ord || !ord.items[itemIdx]) return;
+            const updatedItems = JSON.parse(JSON.stringify(ord.items));
+            updatedItems[itemIdx].karigor = karigorName;
+            await updateOrderFullDb(ord.id, { items: updatedItems });
+            renderCuttingStudioContent();
+        }
+
+        async function toggleItemCuttingDone(itemIdx) {
+            const ord = (window.ordersData || []).find(o => o.id === activeCuttingOrderId);
+            if (!ord || !ord.items[itemIdx]) return;
+
+            const updatedItems = JSON.parse(JSON.stringify(ord.items));
+            const nextState = !updatedItems[itemIdx].cutting_done;
+            updatedItems[itemIdx].cutting_done = nextState;
+            updatedItems[itemIdx].cutting_done_at = nextState ? new Date().toLocaleDateString('bn-BD') : '';
+
+            const garmentItems = updatedItems.filter(it => it.type === 'garment' || (it.measurements && Object.keys(it.measurements).length > 0));
+            const allDone = garmentItems.length > 0 && garmentItems.every(it => it.cutting_done);
+            const anyDone = garmentItems.some(it => it.cutting_done);
+
+            let nextStatus = ord.status;
+            if (allDone && (ord.status === 'পেন্ডিং' || ord.status === 'কাটিং')) {
+                nextStatus = 'সেলাই চলছে';
+            } else if (anyDone && ord.status === 'পেন্ডিং') {
+                nextStatus = 'কাটিং';
+            }
+
+            await updateOrderFullDb(ord.id, { items: updatedItems, status: nextStatus });
+            renderCuttingStudioContent();
+            showToast(nextState ? `${updatedItems[itemIdx].name} — কাটিং ডান হয়েছে!` : "কাটিং অবস্থা ফিরিয়ে নেওয়া হয়েছে");
+        }
+
+        async function markAllItemsCuttingDone() {
+            const ord = (window.ordersData || []).find(o => o.id === activeCuttingOrderId);
+            if (!ord) return;
+
+            const todayLabel = new Date().toLocaleDateString('bn-BD');
+            const updatedItems = JSON.parse(JSON.stringify(ord.items || [])).map(it => {
+                const isGarment = it.type === 'garment' || (it.measurements && Object.keys(it.measurements).length > 0);
+                if (isGarment) {
+                    return { ...it, cutting_done: true, cutting_done_at: it.cutting_done_at || todayLabel };
+                }
+                return it;
+            });
+
+            const nextStatus = (ord.status === 'পেন্ডিং' || ord.status === 'কাটিং') ? 'সেলাই চলছে' : ord.status;
+            await updateOrderFullDb(ord.id, { items: updatedItems, status: nextStatus });
+            renderCuttingStudioContent();
+            showToast("এই মেমোর সব পোশাকের কাটিং ডান সম্পন্ন হয়েছে!");
         }
 
         function openDueCollectModal(ord) {
