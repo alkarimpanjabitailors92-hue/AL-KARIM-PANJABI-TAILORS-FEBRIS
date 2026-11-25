@@ -207,429 +207,371 @@
             <div id="dashboardCalendarGrid" class="overflow-x-auto"></div>
         </div>
 
-        <!-- Two Column Overview: Cutting Queue + Due Collection -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <!-- Cutting Queue Card -->
-            <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <h3 class="text-base sm:text-lg font-bold text-emerald-950">কাটিং ও প্রোডাকশন কিউ</h3>
-                        <p class="text-xs text-gray-500">অর্ডারে ক্লিক করে কাটিং ডান, সেলাই ডান ও কমপ্লিট ডান দিন</p>
+            <!-- Two Column Overview: Cutting Queue + Due Collection -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <!-- Cutting Queue Card -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-emerald-950">কাটিং ও প্রোডাকশন কিউ</h3>
+                            <p class="text-xs text-gray-500">অর্ডারে ক্লিক করে কাটিং ডান, সেলাই ডান ও কমপ্লিট ডান দিন</p>
+                        </div>
+                        <button onclick="navigateTo('orders')" class="text-xs font-bold text-emerald-700 hover:underline">সব দেখুন →</button>
                     </div>
-                    <button onclick="navigateTo('orders')" class="text-xs font-bold text-emerald-700 hover:underline">সব দেখুন →</button>
+                    <div id="dashCuttingList" class="space-y-2.5"></div>
                 </div>
-                <div id="dashCuttingList" class="space-y-2.5"></div>
-            </div>
 
-            <!-- Pending Dues Card -->
-            <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <h3 class="text-base sm:text-lg font-bold text-emerald-950">বকেয়া আদায় তালিকা</h3>
-                        <p class="text-xs text-gray-500">দ্রুত জমা / পেমেন্ট নিতে পাশে ক্লিক করুন</p>
+                <!-- Pending Dues Card -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-emerald-950">বকেয়া আদায় তালিকা</h3>
+                            <p class="text-xs text-gray-500">দ্রুত জমা / পেমেন্ট নিতে পাশে ক্লিক করুন</p>
+                        </div>
+                        <button onclick="navigateTo('customers')" class="text-xs font-bold text-amber-700 hover:underline">লেজার দেখুন →</button>
                     </div>
-                    <button onclick="navigateTo('customers')" class="text-xs font-bold text-amber-700 hover:underline">লেজার দেখুন →</button>
+                    <div id="dashDueList" class="space-y-2.5"></div>
                 </div>
-                <div id="dashDueList" class="space-y-2.5"></div>
             </div>
-        </div>
     </section>
 
     <!-- ==================== 2. NEW ORDER VIEW ==================== -->
     <section id="view-new-order" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-emerald-100 space-y-4">
-            <!-- Top Bar: Memo # + Order Date + Delivery Date -->
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b">
+        <form id="newOrderForm" onsubmit="handleCreateOrder(event)" class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3.5">
                 <div>
-                    <h2 class="text-base sm:text-xl font-bold text-emerald-950">নতুন অর্ডার ও মেমো তৈরি</h2>
-                    <p class="text-xs text-gray-500">পোশাকের ছবিতে ক্লিক করে মাপ ও ডিজাইন দিন, মাঝখান থেকে ফেব্রিক্স/লট যুক্ত করুন, ডানে কার্ট দেখুন</p>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">নতুন অর্ডার ও ক্যাশ মেমো</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">পোশাক বা ফেব্রিক্স সিলেক্ট করুন, মাপ ও ডিজাইন দিন এবং মেমো কনফার্ম করুন</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <div class="bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1">
-                        <span class="font-semibold text-emerald-900">মেমো #:</span>
-                        <input type="text" id="orderMemoNo" class="w-16 bg-transparent font-bold text-emerald-950 outline-none">
-                    </div>
-                    <div class="bg-gray-50 border px-2.5 py-1.5 rounded-xl flex items-center gap-1">
-                        <span class="font-semibold text-gray-700">অর্ডার তারিখ:</span>
-                        <input type="date" id="ordOrderDate" class="bg-transparent font-semibold text-gray-900 outline-none">
-                    </div>
-                    <div class="bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1">
-                        <span class="font-semibold text-amber-900">ডেলিভারি:</span>
-                        <input type="date" id="ordDeliveryDate" required class="bg-transparent font-bold text-amber-950 outline-none">
-                    </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="resetOrderForm()" class="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs sm:text-sm font-bold">
+                        রিসেট
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                        ✓ অর্ডার কনফার্ম ও মেমো
+                    </button>
                 </div>
             </div>
 
-            <!-- Customer Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50/90 p-3 rounded-2xl border">
+            <!-- Customer & Memo Header -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-100">
                 <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">কাস্টমারের নাম *</label>
-                    <input type="text" id="ordCustomerName" required list="existingCustomersList" oninput="autofillCustomerByName(this.value)"
-                           placeholder="কাস্টমারের নাম লিখুন..."
-                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">মেমো নং *</label>
+                    <input type="text" id="orderMemoNo" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-emerald-950">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">কাস্টমারের নাম *</label>
+                    <input type="text" id="ordCustomerName" list="existingCustomersList" oninput="autofillCustomerByName(this.value)" required placeholder="নাম লিখুন বা খুঁজুন..." class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold">
                     <datalist id="existingCustomersList"></datalist>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">মোবাইল নম্বর *</label>
-                    <input type="tel" id="ordCustomerPhone" required placeholder="017XXXXXXXX"
-                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">মোবাইল নম্বর *</label>
+                    <input type="tel" id="ordCustomerPhone" required placeholder="017XXXXXXXX" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">হোয়াটসঅ্যাপ (থাকলে)</label>
-                    <input type="tel" id="ordCustomerWhatsapp" placeholder="017XXXXXXXX"
-                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">হোয়াটসঅ্যাপ নম্বর (ঐচ্ছিক)</label>
+                    <input type="tel" id="ordCustomerWhatsapp" placeholder="থাকলে WhatsApp যাবে" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">ঠিকানা</label>
-                    <input type="text" id="ordCustomerAddress" placeholder="সদর রোড, বাকেরগঞ্জ"
-                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">অর্ডার তারিখ</label>
+                    <input type="date" id="ordOrderDate" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">ডেলিভারি তারিখ *</label>
+                    <input type="date" id="ordDeliveryDate" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">ঠিকানা</label>
+                    <input type="text" id="ordCustomerAddress" placeholder="গ্রাম / রোড / এলাকা" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">বিশেষ নোট</label>
+                    <input type="text" id="ordGeneralNote" placeholder="যেমন: ঈদের আগে চাই" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm">
                 </div>
             </div>
 
-            <!-- 3-Column Studio Layout: Left Garment Image Grid | Middle Fabrics & Lots | Right Cart & Billing -->
-            <form id="newOrderForm" onsubmit="handleCreateOrder(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                <!-- LEFT: Garment Visual Grid (6 cols) -->
-                <div class="lg:col-span-6 bg-white rounded-2xl border border-emerald-200 p-3 space-y-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs sm:text-sm font-bold text-emerald-950">পোশাকের ধরন (ছবিতে ক্লিক করুন)</span>
-                        <input type="text" id="garmentGridSearch" oninput="renderGarmentVisualGrid()" placeholder="পোশাক খুঁজুন..."
-                               class="rounded-xl border border-gray-200 px-2.5 py-1 text-xs outline-none focus:border-emerald-500">
+            <!-- 3-Column Builder: Garments Grid | Fabrics & Lots | Cart & Billing -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                <!-- Left: Garments Visual Grid -->
+                <div class="lg:col-span-6 bg-gray-50/80 border rounded-2xl p-3.5 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h3 class="text-sm sm:text-base font-bold text-emerald-950">পোশাক সিলেক্ট করুন (মাপ ও ডিজাইন)</h3>
+                        <input type="text" id="garmentGridSearch" oninput="renderGarmentVisualGrid()" placeholder="পোশাক খুঁজুন..." class="rounded-xl border border-gray-300 bg-white px-3 py-1 text-xs outline-none">
                     </div>
-                    <div id="orderGarmentVisualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+                    <div id="orderGarmentVisualGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                 </div>
 
-                <!-- MIDDLE: Fabrics & Lot Categories List (3 cols) -->
-                <div class="lg:col-span-3 bg-emerald-50/40 rounded-2xl border border-emerald-200 p-3 space-y-2.5">
+                <!-- Middle: Fabrics & Design Lots -->
+                <div class="lg:col-span-3 bg-amber-50/40 border border-amber-200/80 rounded-2xl p-3.5 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-emerald-950">— Fabrics ও স্টক —</span>
-                        <button type="button" onclick="addClothRowToOrder()" class="text-[11px] font-bold text-amber-800 hover:underline">+ গজ</button>
+                        <h3 class="text-sm font-bold text-amber-950">ফেব্রিক্স (গজ কাপড়)</h3>
+                        <button type="button" onclick="addClothRowToOrder()" class="px-2 py-1 rounded-lg bg-amber-500 text-emerald-950 text-[11px] font-bold">+ কাপড়</button>
                     </div>
-                    <div id="middleFabricsCategoryList" class="space-y-1 max-h-[300px] overflow-y-auto pr-1"></div>
-
-                    <div class="border-t pt-2 space-y-1.5">
-                        <div class="text-xs font-bold text-gray-800">— লট ও ডিজাইন লিস্ট —</div>
-                        <div id="middleLotsList" class="space-y-1 max-h-[180px] overflow-y-auto pr-1"></div>
+                    <div id="middleFabricsCategoryList" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+                    <div class="border-t border-amber-200/80 pt-2.5">
+                        <div class="text-xs font-bold text-gray-700 mb-1.5">ডিজাইন ও লট ট্যাগ</div>
+                        <div id="middleLotsList"></div>
                     </div>
                 </div>
 
-                <!-- RIGHT: Cart & Billing Panel (3 cols) -->
-                <div class="lg:col-span-3 bg-gray-50 rounded-2xl border border-gray-200 p-3.5 space-y-3 sticky top-28">
-                    <div class="flex items-center justify-between border-b pb-2">
-                        <span class="text-xs sm:text-sm font-bold text-emerald-950">🛒 অর্ডার কার্ট</span>
-                        <span id="cartItemBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900">০টি আইটেম</span>
+                <!-- Right: Cart & Billing Summary -->
+                <div class="lg:col-span-3 bg-emerald-50/50 border border-emerald-200 rounded-2xl p-3.5 space-y-3">
+                    <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+                        <h3 class="text-sm font-bold text-emerald-950">অর্ডার কার্ট ও বিল</h3>
+                        <span id="cartItemBadge" class="px-2 py-0.5 rounded-full bg-emerald-700 text-white text-[11px] font-bold">0টি আইটেম</span>
                     </div>
 
-                    <!-- Selected Garments & Cloths in Cart -->
-                    <div id="orderGarmentsContainer" class="space-y-2 max-h-56 overflow-y-auto pr-0.5"></div>
-                    <div id="orderClothsContainer" class="space-y-2 max-h-36 overflow-y-auto pr-0.5"></div>
+                    <div id="orderGarmentsContainer" class="space-y-2 max-h-56 overflow-y-auto"></div>
+                    <div id="orderClothsContainer" class="space-y-2"></div>
 
-                    <!-- Note & SMS -->
-                    <div>
-                        <input type="text" id="ordGeneralNote" placeholder="বিশেষ নোট / নির্দেশনা..."
-                               class="w-full rounded-xl border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
-                        <label class="flex items-center gap-1.5 mt-1.5 text-[11px] text-gray-700 font-medium cursor-pointer">
-                            <input type="checkbox" id="ordSendSms" checked class="w-3.5 h-3.5 rounded text-emerald-700">
-                            <span>অর্ডার কনফার্ম SMS / WhatsApp</span>
-                        </label>
-                    </div>
-
-                    <!-- Totals, Discount, Advance, Due -->
-                    <div class="bg-white rounded-xl p-3 border border-emerald-100 space-y-1.5 text-xs">
-                        <div class="flex justify-between text-gray-600">
-                            <span>টেইলার্স বিল:</span>
-                            <span id="calcTailorTotal" class="font-bold text-gray-900">৳০</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600">
-                            <span>ফেব্রিক্স কাপড় বিল:</span>
-                            <span id="calcClothTotal" class="font-bold text-amber-700">৳০</span>
-                        </div>
-                        <div class="flex justify-between items-center text-gray-700 pt-1">
+                    <div class="border-t border-emerald-200 pt-2.5 space-y-1.5 text-xs">
+                        <div class="flex justify-between"><span>টেইলার্স বিল:</span><b id="calcTailorTotal">৳0</b></div>
+                        <div class="flex justify-between"><span>ফেব্রিক্স বিল:</span><b id="calcClothTotal">৳0</b></div>
+                        <div class="flex items-center justify-between gap-2">
                             <span>ছাড় (৳):</span>
-                            <input type="number" id="ordDiscountAmount" min="0" value="0" oninput="updateOrderTotals()"
-                                   class="w-20 rounded-lg border border-gray-300 px-2 py-0.5 text-xs font-bold text-right outline-none">
+                            <input type="number" id="ordDiscountAmount" min="0" value="0" oninput="updateOrderTotals()" class="w-24 rounded-lg border border-gray-300 bg-white px-2 py-1 text-right font-bold">
                         </div>
                         <div class="flex justify-between text-sm font-bold text-emerald-950 border-t pt-1.5">
                             <span>সর্বমোট বিল:</span>
-                            <span id="calcGrandTotal">৳০</span>
+                            <span id="calcGrandTotal">৳0</span>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-1.5 pt-1">
-                            <div>
-                                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">অগ্রিম (৳)</label>
-                                <input type="number" id="ordAdvanceAmount" min="0" value="0" oninput="updateOrderTotals()"
-                                       class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs font-bold text-emerald-800 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">মাধ্যম</label>
-                                <select id="ordPaymentMethod" class="w-full rounded-lg border border-gray-300 px-1.5 py-1 text-xs outline-none bg-white">
-                                    <option value="Cash">Cash</option>
-                                    <option value="bKash">bKash</option>
-                                    <option value="Nagad">Nagad</option>
-                                    <option value="Bank">Bank</option>
-                                </select>
-                            </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span>অগ্রিম জমা (৳):</span>
+                            <input type="number" id="ordAdvanceAmount" min="0" value="0" oninput="updateOrderTotals()" class="w-24 rounded-lg border border-emerald-400 bg-white px-2 py-1 text-right font-bold text-emerald-800">
                         </div>
-
-                        <div class="flex justify-between text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1.5 rounded-lg">
+                        <div class="flex justify-between text-xs sm:text-sm font-bold text-rose-700">
                             <span>বকেয়া থাকবে:</span>
-                            <span id="calcDueAmount">৳০</span>
+                            <span id="calcDueAmount">৳0</span>
                         </div>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button type="button" onclick="resetOrderForm()" class="px-3 py-2 rounded-xl border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100">
-                            রিসেট
-                        </button>
-                        <button type="submit" class="flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
-                            ✓ অর্ডার নিশ্চিত করুন
-                        </button>
+                        <div class="pt-1">
+                            <select id="ordPaymentMethod" class="w-full rounded-xl border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold">
+                                <option value="Cash">Cash (ক্যাশ)</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank">Bank</option>
+                            </select>
+                        </div>
+                        <label class="flex items-center gap-2 pt-1 text-[11px] font-semibold text-gray-700 cursor-pointer">
+                            <input type="checkbox" id="ordSendSms" checked class="rounded text-emerald-700">
+                            <span>অর্ডার কনফার্ম SMS / WhatsApp পাঠান</span>
+                        </label>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </section>
 
-    <!-- ==================== 3. ORDER LIST VIEW ==================== -->
+    <!-- ==================== 3. ORDERS LIST VIEW ==================== -->
     <section id="view-orders" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-                <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">অর্ডার তালিকা ও কাটিং ডেস্ক</h2>
-                <p class="text-xs sm:text-sm text-gray-500">যেকোনো অর্ডারের সারিতে ক্লিক করলে কাটিং স্টুডিও খুলবে—সেখানে মাপ দেখে "কাটিং ডান" দিতে পারবেন</p>
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <div>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">অর্ডার তালিকা ও কাটিং স্টুডিও</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">যেকোনো অর্ডারে ক্লিক করে কাটিং ডান, সেলাই ডান, কমপ্লিট ডান ও মেমো প্রিন্ট করুন</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="orderStatusFilter" onchange="renderOrdersTable()" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold">
+                        <option value="ALL">সব অর্ডার</option>
+                        <option value="কাটিং অপেক্ষমান">কাটিং অপেক্ষমান</option>
+                        <option value="সেলাই চলছে">সেলাই চলছে</option>
+                        <option value="রেডি / ডেলিভারিযোগ্য">রেডি / ডেলিভারিযোগ্য</option>
+                        <option value="ডেলিভারি সম্পন্ন">ডেলিভারি সম্পন্ন</option>
+                    </select>
+                    <button type="button" onclick="navigateTo('new-order')" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                        + নতুন অর্ডার
+                    </button>
+                </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <label class="text-xs font-semibold text-gray-700">শুরু তারিখ (দিন/মাস/বছর):</label>
-                <input type="date" id="reportFromDateInput" onchange="renderReportsView()" oninput="renderReportsView()"
-                       class="rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-950 outline-none focus:border-emerald-600">
-                <label class="text-xs font-semibold text-gray-700">শেষ তারিখ (দিন/মাস/বছর):</label>
-                <input type="date" id="reportToDateInput" onchange="renderReportsView()" oninput="renderReportsView()"
-                       class="rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-950 outline-none focus:border-emerald-600">
-                <button type="button" onclick="setReportRangeCurrentMonth()" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold">
-                    মাসের ১ থেকে শেষ
-                </button>
-                <button type="button" onclick="setReportRangeMidMonth()" class="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-950 border border-teal-200 text-xs font-bold">
-                    ১৫–২০ তারিখ
-                </button>
-                <button type="button" onclick="setReportRangeLastMonth()" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 text-xs font-bold">
-                    গত মাস
-                </button>
-                <button type="button" onclick="setReportRangeAllTime()" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold">
-                    সব সময়
-                </button>
-            </div>
-        </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border rounded-2xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-emerald-950 text-emerald-100 text-xs sm:text-sm">
-                            <th class="py-3 px-3.5">মেমো #</th>
-                            <th class="py-3 px-3.5">কাস্টমার ও ফোন</th>
-                            <th class="py-3 px-3.5">পোশাক ও কাটিং অবস্থা</th>
+                        <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
+                            <th class="py-3 px-3.5">মেমো / তারিখ</th>
+                            <th class="py-3 px-3.5">কাস্টমার</th>
+                            <th class="py-3 px-3.5">স্ট্যাটাস ও পোশাক</th>
                             <th class="py-3 px-3.5">ডেলিভারি</th>
-                            <th class="py-3 px-3.5 text-right">বিল / জমা / বকেয়া</th>
+                            <th class="py-3 px-3.5 text-right">হিসাব</th>
                             <th class="py-3 px-3.5 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
-                    <tbody id="ordersTableBody" class="divide-y divide-gray-100 text-xs sm:text-sm"></tbody>
+                    <tbody id="ordersTableBody" class="divide-y text-xs sm:text-sm"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- ==================== 4. CUSTOMER LEDGER VIEW ==================== -->
+    <!-- ==================== 4. CUSTOMERS VIEW ==================== -->
     <section id="view-customers" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">কাস্টমার লেজার ও বকেয়া আদায়</h2>
-                <p class="text-xs sm:text-sm text-gray-500">কাস্টমারের তথ্য এডিট করুন এবং এক ক্লিকে সহজে পেমেন্ট / জমা গ্রহণ করুন</p>
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <div>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">কাস্টমার লেজার ও বকেয়া হিসাব</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">কাস্টমারের মোট বিল, জমা ও বকেয়া দেখে পেমেন্ট নিন বা তথ্য এডিট করুন</p>
+                </div>
+                <button type="button" onclick="openCustomerModal()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                    + নতুন কাস্টমার
+                </button>
             </div>
-            <button onclick="openCustomerModal(null)" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold shadow">
-                + নতুন কাস্টমার যুক্ত করুন
-            </button>
-        </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border rounded-2xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-emerald-950 text-emerald-100 text-xs sm:text-sm">
+                        <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
                             <th class="py-3 px-3.5">কাস্টমার</th>
                             <th class="py-3 px-3.5">মোবাইল ও ঠিকানা</th>
                             <th class="py-3 px-3.5 text-right">মোট বিল</th>
                             <th class="py-3 px-3.5 text-right">মোট জমা</th>
-                            <th class="py-3 px-3.5 text-right">বর্তমান বকেয়া</th>
+                            <th class="py-3 px-3.5 text-right">বকেয়া</th>
                             <th class="py-3 px-3.5 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
-                    <tbody id="customersTableBody" class="divide-y divide-gray-100 text-xs sm:text-sm"></tbody>
+                    <tbody id="customersTableBody" class="divide-y text-xs sm:text-sm"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- ==================== 5. CLOTH & STOCK VIEW ==================== -->
+    <!-- ==================== 5. CLOTH STOCK VIEW ==================== -->
     <section id="view-stock" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">ফেব্রিক্স কাপড় ও স্টক ম্যানেজমেন্ট</h2>
-                <p class="text-xs sm:text-sm text-gray-500">নতুন গজ কাপড় ঢোকান (ক্রয়), স্টক এডিট করুন এবং সরাসরি ফেব্রিক্স সেল/বিক্রি করুন</p>
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-amber-200/80 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <div>
+                    <h2 class="text-lg sm:text-2xl font-bold text-amber-950">কাপড় ও ফেব্রিক্স স্টক</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">নতুন কাপড় ঢোকান, স্টক এডিট করুন বা সরাসরি গজ কাপড় বিক্রি করুন</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="openDirectClothSaleModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs sm:text-sm font-bold shadow">
+                        গজ কাপড় বিক্রি
+                    </button>
+                    <button type="button" onclick="openClothModal()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                        + নতুন কাপড় / স্টক যোগ
+                    </button>
+                </div>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="openClothModal(null)" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold shadow">
-                    + নতুন কাপড় / মাল ঢোকান
-                </button>
-                <button onclick="openDirectClothSaleModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs sm:text-sm font-bold shadow">
-                    গজ কাপড় বিক্রি করুন
-                </button>
-            </div>
-        </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border rounded-2xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-emerald-950 text-emerald-100 text-xs sm:text-sm">
-                            <th class="py-3 px-3.5">কাপড়ের নাম ও কোড</th>
-                            <th class="py-3 px-3.5 text-right">স্টক (গজ)</th>
-                            <th class="py-3 px-3.5 text-right">ক্রয় দর / গজ</th>
-                            <th class="py-3 px-3.5 text-right">বিক্রয় দর / গজ</th>
+                        <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
+                            <th class="py-3 px-3.5">কাপড়ের নাম</th>
+                            <th class="py-3 px-3.5 text-right">বর্তমান স্টক</th>
+                            <th class="py-3 px-3.5 text-right">ক্রয় দর</th>
+                            <th class="py-3 px-3.5 text-right">বিক্রয় দর</th>
                             <th class="py-3 px-3.5 text-right">স্টক ভ্যালু</th>
                             <th class="py-3 px-3.5 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
-                    <tbody id="stockTableBody" class="divide-y divide-gray-100 text-xs sm:text-sm"></tbody>
+                    <tbody id="stockTableBody" class="divide-y text-xs sm:text-sm"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- ==================== 6. KARIGOR & EXPENSES VIEW ==================== -->
-    <section id="view-karigors" class="hidden space-y-6">
-        <!-- Karigar Ledger -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <!-- ==================== 6. KARIGORS & EXPENSES VIEW ==================== -->
+    <section id="view-karigors" class="hidden space-y-5">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
                 <div>
-                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">কারিগর হিসাব ও মজুরি লেজার</h2>
-                    <p class="text-xs sm:text-sm text-gray-500">কাটিং ও সেলাই কাজের মজুরি, পরিশোধ ও কারিগর প্রোফাইল এডিট করুন</p>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">কারিগর ও কমপ্লিট কর্মী খাতা</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">সেলাই ডান ও কমপ্লিট ডান দিলে স্বয়ংক্রিয়ভাবে মজুরি ও বকেয়া হিসাব হয়</p>
                 </div>
-                <button onclick="openKarigarModal(null)" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold shadow">
-                    + নতুন কারিগর যুক্ত করুন
+                <button type="button" onclick="openKarigarModal()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                    + নতুন কারিগর / কর্মী
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border rounded-2xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-emerald-950 text-emerald-100 text-xs sm:text-sm">
-                            <th class="py-3 px-3.5">কারিগরের নাম</th>
-                            <th class="py-3 px-3.5">দক্ষতা / ফোন</th>
+                        <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
+                            <th class="py-3 px-3.5">নাম</th>
+                            <th class="py-3 px-3.5">দক্ষতা ও মোবাইল</th>
                             <th class="py-3 px-3.5 text-right">মোট মজুরি</th>
                             <th class="py-3 px-3.5 text-right">পরিশোধিত</th>
                             <th class="py-3 px-3.5 text-right">বকেয়া মজুরি</th>
                             <th class="py-3 px-3.5 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
-                    <tbody id="karigorsTableBody" class="divide-y divide-gray-100 text-xs sm:text-sm"></tbody>
+                    <tbody id="karigorsTableBody" class="divide-y text-xs sm:text-sm"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Daily Expenses (Tailors vs Fabrics) -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
                 <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-emerald-950">দৈনন্দিন খরচ (টেইলার্স ও ফেব্রিক্স আলাদা খাত)</h2>
-                    <p class="text-xs sm:text-sm text-gray-500">খরচের খাত (টেইলার্স বা ফেব্রিক্স) অনুযায়ী হিসাব রাখুন ও এডিট করুন</p>
+                    <h3 class="text-base sm:text-xl font-bold text-emerald-950">দৈনন্দিন খরচ (টেইলার্স ও ফেব্রিক্স)</h3>
+                    <p class="text-xs text-gray-500">সুতা, বকরম, দোকান ভাড়া বা ফেব্রিক্স খরচের হিসাব</p>
                 </div>
-                <button onclick="openExpenseModal(null)" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold shadow">
-                    + নতুন খরচ যুক্ত করুন
+                <button type="button" onclick="openExpenseModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs sm:text-sm font-bold shadow">
+                    + নতুন খরচ যোগ
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border rounded-2xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-800 text-gray-100 text-xs sm:text-sm">
+                        <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
                             <th class="py-3 px-3.5">তারিখ</th>
                             <th class="py-3 px-3.5">সেক্টর</th>
-                            <th class="py-3 px-3.5">খরচের বিবরণ</th>
-                            <th class="py-3 px-3.5 text-right">পরিমাণ (৳)</th>
+                            <th class="py-3 px-3.5">বিবরণ</th>
+                            <th class="py-3 px-3.5 text-right">টাকা</th>
                             <th class="py-3 px-3.5 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
-                    <tbody id="expensesTableBody" class="divide-y divide-gray-100 text-xs sm:text-sm"></tbody>
+                    <tbody id="expensesTableBody" class="divide-y text-xs sm:text-sm"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- ==================== 7. REPORTS VIEW (SEPARATE TAILORS & FABRICS PRINT) ==================== -->
-    <section id="view-reports" class="hidden space-y-5">
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-emerald-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 no-print">
-            <div>
-                <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">মাসিক ও তারিখভিত্তিক লাভ-ক্ষতির রিপোর্ট</h2>
-                <p class="text-xs sm:text-sm text-gray-500">টেইলার্স সেক্টর ও ফেব্রিক্স সেক্টরের সম্পূর্ণ আলাদা হিসাব দেখুন এবং আলাদাভাবে প্রিন্ট করুন</p>
-            </div>
+    <!-- ==================== 7. REPORTS VIEW ==================== -->
+    <section id="view-reports" class="hidden space-y-4">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4">
+                <div>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">বছরের যেকোনো সময়ের লাভ ও ইনকাম রিপোর্ট</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">মাসের ১ থেকে শেষ তারিখ, ১৫ থেকে ২০ তারিখ বা যেকোনো তারিখের টেইলার্স ও ফেব্রিক্স লাভ দেখুন</p>
+                </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <label class="text-xs font-semibold text-gray-700">শুরু তারিখ:</label>
-                <input type="date" id="reportFromDateInput" onchange="renderReportsView()" oninput="renderReportsView()"
-                       class="rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-950 outline-none focus:border-emerald-600">
-                <label class="text-xs font-semibold text-gray-700">শেষ তারিখ:</label>
-                <input type="date" id="reportToDateInput" onchange="renderReportsView()" oninput="renderReportsView()"
-                       class="rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-950 outline-none focus:border-emerald-600">
-                <button type="button" onclick="setReportRangeCurrentMonth()" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold">
-                    মাসের ১ থেকে শেষ
-                </button>
-                <button type="button" onclick="setReportRangeMidMonth()" class="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-950 border border-teal-200 text-xs font-bold">
-                    ১৫–২০ তারিখ
-                </button>
-                <button type="button" onclick="setReportRangeLastMonth()" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 text-xs font-bold">
-                    গত মাস
-                </button>
-                <button type="button" onclick="setReportRangeAllTime()" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold">
-                    সব সময়
-                </button>
-            </div>
-        </div>
-
-        <!-- Two Distinct Sector Cards Side by Side -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            <!-- TAILORS SECTOR REPORT -->
-            <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border-2 border-emerald-200 flex flex-col justify-between space-y-4">
-                <div class="space-y-4">
-                    <div class="flex items-start justify-between gap-2 border-b border-emerald-100 pb-3">
-                        <div>
-                            <span class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 mb-1">
-                                সেক্টর ০১ • টেইলার্স (সেলাই ও কাটিং)
-                            </span>
-                            <h3 class="text-lg sm:text-xl font-bold text-emerald-950">টেইলার্স সেক্টরের লাভ ও ইনকাম রিপোর্ট</h3>
-                        </div>
-                        <button onclick="printSectorReport('tailors')" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow flex items-center gap-1.5 shrink-0">
-                            <span>🖨️ টেইলার্স রিপোর্ট প্রিন্ট</span>
-                        </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs">
+                        <span class="font-bold text-gray-600">হতে:</span>
+                        <input type="date" id="reportFromDateInput" onchange="this.dataset.userCleared='1'; renderReportsView();" class="bg-transparent font-semibold text-gray-800 outline-none">
                     </div>
-
-                    <div id="tailorsReportContent" class="space-y-3"></div>
+                    <div class="flex items-center gap-1.5 bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs">
+                        <span class="font-bold text-gray-600">পর্যন্ত:</span>
+                        <input type="date" id="reportToDateInput" onchange="this.dataset.userCleared='1'; renderReportsView();" class="bg-transparent font-semibold text-gray-800 outline-none">
+                    </div>
                 </div>
             </div>
 
-            <!-- FABRICS SECTOR REPORT -->
-            <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border-2 border-amber-200 flex flex-col justify-between space-y-4">
-                <div class="space-y-4">
-                    <div class="flex items-start justify-between gap-2 border-b border-amber-100 pb-3">
-                        <div>
-                            <span class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 mb-1">
-                                সেক্টর ০২ • ফেব্রিক্স (কাপড় ক্রয়-বিক্রয়)
-                            </span>
-                            <h3 class="text-lg sm:text-xl font-bold text-amber-950">ফেব্রিক্স সেক্টরের মাল ঢোকা, বিক্রি ও লাভ রিপোর্ট</h3>
-                        </div>
-                        <button onclick="printSectorReport('fabrics')" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold shadow flex items-center gap-1.5 shrink-0">
-                            <span>🖨️ ফেব্রিক্স রিপোর্ট প্রিন্ট</span>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="setReportRangeCurrentMonth()" class="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 text-xs font-bold">চলতি মাস (১–শেষ)</button>
+                <button type="button" onclick="setReportRangeMidMonth()" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold">১৫–২০ তারিখ</button>
+                <button type="button" onclick="setReportRangeLastMonth()" class="px-3 py-1.5 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-950 text-xs font-bold">গত মাস</button>
+                <button type="button" onclick="setReportRangeAllTime()" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold">সর্বমোট</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="rounded-2xl border border-emerald-200 bg-white p-4 space-y-3 shadow-xs">
+                    <div class="flex items-center justify-between border-b pb-2.5">
+                        <h3 class="text-base font-bold text-emerald-950">টেইলার্স সেক্টর রিপোর্ট</h3>
+                        <button type="button" onclick="printSectorReport('tailors')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold">
+                            🖨️ প্রিন্ট
                         </button>
                     </div>
+                    <div id="tailorsReportContent" class="space-y-3"></div>
+                </div>
 
+                <div class="rounded-2xl border border-amber-200 bg-white p-4 space-y-3 shadow-xs">
+                    <div class="flex items-center justify-between border-b pb-2.5">
+                        <h3 class="text-base font-bold text-amber-950">ফেব্রিক্স সেক্টর রিপোর্ট</h3>
+                        <button type="button" onclick="printSectorReport('fabrics')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs font-bold">
+                            🖨️ প্রিন্ট
+                        </button>
+                    </div>
                     <div id="fabricsReportContent" class="space-y-3"></div>
                 </div>
             </div>
@@ -637,308 +579,173 @@
     </section>
 
     <!-- ==================== 8. SETTINGS VIEW ==================== -->
-    <section id="view-settings" class="hidden space-y-5">
-        <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-4">
-            <!-- Sticky Settings Header & Menu List -->
-            <div class="sticky top-[104px] sm:top-[116px] z-20 bg-white/95 backdrop-blur border-b pb-3.5 pt-1 -mx-4 px-4 sm:-mx-6 sm:px-6 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">সেটিংস কন্ট্রোল প্যানেল</h2>
-                        <p class="text-xs sm:text-sm text-gray-500">নিচের সেটিংস লিস্ট স্থির থাকবে—যেকোনোটি বেছে নিয়ে নিচে স্ক্রল করে কাজ করুন</p>
-                    </div>
-                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        📌 লিস্ট ফিক্সড
-                    </span>
-                </div>
-
-                <!-- Unified Settings Sub-Tabs -->
-                <div id="settingsMenuList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                    <button onclick="switchSettingsTab('services')" id="setTab-services" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-center"></button>
-                    <button onclick="switchSettingsTab('measurements')" id="setTab-measurements" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-center"></button>
-                    <button onclick="switchSettingsTab('shop-memo')" id="setTab-shop-memo" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-center"></button>
-                    <button onclick="switchSettingsTab('order-sms')" id="setTab-order-sms" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-center"></button>
-                    <button onclick="switchSettingsTab('users-backup')" id="setTab-users-backup" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-center col-span-2 sm:col-span-1"></button>
+    <section id="view-settings" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-emerald-100 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                <div>
+                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">সিস্টেম সেটিংস</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">পোশাকের ছবি, ডিজাইন, মাপ ও রেট, দোকান ও মেমো শর্ত, SMS এবং ব্যাকআপ</p>
                 </div>
             </div>
 
-            <!-- Dedicated Scrollable Content Area for Active Setting -->
-            <div id="settingsBody" class="pt-2 max-h-[65vh] overflow-y-auto pr-1 space-y-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                <div class="lg:col-span-3 bg-gray-50/90 border border-gray-200 rounded-2xl p-2.5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:sticky lg:top-28 z-20">
+                    <button type="button" id="setTab-services" onclick="switchSettingsTab('services')" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-emerald-700 text-white shadow text-center whitespace-nowrap">পোশাক রেট ও ছবি</button>
+                    <button type="button" id="setTab-measurements" onclick="switchSettingsTab('measurements')" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-gray-100 hover:bg-gray-200 text-gray-700 text-center whitespace-nowrap">মাপের ধরন</button>
+                    <button type="button" id="setTab-shop-memo" onclick="switchSettingsTab('shop-memo')" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-gray-100 hover:bg-gray-200 text-gray-700 text-center whitespace-nowrap">দোকান ও মেমো</button>
+                    <button type="button" id="setTab-order-sms" onclick="switchSettingsTab('order-sms')" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-gray-100 hover:bg-gray-200 text-gray-700 text-center whitespace-nowrap">অর্ডার ও SMS</button>
+                    <button type="button" id="setTab-users-backup" onclick="switchSettingsTab('users-backup')" class="set-tab-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-gray-100 hover:bg-gray-200 text-gray-700 text-center whitespace-nowrap">ইউজার ও ব্যাকআপ</button>
+                </div>
+
+                <div id="settingsBody" class="lg:col-span-9 bg-white border border-gray-100 rounded-2xl p-3 sm:p-4 min-h-[320px]"></div>
+            </div>
         </div>
     </section>
-
 </main>
 
-<!-- Bottom Navigation for Mobile -->
-<nav class="md:hidden fixed bottom-0 inset-x-0 bg-emerald-950 text-emerald-100 border-t border-emerald-800 z-40 grid grid-cols-5 py-1.5 px-1 no-print">
-    <button onclick="navigateTo('dashboard')" class="flex flex-col items-center justify-center py-1 rounded-lg text-[11px] font-semibold">
-        <span>ড্যাশবোর্ড</span>
-    </button>
-    <button onclick="navigateTo('new-order')" class="flex flex-col items-center justify-center py-1 rounded-lg text-[11px] font-semibold text-amber-300">
-        <span>+ অর্ডার</span>
-    </button>
-    <button onclick="navigateTo('orders')" class="flex flex-col items-center justify-center py-1 rounded-lg text-[11px] font-semibold">
-        <span>অর্ডারসমূহ</span>
-    </button>
-    <button onclick="navigateTo('reports')" class="flex flex-col items-center justify-center py-1 rounded-lg text-[11px] font-semibold">
-        <span>রিপোর্ট</span>
-    </button>
-    <button onclick="navigateTo('settings')" class="flex flex-col items-center justify-center py-1 rounded-lg text-[11px] font-semibold">
-        <span>সেটিংস</span>
-    </button>
-</nav>
-
-<!-- ==================== DYNAMIC MODAL SHELL ==================== -->
-<div id="modalBackdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-[1px] z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto no-print">
-    <div id="modalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-emerald-100">
-        <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3.5 flex items-center justify-between z-10">
-            <h3 id="modalTitle" class="text-base sm:text-xl font-bold text-emerald-950"></h3>
-            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-600 hover:text-rose-700 flex items-center justify-center font-bold">
-                ✕
-            </button>
+<!-- Reusable Modal Backdrop -->
+<div id="modalBackdrop" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-3 sm:p-5 no-print">
+    <div class="bg-white rounded-3xl shadow-2xl border border-emerald-100 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 bg-emerald-950 text-white">
+            <h3 id="modalTitle" class="text-sm sm:text-lg font-bold text-amber-300 truncate"></h3>
+            <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center shrink-0">✕</button>
         </div>
-        <div id="modalContent" class="p-4 sm:p-6"></div>
+        <div id="modalContent" class="p-4 sm:p-6 overflow-y-auto flex-1"></div>
     </div>
 </div>
 
-<!-- Printable Area (Used for A4 Memo & Separate Sector Reports) -->
-<div id="printableArea" class="hidden max-w-4xl mx-auto my-6"></div>
+<!-- Dedicated Printable Area -->
+<div id="printableArea" class="hidden max-w-4xl mx-auto p-4"></div>
 
 <script>
-/**
- * ============================================================================
- * আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স — ERP STATE & CORE LOGIC
- * ============================================================================
- */
-
-const STORAGE_KEY = 'AL_KARIM_ATELIER_ERP_V3';
-
-// Default concise smart memo terms (4-5 crisp points tailored for tailoring & fabrics)
-const DEFAULT_SMART_TERMS = [
-    '১. অর্ডার কনফার্ম করার সময় মোট বিলের অন্তত ৫০% অগ্রিম জমা প্রদান বাধ্যতামূলক।',
-    '২. মেমোতে উল্লেখিত তারিখে পোশাক বুঝে নিন; মেমো হারিয়ে গেলে ফোন নম্বর যাচাই সাপেক্ষে ডেলিভারি দেওয়া হবে।',
-    '৩. ডেলিভারির সময় মাপ ও সেলাই যাচাই করে নিন; ডেলিভারি পরবর্তী ডিজাইন পরিবর্তন গ্রহণযোগ্য নয়।',
-    '৪. মাপে সামান্য ত্রুটি থাকলে ৭ দিনের মধ্যে বিনামূল্যে অল্টার করে দেওয়া হবে; কাপড় কাটার পর ডিজাইন বদলানো যাবে না।',
-    '৫. ডেলিভারির নির্ধারিত তারিখের ৬০ দিনের মধ্যে পোশাক না নিলে কর্তৃপক্ষ দায়ী থাকবে না।'
-];
+const STORAGE_KEY = 'al_karim_atelier_erp_v1';
 
 const DEFAULT_MEASUREMENTS = [
     'লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া',
     'গলা', 'বেল্ট চওড়া', 'ঘের', 'লুজ', 'প্লেট ফাড়া', 'পকেট ফাড়া'
 ];
 
-// Generate clean SVG placeholder artwork when no photo is uploaded
-function makeGarmentArtwork(label, bgHex, accentHex) {
-    const safeLabel = (label || 'পোশাক').slice(0, 12);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
-        <rect width="160" height="160" rx="22" fill="${bgHex}"/>
-        <path d="M52 34 L68 24 L92 24 L108 34 L132 54 L118 74 L106 62 L106 134 L54 134 L54 62 L42 74 L28 54 Z" fill="#ffffff" stroke="${accentHex}" stroke-width="3.5" stroke-linejoin="round"/>
-        <line x1="80" y1="24" x2="80" y2="82" stroke="${accentHex}" stroke-width="2.5" stroke-dasharray="4 3"/>
-        <circle cx="80" cy="92" r="2.5" fill="${accentHex}"/>
-        <circle cx="80" cy="104" r="2.5" fill="${accentHex}"/>
-        <rect x="14" y="136" width="132" height="18" rx="6" fill="${accentHex}"/>
-        <text x="80" y="148" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="bold">${safeLabel}</text>
+const DEFAULT_SMART_TERMS = [
+    '১. ডেলিভারির সময় অবশ্যই ক্যাশ মেমো সাথে আনতে হবে।',
+    '২. অর্ডার গ্রহণের ১৫ দিনের মধ্যে কাপড় সংগ্রহ করতে হবে; পরবর্তীতে দায়ভার দোকান নেবে না।',
+    '৩. কাটিং শুরু হয়ে গেলে অর্ডার বাতিল বা পরিবর্তনযোগ্য নয়।',
+    '৪. ডেলিভারির সময় বকেয়া টাকা পরিশোধ করে পোশাক বুঝে নিতে হবে।'
+];
+
+function escapeHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function formatBDT(num) {
+    const n = Math.round(Number(num || 0));
+    return '৳' + n.toLocaleString('en-IN');
+}
+
+function getTodayISO() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function addDaysISO(days) {
+    const d = new Date();
+    d.setDate(d.getDate() + Number(days || 7));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function makeGarmentArtwork(label, bgHex = '#ecfdf5', fgHex = '#047857') {
+    const shortLabel = String(label || 'পোশাক').slice(0, 14);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+        <rect width="240" height="240" rx="24" fill="${bgHex}"/>
+        <path d="M84 56 L104 42 L136 42 L156 56 L192 78 L174 110 L154 96 L154 196 L86 196 L86 96 L66 110 L48 78 Z" fill="#ffffff" stroke="${fgHex}" stroke-width="5" stroke-linejoin="round"/>
+        <line x1="120" y1="42" x2="120" y2="125" stroke="${fgHex}" stroke-width="3" stroke-dasharray="4 4"/>
+        <text x="120" y="222" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${fgHex}">${shortLabel}</text>
     </svg>`;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
 
-function getInitialState() {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    const deliveryStr = `${yyyy}-${mm}-${String(Math.min(28, today.getDate() + 7)).padStart(2, '0')}`;
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    const style = type === 'error'
+        ? 'bg-rose-900 text-white border-rose-500'
+        : type === 'warn'
+        ? 'bg-amber-900 text-amber-100 border-amber-400'
+        : 'bg-emerald-950 text-white border-amber-400';
+    toast.className = `pointer-events-auto border-l-4 ${style} px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold transition`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-6px)';
+        setTimeout(() => toast.remove(), 250);
+    }, 3200);
+}
 
+function getInitialState() {
+    const today = getTodayISO();
+    const deliv = addDaysISO(7);
     return {
         currentTab: 'dashboard',
         currentSettingsTab: 'services',
-        currentUser: {
-            name: 'মাস্টার অ্যাডমিন',
-            role: 'Admin',
-            phone: '01787265892'
-        },
-        users: [
-            { id: 'u1', name: 'মাস্টার অ্যাডমিন', role: 'Admin', phone: '01787265892', active: true },
-            { id: 'u2', name: 'মো: সাইফুল ইসলাম', role: 'Cutting Master', phone: '01811223344', active: true },
-            { id: 'u3', name: 'সেলস স্টাফ ডেস্ক', role: 'Staff', phone: '01911223355', active: true }
-        ],
+        currentUser: { name: 'মাস্টার অ্যাডমিন', role: 'অ্যাডমিন / কাটিং মাস্টার', phone: '01787265892' },
         shop: {
             name: 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স',
-            phone: '01787265892',
-            altPhone: '01882221510',
-            email: 'alkarimpanjabitailors92@gmail.com',
             address: 'সৈয়দ আহমেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল',
-            memoLayout: 'A4 Dual Copy',
+            phone: '01787265892',
+            altPhone: '01911000000',
+            email: 'alkarim.tailors@example.com',
+            memoTermsText: DEFAULT_SMART_TERMS.join('\n'),
             showKarigarSlip: true,
             showKarigarFeeOnMemo: false,
             showPaymentHistoryOnMemo: true,
-            showCustomerAddressOnMemo: true,
-            memoTermsText: DEFAULT_SMART_TERMS.join('\n')
+            showCustomerAddressOnMemo: true
         },
         orderSettings: {
             defaultDeliveryDays: 7,
-            nextMemoNumber: 1005,
-            requireMeasurement: true,
+            nextMemoNumber: 1003,
             defaultPaymentMethod: 'Cash',
-            confirmSmsTemplate: 'প্রিয় {customer}, আল-কারীম পাঞ্জাবী টেইলার্সে আপনার মেমো #{memo} গ্রহণ করা হয়েছে। মোট বিল {total}৳, জমা {paid}৳, বকেয়া {due}৳। ডেলিভারি: {delivery}।',
-            readySmsTemplate: 'প্রিয় {customer}, আপনার মেমো #{memo}-এর পোশাক প্রস্তুত হয়েছে। বকেয়া {due}৳ পরিশোধ করে সংগ্রহ করুন।'
+            confirmSmsTemplate: 'আসসালামু আলাইকুম {customer}, আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স-এ আপনার মেমো #{memo} কনফার্ম হয়েছে। মোট বিল {total}৳, জমা {paid}৳, বকেয়া {due}৳। ডেলিভারি: {delivery}।'
         },
-        firebase: {
-            apiKey: 'AIzaSyBTgzhGTGazRsoV40287kCcEPGNTw0aLZg',
-            appId: '1:678363367951:web:d23e4aee47db884ffeb17a',
-            liveSync: true
-        },
-        smsLogs: [
-            {
-                id: 'sms1',
-                date: `${todayStr} 10:15 AM`,
-                customer: 'মো: রফিকুল ইসলাম',
-                phone: '01712345678',
-                message: `প্রিয় মো: রফিকুল ইসলাম, আল-কারীম পাঞ্জাবী টেইলার্সে আপনার মেমো #1001 গ্রহণ করা হয়েছে। মোট বিল ১৮৫০৳, জমা ১০০০৳, বকেয়া ৮৫০৳।`,
-                status: 'Sent'
-            },
-            {
-                id: 'sms2',
-                date: `${todayStr} 11:40 AM`,
-                customer: 'তানভীর আহমেদ',
-                phone: '01819876543',
-                message: `প্রিয় তানভীর আহমেদ, আল-কারীম পাঞ্জাবী টেইলার্সে আপনার মেমো #1002 গ্রহণ করা হয়েছে। মোট বিল ৩২০০৳, জমা ৩২০০৳, বকেয়া ০৳।`,
-                status: 'Sent'
-            }
-        ],
         measurementTypes: [...DEFAULT_MEASUREMENTS],
         garmentServices: [
-            {
-                id: 'srv-1',
-                name: 'অ্যারাবিয়ান ক্লাসিক পাঞ্জাবী',
-                customerPrice: 950,
-                karigarPrice: 320,
-                completePrice: 80,
-                active: true,
-                photo: makeGarmentArtwork('অ্যারাবিয়ান', '#ecfdf5', '#047857'),
-                designs: ['কফ বোতাম ডিজাইন', 'বুক পকেট ফাড়া', 'গলা পাইপিং', 'হাই কলার'],
-                measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের', 'লুজ', 'প্লেট ফাড়া']
-            },
-            {
-                id: 'srv-2',
-                name: 'কাবলি পাঞ্জাবী (পকেট/বেল্ট)',
-                customerPrice: 1150,
-                karigarPrice: 380,
-                completePrice: 100,
-                active: true,
-                photo: makeGarmentArtwork('কাবলি', '#fffbeb', '#b45309'),
-                designs: ['চওড়া বেল্ট ডিজাইন', 'ডাবল পকেট', 'কফ স্লিভ'],
-                measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'বেল্ট চওড়া', 'ঘের', 'পকেট ফাড়া']
-            },
-            {
-                id: 'srv-3',
-                name: 'ফতুয়া / শর্ট পাঞ্জাবী',
-                customerPrice: 700,
-                karigarPrice: 220,
-                completePrice: 60,
-                active: true,
-                photo: makeGarmentArtwork('ফতুয়া', '#eff6ff', '#1d4ed8'),
-                designs: ['শর্ট কলার', 'সাইড কাট', 'হাতা ফোল্ডিং'],
-                measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের']
-            },
-            {
-                id: 'srv-4',
-                name: 'পাজামা (প্যান্ট কাটিং / নরমাল)',
-                customerPrice: 450,
-                karigarPrice: 140,
-                completePrice: 50,
-                active: true,
-                photo: makeGarmentArtwork('পাজামা', '#fdf2f8', '#be185d'),
-                designs: ['প্যান্ট কাটিং + চেইন', 'নরমাল পাজামা', 'ইলাস্টিক ও ফিতা'],
-                measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া', 'লুজ']
-            }
+            { id: 'srv-1', name: 'অ্যারাবিয়ান ক্লাসিক পাঞ্জাবী', customerPrice: 950, karigarPrice: 320, completePrice: 80, active: true, photo: makeGarmentArtwork('অ্যারাবিয়ান', '#ecfdf5', '#047857'), designs: ['অ্যারাবিয়ান ক্লাসিক', 'হ্যান্ড বাটন'], measurements: [...DEFAULT_MEASUREMENTS] },
+            { id: 'srv-2', name: 'অ্যারাবিয়ান স্পেশাল পাঞ্জাবী', customerPrice: 1150, karigarPrice: 380, completePrice: 100, active: true, photo: makeGarmentArtwork('অ্যারাবিয়ান স্পেশাল', '#f0fdf4', '#065f46'), designs: ['অ্যারাবিয়ান স্পেশাল', 'কফ হাব'], measurements: [...DEFAULT_MEASUREMENTS] },
+            { id: 'srv-3', name: 'কাবলি সেট', customerPrice: 1650, karigarPrice: 550, completePrice: 120, active: true, photo: makeGarmentArtwork('কাবলি সেট', '#fffbeb', '#b45309'), designs: ['কাবলি ক্লাসিক', 'ডাবল পকেট'], measurements: [...DEFAULT_MEASUREMENTS] },
+            { id: 'srv-4', name: 'ফতুয়া', customerPrice: 700, karigarPrice: 240, completePrice: 70, active: true, photo: makeGarmentArtwork('ফতুয়া', '#ecfeff', '#0e7490'), designs: ['শর্ট কলার', 'ব্যান্ড কলার'], measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের'] },
+            { id: 'srv-5', name: 'তাবিজ পায়জামা', customerPrice: 450, karigarPrice: 150, completePrice: 50, active: true, photo: makeGarmentArtwork('তাবিজ পায়জামা', '#fefce8', '#a16207'), designs: ['তাবিজ পকেট', 'নরমাল'], measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া'] },
+            { id: 'srv-6', name: 'প্যান্ট কাটিং পায়জামা', customerPrice: 550, karigarPrice: 180, completePrice: 60, active: true, photo: makeGarmentArtwork('প্যান্ট পায়জামা', '#f3f4f6', '#1f2937'), designs: ['স্লিম ফিট', 'রেগুলার'], measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া'] }
         ],
         clothStock: [
-            {
-                id: 'cl-1',
-                code: 'FB-101',
-                name: 'প্রিমিয়াম কটন শার্টিং / পাঞ্জাবী কাপড় (সাদা)',
-                stockYards: 85,
-                buyRate: 260,
-                sellRate: 380,
-                lastRestockDate: todayStr
-            },
-            {
-                id: 'cl-2',
-                code: 'FB-102',
-                name: 'জাপানি সুতি জ্যাকার্ড পাঞ্জাবী কাপড় (অফ-হোয়াইট)',
-                stockYards: 62,
-                buyRate: 340,
-                sellRate: 520,
-                lastRestockDate: todayStr
-            },
-            {
-                id: 'cl-3',
-                code: 'FB-103',
-                name: 'কাবলি সুতি গ্যাবার্ডিন কাপড় (নেভি/ব্ল্যাক)',
-                stockYards: 48,
-                buyRate: 310,
-                sellRate: 450,
-                lastRestockDate: todayStr
-            }
+            { id: 'cl-1', code: 'FB-101', name: 'জাপানি সুতি পাঞ্জাবী কাপড়', stockYards: 48, buyRate: 260, sellRate: 400, lastRestockDate: today },
+            { id: 'cl-2', code: 'FB-102', name: 'পাকিস্তানি লোন কাপড়', stockYards: 36, buyRate: 310, sellRate: 460, lastRestockDate: today },
+            { id: 'cl-3', code: 'FB-103', name: 'কাবলি গ্যাবার্ডিন কাপড়', stockYards: 28, buyRate: 340, sellRate: 520, lastRestockDate: today }
         ],
         karigors: [
-            {
-                id: 'kr-1',
-                name: 'মো: কাশেম মিয়া',
-                specialty: 'পাঞ্জাবী ও কাবলি মাস্টার',
-                phone: '01722334455',
-                totalEarned: 1850,
-                totalPaid: 1000
-            },
-            {
-                id: 'kr-2',
-                name: 'মো: নুরুল হক',
-                specialty: 'পাজামা ও ফতুয়া কারিগর',
-                phone: '01833445566',
-                totalEarned: 920,
-                totalPaid: 500
-            },
-            {
-                id: 'kr-3',
-                name: 'মো: সাদিকুল (আয়রন ও হাতের কাজ)',
-                specialty: 'আয়রন, হাতের কাজ ও কমপ্লিট',
-                phone: '01944556677',
-                totalEarned: 450,
-                totalPaid: 200
-            }
+            { id: 'kr-1', name: 'মোঃ রফিকুল ইসলাম', phone: '01711000111', specialty: 'পাঞ্জাবী ও কাবলি কারিগর', totalEarned: 1800, totalPaid: 1000 },
+            { id: 'kr-2', name: 'মোঃ সুমন মিয়া', phone: '01811000222', specialty: 'আয়রন ও হাতের কাজ (কমপ্লিট)', totalEarned: 950, totalPaid: 500 }
         ],
         customers: [
-            {
-                id: 'cust-1',
-                name: 'মো: রফিকুল ইসলাম',
-                phone: '01712345678',
-                address: 'সদর রোড, বাকেরগঞ্জ'
-            },
-            {
-                id: 'cust-2',
-                name: 'তানভীর আহমেদ',
-                phone: '01819876543',
-                address: 'কলেজ রোড, বাকেরগঞ্জ'
-            },
-            {
-                id: 'cust-3',
-                name: 'হাজী মো: সোলেমান',
-                phone: '01915566778',
-                address: 'বাসস্ট্যান্ড সংলগ্ন, বাকেরগঞ্জ'
-            }
+            { id: 'cust-1', name: 'আব্দুল করিম সাহেব', phone: '01712345678', whatsapp: '01712345678', address: 'সদর রোড, বাকেরগঞ্জ' },
+            { id: 'cust-2', name: 'তানভীর আহমেদ', phone: '01912345679', whatsapp: '', address: 'কলেজ রোড, বরিশাল' }
         ],
         orders: [
             {
                 id: 'ord-1001',
                 memoNo: '1001',
-                date: todayStr,
-                deliveryDate: deliveryStr,
-                customerName: 'মো: রফিকুল ইসলাম',
+                date: today,
+                deliveryDate: deliv,
+                customerName: 'আব্দুল করিম সাহেব',
                 customerPhone: '01712345678',
+                customerWhatsapp: '01712345678',
                 customerAddress: 'সদর রোড, বাকেরগঞ্জ',
                 status: 'কাটিং অপেক্ষমান',
-                note: 'কফ বোতাম ও বুক পকেট ফাড়া',
+                note: 'ঈদের আগে ডেলিভারি',
                 garments: [
                     {
                         uid: 'g-101',
@@ -947,492 +754,326 @@ function getInitialState() {
                         qty: 2,
                         rate: 950,
                         karigarRate: 320,
+                        completeRate: 80,
                         karigarId: 'kr-1',
+                        completerId: 'kr-2',
                         cuttingDone: false,
-                        measurements: { 'লম্বা': '৪১', 'বডি': '৪০', 'কোমর': '৩৮', 'তিরা': '১৭.৫', 'হাতার লম্বা': '২৪', 'হাতার মোহড়া': '৯.৫', 'গলা': '১৫.৫', 'ঘের': '২৪' }
+                        sewingDone: false,
+                        completedDone: false,
+                        measurements: { 'লম্বা': '৪১', 'বডি': '৪০', 'কোমর': '৩৮', 'তিরা': '১৭.৫', 'হাতার লম্বা': '২৪', 'হাতার মোহড়া': '৯.৫' }
                     }
                 ],
-                cloths: [],
+                cloths: [
+                    { clothId: 'cl-1', name: 'জাপানি সুতি পাঞ্জাবী কাপড়', yards: 5, buyRate: 260, sellRate: 400, subtotal: 2000, costSubtotal: 1300 }
+                ],
                 tailorAmount: 1900,
-                clothAmount: 0,
-                clothCost: 0,
-                totalAmount: 1900,
-                paidAmount: 1000,
-                payments: [
-                    { id: 'p-1', date: todayStr, amount: 1000, method: 'Cash', note: 'অগ্রিম জমা' }
-                ]
+                clothAmount: 2000,
+                clothCost: 1300,
+                totalAmount: 3900,
+                paidAmount: 2000,
+                payments: [{ id: 'pay-1', date: today, amount: 2000, method: 'Cash', note: 'অগ্রিম জমা' }]
             },
             {
                 id: 'ord-1002',
                 memoNo: '1002',
-                date: todayStr,
-                deliveryDate: deliveryStr,
+                date: today,
+                deliveryDate: addDaysISO(4),
                 customerName: 'তানভীর আহমেদ',
-                customerPhone: '01819876543',
-                customerAddress: 'কলেজ রোড, বাকেরগঞ্জ',
+                customerPhone: '01912345679',
+                customerWhatsapp: '',
+                customerAddress: 'কলেজ রোড, বরিশাল',
                 status: 'সেলাই চলছে',
-                note: 'নিখুঁত বেল্ট ও চওড়া মোহড়া',
+                note: '',
                 garments: [
                     {
                         uid: 'g-102',
-                        serviceId: 'srv-2',
-                        name: 'কাবলি পাঞ্জাবী (পকেট/বেল্ট)',
+                        serviceId: 'srv-3',
+                        name: 'কাবলি সেট',
                         qty: 1,
-                        rate: 1150,
-                        karigarRate: 380,
+                        rate: 1650,
+                        karigarRate: 550,
+                        completeRate: 120,
                         karigarId: 'kr-1',
+                        completerId: 'kr-2',
                         cuttingDone: true,
-                        measurements: { 'লম্বা': '৪২', 'বডি': '৪১', 'কোমর': '৩৯', 'তিরা': '১৮', 'হাতার লম্বা': '২৪.৫', 'হাতার মোহড়া': '১০', 'গলা': '১৬', 'বেল্ট চওড়া': '২.৫' }
-                    },
-                    {
-                        uid: 'g-103',
-                        serviceId: 'srv-4',
-                        name: 'পাজামা (প্যান্ট কাটিং / নরমাল)',
-                        qty: 1,
-                        rate: 450,
-                        karigarRate: 140,
-                        karigarId: 'kr-2',
-                        cuttingDone: true,
-                        measurements: { 'লম্বা': '৩৯', 'কোমর': '৩৪', 'হাতার মোহড়া': '৭.৫', 'বেল্ট চওড়া': '১.৫' }
+                        sewingDone: true,
+                        completedDone: false,
+                        measurements: { 'লম্বা': '৪০', 'বডি': '৩৯', 'কোমর': '৩৬', 'তিরা': '১৭', 'হাতার লম্বা': '২৩.৫' }
                     }
                 ],
-                cloths: [
-                    {
-                        clothId: 'cl-2',
-                        name: 'জাপানি সুতি জ্যাকার্ড পাঞ্জাবী কাপড় (অফ-হোয়াইট)',
-                        yards: 3.1,
-                        buyRate: 340,
-                        sellRate: 520,
-                        subtotal: 1612,
-                        costSubtotal: 1054
-                    }
-                ],
-                tailorAmount: 1600,
-                clothAmount: 1612,
-                clothCost: 1054,
-                totalAmount: 3212,
-                paidAmount: 2000,
-                payments: [
-                    { id: 'p-2', date: todayStr, amount: 2000, method: 'bKash', note: 'বিকাশে জমা' }
-                ]
-            },
-            {
-                id: 'ord-1003',
-                memoNo: '1003',
-                date: todayStr,
-                deliveryDate: deliveryStr,
-                customerName: 'হাজী মো: সোলেমান',
-                customerPhone: '01915566778',
-                customerAddress: 'বাসস্ট্যান্ড সংলগ্ন, বাকেরগঞ্জ',
-                status: 'রেডি / ডেলিভারিযোগ্য',
-                note: 'হালকা লুজ ফিটিং',
-                garments: [
-                    {
-                        uid: 'g-104',
-                        serviceId: 'srv-1',
-                        name: 'অ্যারাবিয়ান ক্লাসিক পাঞ্জাবী',
-                        qty: 1,
-                        rate: 950,
-                        karigarRate: 320,
-                        karigarId: 'kr-1',
-                        cuttingDone: true,
-                        measurements: { 'লম্বা': '৪০', 'বডি': '৪২', 'কোমর': '৪০', 'তিরা': '১৮', 'হাতার লম্বা': '২৩.৫', 'হাতার মোহড়া': '১০', 'লুজ': 'হালকা লুজ' }
-                    }
-                ],
-                cloths: [
-                    {
-                        clothId: 'cl-1',
-                        name: 'প্রিমিয়াম কটন শার্টিং / পাঞ্জাবী কাপড় (সাদা)',
-                        yards: 3,
-                        buyRate: 260,
-                        sellRate: 380,
-                        subtotal: 1140,
-                        costSubtotal: 780
-                    }
-                ],
-                tailorAmount: 950,
-                clothAmount: 1140,
-                clothCost: 780,
-                totalAmount: 2090,
-                paidAmount: 500,
-                payments: [
-                    { id: 'p-3', date: todayStr, amount: 500, method: 'Cash', note: 'অগ্রিম' }
-                ]
+                cloths: [],
+                tailorAmount: 1650,
+                clothAmount: 0,
+                clothCost: 0,
+                totalAmount: 1650,
+                paidAmount: 650,
+                payments: [{ id: 'pay-2', date: today, amount: 650, method: 'bKash', note: 'অগ্রিম' }]
             }
         ],
         expenses: [
-            {
-                id: 'exp-1',
-                date: todayStr,
-                sector: 'tailors',
-                title: 'সুতা, বোতাম, ফিউজিং ও বকরম ক্রয়',
-                amount: 450
-            },
-            {
-                id: 'exp-2',
-                date: todayStr,
-                sector: 'tailors',
-                title: 'দোকানের বিদ্যুৎ বিল ও চা-নাস্তা',
-                amount: 320
-            },
-            {
-                id: 'exp-3',
-                date: todayStr,
-                sector: 'fabrics',
-                title: 'ফেব্রিক্স পলিথিন, হ্যাঙ্গার ও পরিবহন খরচ',
-                amount: 280
-            }
+            { id: 'exp-1', date: today, sector: 'tailors', title: 'সুতা, বকরম ও বোতাম ক্রয়', amount: 650 },
+            { id: 'exp-2', date: today, sector: 'fabrics', title: 'মাল ঢোকা: জাপানি সুতি কাপড় (২০ গজ × ৳২৬০)', amount: 5200 }
+        ],
+        smsLogs: [
+            { id: 'sms-1', date: `${today} (সকাল)`, customer: 'আব্দুল করিম সাহেব', phone: '01712345678', channel: 'WhatsApp', message: 'আপনার মেমো #1001 কনফার্ম হয়েছে।', status: 'WhatsApp Ready' }
+        ],
+        users: [
+            { id: 'usr-1', name: 'মাস্টার অ্যাডমিন', role: 'অ্যাডমিন / কাটিং মাস্টার', phone: '01787265892' },
+            { id: 'usr-2', name: 'কাউন্টার ম্যানেজার', role: 'সেলস ও বকেয়া হিসাব', phone: '01811223344' }
         ]
     };
 }
-
-let state = loadAppState();
 
 function loadAppState() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return getInitialState();
         const parsed = JSON.parse(raw);
-        const def = getInitialState();
-        return {
-            ...def,
-            ...parsed,
-            currentUser: parsed.currentUser || def.currentUser,
-            shop: { ...def.shop, ...(parsed.shop || {}) },
-            orderSettings: { ...def.orderSettings, ...(parsed.orderSettings || {}) },
-            firebase: { ...def.firebase, ...(parsed.firebase || {}) }
-        };
-    } catch (err) {
-        console.error('State load error:', err);
+        return { ...getInitialState(), ...parsed };
+    } catch (e) {
         return getInitialState();
     }
 }
+
+let state = loadAppState();
+let draftGarmentRows = [];
+let draftClothRows = [];
+let activeNewOrderServiceId = null;
 
 function saveAppState() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         updateHeaderShopInfo();
-    } catch (err) {
-        console.error('State save error:', err);
-        showToast('স্টোরেজ সীমা পূর্ণ বা সংরক্ষণে সমস্যা হয়েছে।', 'error');
+    } catch (e) {
+        showToast('ডাটা সেভ করতে সমস্যা হয়েছে।', 'error');
     }
-}
-
-function formatBDT(num) {
-    const val = Number(num || 0);
-    return '৳' + val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-}
-
-function getTodayISO() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    const toast = document.createElement('div');
-    const colorClass = type === 'error'
-        ? 'bg-rose-700 text-white border-rose-500'
-        : type === 'warn'
-        ? 'bg-amber-600 text-white border-amber-400'
-        : 'bg-emerald-900 text-white border-emerald-500';
-    toast.className = `pointer-events-auto border-l-4 ${colorClass} px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-2 transition-all`;
-    toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" class="text-white/80 hover:text-white font-bold">✕</button>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        if (toast.parentElement) toast.remove();
-    }, 3400);
 }
 
 function updateHeaderShopInfo() {
-    const hName = document.getElementById('headerShopName');
-    const hAddr = document.getElementById('headerShopAddr');
-    const uLabel = document.getElementById('currentUserLabel');
-    if (hName) hName.textContent = state.shop.name;
-    if (hAddr) hAddr.textContent = `${state.shop.address} • ফোন: ${state.shop.phone}`;
-    if (uLabel) uLabel.textContent = state.currentUser.name || 'মাস্টার অ্যাডমিন';
+    const nameEl = document.getElementById('headerShopName');
+    const addrEl = document.getElementById('headerShopAddr');
+    const userEl = document.getElementById('currentUserLabel');
+    if (nameEl && state.shop?.name) nameEl.textContent = state.shop.name;
+    if (addrEl) {
+        addrEl.textContent = `${state.shop?.address || ''} • ফোন: ${state.shop?.phone || ''}`;
+    }
+    if (userEl && state.currentUser?.name) {
+        userEl.textContent = state.currentUser.name;
+    }
 }
 
-/**
- * ============================================================================
- * NAVIGATION & GLOBAL SEARCH
- * ============================================================================
- */
 function navigateTo(tabName) {
-    state.currentTab = tabName;
-    saveAppState();
+    const validTabs = ['dashboard', 'new-order', 'orders', 'customers', 'stock', 'karigors', 'reports', 'settings'];
+    const target = validTabs.includes(tabName) ? tabName : 'dashboard';
+    state.currentTab = target;
 
-    const views = ['dashboard', 'new-order', 'orders', 'customers', 'stock', 'karigors', 'reports', 'settings'];
-    views.forEach(v => {
-        const el = document.getElementById(`view-${v}`);
-        if (el) el.classList.toggle('hidden', v !== tabName);
+    validTabs.forEach(t => {
+        const sec = document.getElementById(`view-${t}`);
+        if (sec) sec.classList.toggle('hidden', t !== target);
     });
 
     document.querySelectorAll('.nav-btn').forEach(btn => {
-        const isActive = btn.dataset.tab === tabName;
-        btn.className = isActive
-            ? 'nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition flex items-center gap-1.5 bg-amber-400 text-emerald-950 shadow'
-            : 'nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-emerald-800/70';
+        const active = btn.dataset.tab === target;
+        btn.className = active
+            ? 'nav-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition flex items-center gap-1.5 bg-amber-400 text-emerald-950 shadow'
+            : 'nav-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-emerald-800/80 hover:text-white';
     });
 
-    if (tabName === 'dashboard') renderDashboard();
-    if (tabName === 'new-order') initNewOrderForm();
-    if (tabName === 'orders') renderOrdersTable();
-    if (tabName === 'customers') renderCustomersTable();
-    if (tabName === 'stock') renderStockTable();
-    if (tabName === 'karigors') {
+    if (target === 'dashboard') renderDashboard();
+    if (target === 'new-order') initNewOrderForm();
+    if (target === 'orders') renderOrdersTable();
+    if (target === 'customers') renderCustomersTable();
+    if (target === 'stock') renderStockTable();
+    if (target === 'karigors') {
         renderKarigorsTable();
         renderExpensesTable();
     }
-    if (tabName === 'reports') renderReportsView();
-    if (tabName === 'settings') renderSettingsView();
+    if (target === 'reports') renderReportsView();
+    if (target === 'settings') renderSettingsView();
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function handleGlobalSearch(query) {
+function handleGlobalSearch(queryText) {
     const box = document.getElementById('globalSearchResults');
-    const q = (query || '').trim().toLowerCase();
+    const q = (queryText || '').trim().toLowerCase();
+    if (!box) return;
     if (!q) {
         box.classList.add('hidden');
         box.innerHTML = '';
         return;
     }
 
-    const matchedOrders = state.orders.filter(o =>
-        String(o.memoNo).toLowerCase().includes(q) ||
-        (o.customerName || '').toLowerCase().includes(q) ||
-        (o.customerPhone || '').toLowerCase().includes(q)
-    );
+    const matches = state.orders.filter(o =>
+        String(o.memoNo || '').toLowerCase().includes(q) ||
+        String(o.customerName || '').toLowerCase().includes(q) ||
+        String(o.customerPhone || '').toLowerCase().includes(q)
+    ).slice(0, 6);
 
     box.classList.remove('hidden');
-    if (matchedOrders.length === 0) {
-        box.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-2.5 text-xs sm:text-sm">
-            "<b>${escapeHtml(query)}</b>" দিয়ে কোনো অর্ডার বা মেমো পাওয়া যায়নি।
-        </div>`;
+    if (matches.length === 0) {
+        box.innerHTML = `<div class="bg-white rounded-2xl p-3 border text-xs text-gray-500">"${escapeHtml(queryText)}" দিয়ে কোনো মেমো বা কাস্টমার পাওয়া যায়নি।</div>`;
         return;
     }
 
-    box.innerHTML = `<div class="bg-white border border-emerald-200 rounded-2xl p-3.5 shadow-md space-y-2">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-emerald-900">অনুসন্ধানের ফলাফল (${matchedOrders.length}টি মেমো)</span>
-            <button onclick="document.getElementById('globalSearchInput').value=''; handleGlobalSearch('');" class="text-xs text-rose-600 font-semibold">বন্ধ করুন</button>
-        </div>
+    box.innerHTML = `<div class="bg-white rounded-2xl p-3 border border-emerald-200 shadow-sm space-y-2">
+        <div class="text-xs font-bold text-emerald-950">সার্চ ফলাফল (${matches.length}টি):</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            ${matchedOrders.map(o => {
-                const due = Math.max(0, Number(o.totalAmount || 0) - Number(o.paidAmount || 0));
-                return `<div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between gap-2">
-                    <div class="cursor-pointer" onclick="openCuttingStudio('${o.id}')">
-                        <div class="text-xs font-bold text-emerald-950">মেমো #${o.memoNo} • ${escapeHtml(o.customerName)}</div>
-                        <div class="text-[11px] text-gray-600">${o.customerPhone} • বকেয়া: <b class="text-rose-700">${formatBDT(due)}</b></div>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="openCuttingStudio('${o.id}')" class="px-2 py-1 rounded-lg bg-emerald-700 text-white text-[11px] font-semibold">কাটিং</button>
-                        <button onclick="openMemoPreview('${o.id}')" class="px-2 py-1 rounded-lg bg-amber-500 text-emerald-950 text-[11px] font-semibold">মেমো</button>
-                    </div>
-                </div>`;
-            }).join('')}
+            ${matches.map(o => `<div class="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between gap-2 text-xs">
+                <div>
+                    <div class="font-bold text-emerald-950">মেমো #${escapeHtml(o.memoNo)} — ${escapeHtml(o.customerName)}</div>
+                    <div class="text-gray-600">${escapeHtml(o.customerPhone)} • ${escapeHtml(o.status)}</div>
+                </div>
+                <button type="button" onclick="openMemoPreview('${o.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-700 text-white font-bold shrink-0">মেমো</button>
+            </div>`).join('')}
         </div>
     </div>`;
 }
 
-function escapeHtml(str) {
-    return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
-
-/**
- * ============================================================================
- * 1. DASHBOARD RENDERING
- * ============================================================================
- */
 function renderDashboard() {
-    const totalOrders = state.orders.length;
-    const cuttingPending = state.orders.filter(o => o.status === 'কাটিং অপেক্ষমান').length;
-    const readyOrdersCount = state.orders.filter(o => o.status === 'রেডি / ডেলিভারিযোগ্য').length;
-    const totalDue = state.orders.reduce((sum, o) => sum + Math.max(0, Number(o.totalAmount || 0) - Number(o.paidAmount || 0)), 0);
-    const totalCollected = state.orders.reduce((sum, o) => sum + Number(o.paidAmount || 0), 0);
-    const clothStockValue = state.clothStock.reduce((sum, c) => sum + (Number(c.stockYards || 0) * Number(c.buyRate || 0)), 0);
+    const today = getTodayISO();
+    const totalDue = state.orders.reduce((s, o) => s + Math.max(0, Number(o.totalAmount || 0) - Number(o.paidAmount || 0)), 0);
+    const todayCollected = state.orders.reduce((s, o) => {
+        return s + (o.payments || []).filter(p => p.date === today).reduce((ps, p) => ps + Number(p.amount || 0), 0);
+    }, 0);
+    const pendingCuttingOrders = state.orders.filter(o => (o.garments || []).some(g => !g.cuttingDone)).length;
+    const stockValue = state.clothStock.reduce((s, c) => s + (Number(c.stockYards || 0) * Number(c.buyRate || 0)), 0);
 
-    document.getElementById('dashboardKpiGrid').innerHTML = `
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-500">মোট অর্ডার / মেমো</span>
-                <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm font-bold">📋</span>
+    const kpiGrid = document.getElementById('dashboardKpiGrid');
+    if (kpiGrid) {
+        kpiGrid.innerHTML = `
+            <div class="bg-white rounded-2xl p-4 border border-rose-100 shadow-sm">
+                <div class="text-xs font-semibold text-gray-500">মোট কাস্টমার বকেয়া</div>
+                <div class="text-xl sm:text-2xl font-bold text-rose-700 mt-1">${formatBDT(totalDue)}</div>
+                <div class="text-[11px] text-gray-400 mt-1">সকল অর্ডার ও মেমো মিলিয়ে</div>
             </div>
-            <div class="text-2xl sm:text-3xl font-bold text-emerald-950 mt-2">${totalOrders}টি</div>
-            <div class="text-[11px] text-emerald-700 mt-1">কাটিং পেন্ডিং: <b>${cuttingPending}টি</b> • রেডি: <b>${readyOrdersCount}টি</b></div>
-        </div>
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-500">মোট কাস্টমার বকেয়া</span>
-                <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">💳</span>
+            <div class="bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm">
+                <div class="text-xs font-semibold text-gray-500">আজকের মোট জমা</div>
+                <div class="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">${formatBDT(todayCollected)}</div>
+                <div class="text-[11px] text-gray-400 mt-1">তারিখ: ${today}</div>
             </div>
-            <div class="text-2xl sm:text-3xl font-bold text-rose-700 mt-2">${formatBDT(totalDue)}</div>
-            <div class="text-[11px] text-emerald-700 mt-1">মোট জমা আদায়: <b>${formatBDT(totalCollected)}</b></div>
-        </div>
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-amber-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-500">ফেব্রিক্স স্টক ভ্যালু (ক্রয়)</span>
-                <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-sm font-bold">🧵</span>
+            <div class="bg-white rounded-2xl p-4 border border-amber-100 shadow-sm">
+                <div class="text-xs font-semibold text-gray-500">কাটিং পেন্ডিং অর্ডার</div>
+                <div class="text-xl sm:text-2xl font-bold text-amber-700 mt-1">${pendingCuttingOrders}টি</div>
+                <div class="text-[11px] text-gray-400 mt-1">কাটিং স্টুডিওতে অপেক্ষমাণ</div>
             </div>
-            <div class="text-2xl sm:text-3xl font-bold text-amber-800 mt-2">${formatBDT(clothStockValue)}</div>
-            <div class="text-[11px] text-amber-800 mt-1">${state.clothStock.length} ধরনের গজ কাপড় মজুদ</div>
-        </div>
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-teal-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-500">সক্রিয় পোশাক রেট</span>
-                <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center text-sm font-bold">✂️</span>
+            <div class="bg-white rounded-2xl p-4 border border-teal-100 shadow-sm">
+                <div class="text-xs font-semibold text-gray-500">ফেব্রিক্স স্টক ভ্যালু</div>
+                <div class="text-xl sm:text-2xl font-bold text-teal-800 mt-1">${formatBDT(stockValue)}</div>
+                <div class="text-[11px] text-gray-400 mt-1">${state.clothStock.length} ধরণের কাপড়</div>
             </div>
-            <div class="text-2xl sm:text-3xl font-bold text-teal-900 mt-2">${state.garmentServices.filter(g => g.active).length}টি</div>
-            <div class="text-[11px] text-teal-700 mt-1">ছবি ও মাপসহ সেট করা আছে</div>
-        </div>
-    `;
+        `;
+    }
 
-    // Two-sector summary strip (Tailors vs Fabrics)
-    const tailorGross = state.orders.reduce((s, o) => s + Number(o.tailorAmount || 0), 0);
-    const fabricsGross = state.orders.reduce((s, o) => s + Number(o.clothAmount || 0), 0);
-    const fabricsCostTotal = state.orders.reduce((s, o) => s + Number(o.clothCost || 0), 0);
-    const fabricsMargin = Math.max(0, fabricsGross - fabricsCostTotal);
-
-    document.getElementById('dashboardSectorSplit').innerHTML = `
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50/70 rounded-2xl p-4 sm:p-5 border border-emerald-200/80 flex items-center justify-between gap-3">
-            <div class="space-y-1">
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-700 text-white">টেইলার্স সেক্টর</span>
-                <h4 class="text-base sm:text-lg font-bold text-emerald-950">সেলাই ও কাটিং আয়: ${formatBDT(tailorGross)}</h4>
-                <p class="text-xs text-emerald-800/80">কারিগর খাতা ও খরচ বাদ দিয়ে আলাদা প্রিন্ট রিপোর্ট দেখুন</p>
-            </div>
-            <button onclick="navigateTo('reports')" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow shrink-0">
-                রিপোর্ট দেখুন
-            </button>
-        </div>
-
-        <div class="bg-gradient-to-r from-amber-50 to-orange-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80 flex items-center justify-between gap-3">
-            <div class="space-y-1">
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-600 text-white">ফেব্রিক্স সেক্টর</span>
-                <h4 class="text-base sm:text-lg font-bold text-amber-950">কাপড় বিক্রি: ${formatBDT(fabricsGross)} <span class="text-xs font-bold text-emerald-700">(গ্রস লাভ: ${formatBDT(fabricsMargin)})</span></h4>
-                <p class="text-xs text-amber-900/80">মাল ঢোকা, গজ কাপড় বিক্রি ও স্টকের পূর্ণ হিসাব</p>
-            </div>
-            <button onclick="navigateTo('stock')" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow shrink-0">
-                স্টক / সেল
-            </button>
-        </div>
-    `;
-
-    renderDashboardCalendarGrid();
-
-    // Cutting & production queue
-    const activeWorkOrders = state.orders.filter(o => o.status !== 'ডেলিভারি সম্পন্ন');
-    document.getElementById('dashCuttingList').innerHTML = activeWorkOrders.length === 0
-        ? `<div class="text-center py-6 text-xs sm:text-sm text-gray-400">বর্তমানে কোনো চলমান অর্ডার নেই।</div>`
-        : activeWorkOrders.slice(0, 6).map(o => {
-            const garmentNames = (o.garments || []).map(g => `${g.name} (${g.qty})`).join(', ') || 'ফেব্রিক্স অর্ডার';
-            return `<div onclick="openCuttingStudio('${o.id}')" class="p-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 hover:bg-emerald-100/60 cursor-pointer flex items-center justify-between gap-2 transition">
+    const sectorSplit = document.getElementById('dashboardSectorSplit');
+    if (sectorSplit) {
+        const tailorSum = state.orders.reduce((s, o) => s + Number(o.tailorAmount || 0), 0);
+        const fabricsSum = state.orders.reduce((s, o) => s + Number(o.clothAmount || 0), 0);
+        sectorSplit.innerHTML = `
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-sm flex items-center justify-between gap-3">
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs sm:text-sm font-bold text-emerald-950">মেমো #${o.memoNo} — ${escapeHtml(o.customerName)}</span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-emerald-200 text-emerald-800">${escapeHtml(o.status)}</span>
-                    </div>
-                    <div class="text-xs text-gray-600 mt-0.5">${escapeHtml(garmentNames)} • ডেলিভারি: <b>${o.deliveryDate || '-'}</b></div>
+                    <div class="text-xs font-bold text-emerald-700">টেইলার্স সেক্টর</div>
+                    <div class="text-lg sm:text-2xl font-bold text-emerald-950 mt-0.5">${formatBDT(tailorSum)}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">পাঞ্জাবী, কাবলি, ফতুয়া ও পাজামার সেলাই বিল</div>
                 </div>
-                <span class="px-2.5 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shrink-0">স্টুডিও →</span>
-            </div>`;
-        }).join('');
-
-    // Pending due list
-    const dueOrders = state.orders.filter(o => (Number(o.totalAmount || 0) - Number(o.paidAmount || 0)) > 0);
-    document.getElementById('dashDueList').innerHTML = dueOrders.length === 0
-        ? `<div class="text-center py-6 text-xs sm:text-sm text-gray-400">সব অর্ডারের বকেয়া পরিশোধিত হয়েছে!</div>`
-        : dueOrders.slice(0, 6).map(o => {
-            const due = Math.max(0, Number(o.totalAmount || 0) - Number(o.paidAmount || 0));
-            return `<div class="p-3 rounded-2xl border border-amber-100 bg-amber-50/40 flex items-center justify-between gap-2">
+                <button type="button" onclick="navigateTo('new-order')" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0">+ অর্ডার</button>
+            </div>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-amber-100 shadow-sm flex items-center justify-between gap-3">
                 <div>
-                    <div class="text-xs sm:text-sm font-bold text-gray-900">মেমো #${o.memoNo} — ${escapeHtml(o.customerName)}</div>
-                    <div class="text-xs text-rose-700 font-semibold">বকেয়া: ${formatBDT(due)} (মোট ${formatBDT(o.totalAmount)})</div>
+                    <div class="text-xs font-bold text-amber-700">ফেব্রিক্স সেক্টর</div>
+                    <div class="text-lg sm:text-2xl font-bold text-amber-950 mt-0.5">${formatBDT(fabricsSum)}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">গজ কাপড় বিক্রি ও স্টক হিসাব</div>
                 </div>
-                <button onclick="openPaymentModal('${o.id}')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs font-bold shadow shrink-0">
-                    পেমেন্ট নিন
-                </button>
-            </div>`;
-        }).join('');
+                <button type="button" onclick="navigateTo('stock')" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs font-bold shrink-0">স্টক দেখুন</button>
+            </div>
+        `;
+    }
+
+    renderDashboardCalendar();
+    renderDashboardQueues();
 }
 
-function renderDashboardCalendarGrid() {
-    const gridEl = document.getElementById('dashboardCalendarGrid');
-    const badgeEl = document.getElementById('dashCalendarMonthBadge');
-    if (!gridEl) return;
-
+function renderDashboardCalendar() {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
-    const monthNamesBn = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-    if (badgeEl) badgeEl.textContent = `${monthNamesBn[month]} ${year}`;
-
-    const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun..6=Sat
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayISO = getTodayISO();
-    const dayLabels = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
+    const badge = document.getElementById('dashCalendarMonthBadge');
+    const grid = document.getElementById('dashboardCalendarGrid');
 
-    let cellsHtml = dayLabels.map(d =>
-        `<div class="py-2 text-center text-[11px] font-bold text-emerald-900 bg-emerald-50/80 rounded-xl border border-emerald-100">${d}</div>`
-    ).join('');
-
-    for (let i = 0; i < firstWeekday; i++) {
-        cellsHtml += `<div class="min-h-[82px] rounded-xl bg-gray-50/50 border border-dashed border-gray-200/70"></div>`;
+    if (badge) {
+        badge.textContent = `${year}-${String(month + 1).padStart(2, '0')} মাস (${daysInMonth} দিন)`;
     }
+    if (!grid) return;
 
+    const cards = [];
     for (let day = 1; day <= daysInMonth; day++) {
         const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayOrders = state.orders.filter(o => o.date === iso || o.deliveryDate === iso);
-        const isToday = iso === todayISO;
+        const dayOrders = state.orders.filter(o => o.date === iso);
+        const dayDeliveries = state.orders.filter(o => o.deliveryDate === iso);
+        const hasEvent = dayOrders.length > 0 || dayDeliveries.length > 0;
+        const clickOrderId = (dayDeliveries[0] || dayOrders[0])?.id || '';
 
-        const pills = dayOrders.slice(0, 3).map(o => {
-            const isDelivery = o.deliveryDate === iso;
-            const pillStyle = isDelivery
-                ? 'bg-amber-100 text-amber-950 border-amber-300'
-                : 'bg-emerald-100 text-emerald-950 border-emerald-300';
-            return `<button type="button" onclick="openCuttingStudio('${o.id}')" title="মেমো #${o.memoNo} - ${escapeHtml(o.customerName)}"
-                class="w-full text-left truncate px-1.5 py-0.5 rounded-md border text-[10px] font-bold ${pillStyle} hover:opacity-85 transition">
-                ${isDelivery ? '🚚' : '✂️'} #${o.memoNo} ${escapeHtml(o.customerName)}
-            </button>`;
-        }).join('');
-
-        const extraCount = dayOrders.length > 3 ? `<div class="text-[10px] font-bold text-gray-500 px-1">+${dayOrders.length - 3}টি আরো</div>` : '';
-
-        cellsHtml += `<div class="min-h-[86px] rounded-xl p-1.5 border ${isToday ? 'border-amber-500 bg-amber-50/30 ring-1 ring-amber-400' : 'border-gray-100 bg-white'} flex flex-col gap-1">
-            <div class="flex items-center justify-between px-0.5">
-                <span class="text-xs font-bold ${isToday ? 'px-1.5 py-0.2 rounded-full bg-amber-500 text-emerald-950' : 'text-gray-700'}">${day}</span>
-                ${dayOrders.length > 0 ? `<span class="text-[10px] font-bold text-emerald-700">${dayOrders.length}</span>` : ''}
+        cards.push(`<div ${clickOrderId ? `onclick="openCuttingStudio('${clickOrderId}')"` : ''}
+            class="rounded-2xl border p-2.5 min-h-[78px] flex flex-col justify-between transition ${hasEvent ? 'bg-emerald-50/80 border-emerald-300 cursor-pointer hover:border-amber-500' : 'bg-gray-50/70 border-gray-200/80'}">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-950">${day}</span>
+                ${dayDeliveries.length > 0 ? `<span class="px-1.5 py-0.5 rounded bg-amber-400 text-emerald-950 text-[10px] font-bold">ডেলিভারি ${dayDeliveries.length}</span>` : ''}
             </div>
-            <div class="space-y-1">${pills}${extraCount}</div>
-        </div>`;
+            <div class="text-[11px] font-semibold ${dayOrders.length > 0 ? 'text-emerald-800' : 'text-gray-400'}">
+                ${dayOrders.length > 0 ? `অর্ডার: ${dayOrders.length}টি` : '—'}
+            </div>
+        </div>`);
     }
 
-    gridEl.innerHTML = `<div class="min-w-[640px] grid grid-cols-7 gap-1.5">${cellsHtml}</div>`;
+    grid.innerHTML = `<div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2">${cards.join('')}</div>`;
 }
 
-/**
- * ============================================================================
- * 2. NEW ORDER BUILDER
- * ============================================================================
- */
-let draftGarmentRows = [];
-let draftClothRows = [];
+function renderDashboardQueues() {
+    const cutBox = document.getElementById('dashCuttingList');
+    if (cutBox) {
+        const cutOrders = state.orders.slice(0, 5);
+        cutBox.innerHTML = cutOrders.length === 0
+            ? `<div class="text-xs text-gray-400 py-4 text-center">কোনো অর্ডার নেই।</div>`
+            : cutOrders.map(o => `<div onclick="openCuttingStudio('${o.id}')" class="p-3 rounded-2xl border border-gray-200 hover:border-emerald-400 bg-gray-50/70 hover:bg-emerald-50/50 cursor-pointer flex items-center justify-between gap-2 transition">
+                <div>
+                    <div class="text-xs sm:text-sm font-bold text-emerald-950">#${escapeHtml(o.memoNo)} — ${escapeHtml(o.customerName)}</div>
+                    <div class="text-[11px] text-gray-600">${(o.garments || []).map(g => g.name).join(', ') || 'ফেব্রিক্স'} • ডেলিভারি: ${o.deliveryDate}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-xl bg-emerald-700 text-white text-[11px] font-bold shrink-0">${escapeHtml(o.status)}</span>
+            </div>`).join('');
+    }
+
+    const dueBox = document.getElementById('dashDueList');
+    if (dueBox) {
+        const dueOrders = state.orders.filter(o => (Number(o.totalAmount || 0) - Number(o.paidAmount || 0)) > 0).slice(0, 5);
+        dueBox.innerHTML = dueOrders.length === 0
+            ? `<div class="text-xs text-emerald-700 py-4 text-center font-semibold">বর্তমানে কোনো বকেয়া নেই!</div>`
+            : dueOrders.map(o => {
+                const due = Math.max(0, Number(o.totalAmount || 0) - Number(o.paidAmount || 0));
+                return `<div class="p-3 rounded-2xl border border-amber-200 bg-amber-50/40 flex items-center justify-between gap-2">
+                    <div>
+                        <div class="text-xs sm:text-sm font-bold text-gray-900">#${escapeHtml(o.memoNo)} — ${escapeHtml(o.customerName)}</div>
+                        <div class="text-xs font-bold text-rose-700">বকেয়া: ${formatBDT(due)}</div>
+                    </div>
+                    <button type="button" onclick="openPaymentModal('${o.id}')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 text-xs font-bold shrink-0">জমা নিন</button>
+                </div>`;
+            }).join('');
+    }
+}
 
 function initNewOrderForm() {
-    document.getElementById('orderMemoNo').value = state.orderSettings.nextMemoNumber || 1005;
-    const orderDateEl = document.getElementById('ordOrderDate');
-    if (orderDateEl) orderDateEl.value = getTodayISO();
-    const d = new Date();
-    d.setDate(d.getDate() + Number(state.orderSettings.defaultDeliveryDays || 7));
-    document.getElementById('ordDeliveryDate').value = d.toISOString().split('T')[0];
-
+    const memoInp = document.getElementById('orderMemoNo');
+    const ordDateInp = document.getElementById('ordOrderDate');
+    const delivInp = document.getElementById('ordDeliveryDate');
     const dl = document.getElementById('existingCustomersList');
-    dl.innerHTML = state.customers.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.phone)}</option>`).join('');
+
+    if (memoInp && !memoInp.value) memoInp.value = String(state.orderSettings?.nextMemoNumber || 1003);
+    if (ordDateInp && !ordDateInp.value) ordDateInp.value = getTodayISO();
+    if (delivInp && !delivInp.value) delivInp.value = addDaysISO(state.orderSettings?.defaultDeliveryDays || 7);
+    if (dl) {
+        dl.innerHTML = state.customers.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.phone || '')}</option>`).join('');
+    }
 
     renderGarmentVisualGrid();
     renderMiddleFabricsAndLots();
@@ -1445,25 +1086,23 @@ function renderGarmentVisualGrid() {
     const grid = document.getElementById('orderGarmentVisualGrid');
     if (!grid) return;
     const q = (document.getElementById('garmentGridSearch')?.value || '').trim().toLowerCase();
-    const list = state.garmentServices.filter(g => g.active && (!q || g.name.toLowerCase().includes(q)));
+    const list = state.garmentServices.filter(g => g.active !== false && (!q || g.name.toLowerCase().includes(q)));
 
     if (list.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-gray-500">কোনো পোশাক পাওয়া যায়নি।</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center text-xs text-gray-400 py-8">কোনো পোশাক পাওয়া যায়নি।</div>`;
         return;
     }
 
-    grid.innerHTML = list.map(srv => {
-        const img = srv.photo || makeGarmentArtwork(srv.name, '#ecfdf5', '#047857');
-        return `<button type="button" onclick="openGarmentMeasurementDesignModalForService('${srv.id}')"
-            class="group relative rounded-xl overflow-hidden border border-gray-200 hover:border-amber-400 bg-white shadow-2xs hover:shadow-md transition text-left flex flex-col">
-            <div class="aspect-square w-full bg-gray-50 overflow-hidden">
-                <img src="${img}" alt="${escapeHtml(srv.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+    grid.innerHTML = list.map(g => {
+        const img = g.photo || makeGarmentArtwork(g.name, '#ecfdf5', '#047857');
+        return `<button type="button" onclick="openMeasurementDesignModal('${g.id}', null)"
+            class="group text-left rounded-2xl border border-gray-200 hover:border-emerald-600 bg-white overflow-hidden shadow-xs hover:shadow-md transition flex flex-col">
+            <div class="relative aspect-square w-full bg-emerald-50/50 overflow-hidden">
+                <img src="${img}" alt="${escapeHtml(g.name)}" class="w-full h-full object-cover group-hover:scale-105 transition">
+                <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-lg bg-emerald-950/85 text-amber-300 text-[11px] font-bold">${formatBDT(g.customerPrice)}</span>
             </div>
-            <div class="w-full bg-amber-400 text-emerald-950 font-bold text-[11px] sm:text-xs px-1.5 py-1 text-center truncate">
-                ${escapeHtml(srv.name)}
-            </div>
-            <div class="w-full bg-emerald-950/90 text-amber-200 text-[10px] font-bold px-1.5 py-0.5 text-center">
-                ${formatBDT(srv.customerPrice)} • মাপ ও ডিজাইন
+            <div class="p-2 bg-amber-300/90 text-emerald-950 text-xs font-bold text-center truncate">
+                ${escapeHtml(g.name)}
             </div>
         </button>`;
     }).join('');
@@ -1471,116 +1110,99 @@ function renderGarmentVisualGrid() {
 
 function renderMiddleFabricsAndLots() {
     const fabBox = document.getElementById('middleFabricsCategoryList');
-    const lotBox = document.getElementById('middleLotsList');
-
     if (fabBox) {
-        fabBox.innerHTML = state.clothStock.length === 0
-            ? `<div class="text-xs text-gray-400 py-2">কোনো ফেব্রিক্স নেই</div>`
-            : state.clothStock.map((c, idx) => `<button type="button" onclick="quickAddClothFromMiddle('${c.id}')"
-                class="w-full text-left px-2.5 py-1.5 rounded-lg bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-300 text-xs flex items-center justify-between gap-1 transition">
-                <span class="font-semibold text-gray-800 truncate">${escapeHtml(c.name)} (${idx + 1})</span>
-                <span class="text-[11px] font-bold text-amber-800 shrink-0">${formatBDT(c.sellRate)}/গজ</span>
-            </button>`).join('');
+        fabBox.innerHTML = state.clothStock.map(c => `<button type="button" onclick="quickAddClothFromMiddle('${c.id}')"
+            class="w-full text-left px-2.5 py-2 rounded-xl bg-white hover:bg-amber-100/70 border border-emerald-100 flex items-center justify-between gap-2 text-xs transition">
+            <span class="font-bold text-gray-800 truncate">${escapeHtml(c.name)}</span>
+            <span class="text-[11px] font-bold text-emerald-800 shrink-0">${Number(c.stockYards || 0)} গজ • ${formatBDT(c.sellRate)}</span>
+        </button>`).join('');
     }
 
+    const lotBox = document.getElementById('middleLotsList');
     if (lotBox) {
         const allDesigns = Array.from(new Set(state.garmentServices.flatMap(g => g.designs || [])));
-        lotBox.innerHTML = allDesigns.length === 0
-            ? `<div class="text-xs text-gray-400">ডিজাইন লিস্ট খালি</div>`
-            : allDesigns.map(d => `<div class="px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 truncate">
-                ✦ ${escapeHtml(d)}
-            </div>`).join('');
+        lotBox.innerHTML = allDesigns.map(d => `<span class="inline-block px-2 py-1 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 mr-1 mb-1">
+            ${escapeHtml(d)}
+        </span>`).join('');
     }
 }
 
-function quickAddClothFromMiddle(clothId) {
-    const c = state.clothStock.find(item => item.id === clothId);
-    if (!c) return;
-    draftClothRows.push({
-        uid: 'dc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
-        clothId: c.id,
-        name: c.name,
-        yards: 2.5,
-        buyRate: Number(c.buyRate || 0),
-        sellRate: Number(c.sellRate || 0)
-    });
-    renderOrderClothRows();
-    updateOrderTotals();
-    showToast(`"${c.name}" (২.৫ গজ) কার্টে যুক্ত হয়েছে।`);
+function renderOrderGarmentRows() {
+    const container = document.getElementById('orderGarmentsContainer');
+    const badge = document.getElementById('cartItemBadge');
+    const totalCount = draftGarmentRows.length + draftClothRows.length;
+    if (badge) badge.textContent = `${totalCount}টি আইটেম`;
+    if (!container) return;
+
+    if (draftGarmentRows.length === 0) {
+        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-4 bg-white rounded-xl border border-dashed">বাম পাশ থেকে পোশাক সিলেক্ট করুন</div>`;
+        return;
+    }
+
+    container.innerHTML = draftGarmentRows.map((row, idx) => {
+        const sub = Number(row.qty || 1) * Number(row.rate || 0);
+        const measSummary = Object.entries(row.measurements || {})
+            .filter(([, v]) => String(v || '').trim() !== '')
+            .slice(0, 4)
+            .map(([k, v]) => `${k}:${v}`)
+            .join(', ');
+        return `<div class="bg-white rounded-xl p-2.5 border border-emerald-200 text-xs space-y-1">
+            <div class="flex items-start justify-between gap-1.5">
+                <div class="font-bold text-emerald-950 leading-snug">${idx + 1}. ${escapeHtml(row.name)} × ${row.qty}</div>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" onclick="openMeasurementDesignModal('${row.serviceId}', '${row.uid}')" class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[10px]">মাপ</button>
+                    <button type="button" onclick="removeGarmentRowFromOrder('${row.uid}')" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[10px]">✕</button>
+                </div>
+            </div>
+            ${row.design ? `<div class="text-[11px] text-amber-800 font-semibold truncate">ডিজাইন: ${escapeHtml(row.design)}</div>` : ''}
+            ${measSummary ? `<div class="text-[10px] text-gray-500 truncate">${escapeHtml(measSummary)}</div>` : ''}
+            <div class="text-right font-bold text-gray-900">${formatBDT(sub)}</div>
+        </div>`;
+    }).join('');
 }
 
-function openGarmentMeasurementDesignModalForService(serviceId, existingDraftUid = null) {
+function openMeasurementDesignModal(serviceId, existingDraftUid = null) {
+    activeNewOrderServiceId = serviceId;
     const srv = state.garmentServices.find(g => g.id === serviceId) || state.garmentServices[0];
     if (!srv) return;
-    const existingRow = existingDraftUid ? draftGarmentRows.find(r => r.uid === existingDraftUid) : null;
 
-    const qtyVal = existingRow ? existingRow.qty : 1;
-    const rateVal = existingRow ? existingRow.rate : Number(srv.customerPrice || 750);
-    const priorityVal = existingRow ? (existingRow.priority || 'Normal') : 'Normal';
-    // ছবির মাপগুলোর ক্রমানুযায়ী লম্বা তালিকা
-    const measList = Array.from(new Set([...DEFAULT_MEASUREMENTS, ...(srv.measurements || []), ...state.measurementTypes]));
-    const currentMeas = existingRow?.measurements || {};
-    const designs = srv.designs && srv.designs.length > 0 ? srv.designs : ['ক্লাসিক ডিজাইন', 'অ্যারাবিয়ান ডিজাইন', 'কাবলি ডিজাইন'];
-    const selectedDesign = existingRow?.selectedDesign || designs[0];
-    const extraChargeVal = existingRow ? Number(existingRow.extraCharge || 0) : 0;
-    const groupNameVal = existingRow?.groupName || '';
-    const lotNoVal = existingRow?.lotNo || '';
-    const masterVal = existingRow?.masterName || state.users[1]?.name || '';
-    const karigarVal = existingRow?.karigarId || state.karigors[0]?.id || '';
+    const existing = existingDraftUid ? draftGarmentRows.find(r => r.uid === existingDraftUid) : null;
+    const qtyVal = existing ? existing.qty : 1;
+    const rateVal = existing ? existing.rate : Number(srv.customerPrice || 900);
+    const extraChargeVal = 0;
+    const priorityVal = existing?.priority || 'Normal';
+    const selectedDesign = existing?.design || (srv.designs && srv.designs[0]) || '';
+    const groupNameVal = existing?.groupName || '';
+    const lotNoVal = existing?.lotNo || '';
+    const masterVal = existing?.masterName || state.currentUser?.name || '';
+    const karigarVal = existing?.karigarId || state.karigors[0]?.id || '';
+    const currentMeas = existing?.measurements || {};
 
-    // ছবিতে থাকা ডিজাইন ড্রপডাউন ক্যাটাগরি ও স্পেশাল ডিজাইন লিস্ট
-    const designDropdownGroups = [
-        { label: 'হ্যান্ড বাটন মডেল', options: ['মেটাল বডি মডেল', 'ক্লাসিক বাটন', 'ডাবল বাটন'] },
-        { label: 'হ্যান্ড বাটন সাইজ', options: ['স্ট্যান্ডার্ড সাইজ', 'মিডিয়াম', 'লার্জ'] },
-        { label: 'হ্যান্ড এক্সেসরিজ', options: ['সাধারণ', 'মেটাল ট্যাগ', 'কফ ক্লিপ'] },
-        { label: 'পিন ডিজাইন', options: ['সাধারণ পিন', 'মেটাল পিন', 'ডিজাইনার পিন'] },
-        { label: 'সুইট ডিজাইন', options: ['নরমাল সুইট', 'স্পেশাল সুইট'] },
-        { label: 'শার্ট কলার ডিজাইন', options: ['স্ট্যান্ডার্ড শার্ট কলার', 'সেমি-স্প্রেড কলার'] },
-        { label: 'কলার ডিজাইন', options: ['ক্লাসিক কলার', 'ব্যান্ড কলার', 'পাইপিং কলার'] },
-        { label: 'প্লেইট ডিজাইন', options: ['সাধারণ প্লেইট', 'ডাবল প্লেইট', 'হাইডেন প্লেইট'] },
-        { label: 'মাস্টার নোট', options: ['নিখুঁত ফিট দিন', 'লুজ ঠিক রাখুন', 'জরুরি ডেলিভারি'] },
-        { label: 'শার্ট কলার', options: ['নরমাল কলার', 'শার্ট কলার'] }
-    ];
+    const measList = (srv.measurements && srv.measurements.length > 0) ? srv.measurements : state.measurementTypes;
+    const designs = (srv.designs && srv.designs.length > 0) ? srv.designs : ['ক্লাসিক ডিজাইন', 'স্পেশাল ডিজাইন'];
+    const designDropdownGroups = DEFAULT_DESIGN_DROPDOWN_GROUPS.map(dg => ({
+        label: dg.label,
+        options: Array.isArray(srv.designGroups?.[dg.label]) ? srv.designGroups[dg.label] : dg.options
+    }));
+    const specialOptions = (Array.isArray(srv.specialDesigns) && srv.specialDesigns.length > 0)
+        ? srv.specialDesigns
+        : DEFAULT_SPECIAL_DESIGN_ITEMS;
 
-    const specialOptions = [
-        { label: 'নেক বাটন প্লেট (+৳০)', add: 0 },
-        { label: 'রিং কফ হাব (+৳০)', add: 0 },
-        { label: 'রিং কফ হাব না (+৳০)', add: 0 },
-        { label: 'শোতায় কফ হাব (+৳০)', add: 0 },
-        { label: 'প্লেট কলার হাতা চেইন (+৳১৫০)', add: 150 },
-        { label: 'বক্স প্লেট (+৳০)', add: 0 },
-        { label: 'শার্ট কলার চেইন (+৳০)', add: 0 },
-        { label: 'প্লেট লুজ (+৳১০০)', add: 100 },
-        { label: 'শোতায়ানি লুজ (+৳০)', add: 0 },
-        { label: 'প্লেট ফিট বুতাম জাল (+৳৪০)', add: 40 },
-        { label: 'এক্সা নেক হাব (+৳০)', add: 0 },
-        { label: 'রিং কফ হাবিং হাব (+৳০)', add: 0 },
-        { label: 'কফ হাব (+৳৫০)', add: 50 },
-        { label: 'শার্ট কলার (+৳১০০)', add: 100 },
-        { label: 'শার্ট কলার+কফ (+৳১৫০)', add: 150 },
-        { label: 'কফালিন হাব (+৳২০০)', add: 200 },
-        { label: 'শার্ট কলার +কফালিন (+৳৩৫০)', add: 350 },
-        { label: 'কলারের নিচে কাল কাবড় (+৳০)', add: 0 }
-    ];
-
-    const html = `<form onsubmit="saveMeasurementDesignToCart(event, '${srv.id}', '${existingDraftUid || ''}')" class="space-y-3.5">
-        <!-- Top Bar: Quantity, Rate, Priority (matching reference modal) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-cyan-50/80 border border-cyan-200 p-3 rounded-xl">
+    const html = `<form onsubmit="saveMeasurementDesignToCart(event, '${srv.id}', '${existingDraftUid || ''}')" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200">
             <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">পরিমাণ</label>
-                <input type="number" id="mModalQty" min="1" value="${qtyVal}" required
-                       class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-bold">
+                <label class="block text-xs font-bold text-gray-700 mb-1">পরিমাণ</label>
+                <input type="number" id="mModalQty" min="1" value="${qtyVal}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-bold">
             </div>
             <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">দর (৳)</label>
-                <input type="number" id="mModalRate" min="0" value="${rateVal}" required
-                       class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-bold text-emerald-900">
+                <label class="block text-xs font-bold text-gray-700 mb-1">দর (৳)</label>
+                <input type="number" id="mModalRate" min="0" value="${rateVal}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-bold text-emerald-900">
             </div>
             <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">প্রায়োরিটি</label>
-                <select id="mModalPriority" class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold">
+                <label class="block text-xs font-bold text-gray-700 mb-1">প্রায়োরিটি</label>
+                <select id="mModalPriority" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold">
                     <option value="Normal" ${priorityVal === 'Normal' ? 'selected' : ''}>Normal</option>
-                    <option value="Urgent" ${priorityVal === 'Urgent' ? 'selected' : ''}>Urgent (জরুরি)</option>
+                    <option value="Urgent" ${priorityVal === 'Urgent' ? 'selected' : ''}>Urgent</option>
                 </select>
             </div>
         </div>
@@ -1684,75 +1306,125 @@ function saveMeasurementDesignToCart(event, serviceId, existingDraftUid) {
     const masterName = (document.getElementById('mModalMaster')?.value || '').trim();
     const karigarId = document.getElementById('mModalKarigar')?.value || state.karigors[0]?.id || '';
 
-    const measObj = {};
+    const measurements = {};
     document.querySelectorAll('.m-modal-input').forEach(inp => {
         const key = inp.dataset.measKey;
-        const val = (inp.value || '').trim();
-        if (key && val) measObj[key] = val;
+        if (key) measurements[key] = inp.value.trim();
     });
 
-    const payload = {
-        uid: existingDraftUid || ('dg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
+    const extraDesignNotes = [];
+    document.querySelectorAll('.m-design-select').forEach(sel => {
+        if (sel.value) extraDesignNotes.push(`${sel.dataset.designGroup}: ${sel.value}`);
+    });
+    document.querySelectorAll('.m-special-check:checked').forEach(cb => {
+        if (cb.dataset.specialLabel) extraDesignNotes.push(cb.dataset.specialLabel);
+    });
+
+    const combinedDesign = [selectedDesign, ...extraDesignNotes].filter(Boolean).join(' • ');
+    const completeRate = Number(srv.completePrice ?? 80);
+    const defaultCompleterId = state.karigors.find(k => (k.specialty || '').includes('আয়রন'))?.id || state.karigors[0]?.id || '';
+
+    const rowPayload = {
+        uid: existingDraftUid || ('dg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5)),
         serviceId: srv.id,
         name: srv.name,
-        photo: srv.photo,
         qty,
         rate: finalRate,
-        karigarRate: Number(srv.karigarPrice || 0),
-        completeRate: Number(srv.completePrice ?? 80),
+        karigarRate: Number(srv.karigarPrice || 300),
+        completeRate,
         karigarId,
+        completerId: defaultCompleterId,
         priority,
-        selectedDesign,
-        extraCharge,
+        design: combinedDesign,
         groupName,
         lotNo,
         masterName,
-        cuttingDone: false,
-        sewingDone: false,
-        completedDone: false,
-        measurements: measObj
+        measurements
     };
 
     if (existingDraftUid) {
         const idx = draftGarmentRows.findIndex(r => r.uid === existingDraftUid);
-        if (idx !== -1) draftGarmentRows[idx] = payload;
-        else draftGarmentRows.push(payload);
+        if (idx >= 0) draftGarmentRows[idx] = rowPayload;
+        else draftGarmentRows.push(rowPayload);
     } else {
-        draftGarmentRows.push(payload);
+        draftGarmentRows.push(rowPayload);
     }
 
-    closeModal();
     renderOrderGarmentRows();
     updateOrderTotals();
-    showToast(`"${srv.name}" (${qty} পিস) কার্টে যুক্ত হয়েছে!`);
+    closeModal();
+    showToast(`"${srv.name}" (${qty}টি) কার্টে যুক্ত হয়েছে!`);
 }
 
-function renderOrderGarmentRows() {
-    const container = document.getElementById('orderGarmentsContainer');
+function quickAddClothFromMiddle(clothId) {
+    const c = state.clothStock.find(item => item.id === clothId);
+    if (!c) return;
+    draftClothRows.push({
+        uid: 'dc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+        clothId: c.id,
+        name: c.name,
+        yards: 2.5,
+        buyRate: Number(c.buyRate || 0),
+        sellRate: Number(c.sellRate || 0)
+    });
+    renderOrderClothRows();
+    updateOrderTotals();
+    showToast(`"${c.name}" (২.৫ গজ) কার্টে যুক্ত হয়েছে।`);
+}
+
+function addClothRowToOrder() {
+    if (!state.clothStock.length) {
+        showToast('স্টকে কোনো গজ কাপড় নেই।', 'warn');
+        return;
+    }
+    quickAddClothFromMiddle(state.clothStock[0].id);
+}
+
+function autofillCustomerByName(nameVal) {
+    const q = (nameVal || '').trim();
+    if (!q) return;
+    const found = state.customers.find(c => c.name === q);
+    if (!found) return;
+    const phoneEl = document.getElementById('ordCustomerPhone');
+    const waEl = document.getElementById('ordCustomerWhatsapp');
+    const addrEl = document.getElementById('ordCustomerAddress');
+    if (phoneEl && !phoneEl.value) phoneEl.value = found.phone || '';
+    if (waEl && !waEl.value) waEl.value = found.whatsapp || found.phone || '';
+    if (addrEl && !addrEl.value) addrEl.value = found.address || '';
+}
+
+function removeGarmentRowFromOrder(uid) {
+    draftGarmentRows = draftGarmentRows.filter(r => r.uid !== uid);
+    renderOrderGarmentRows();
+    updateOrderTotals();
+}
+
+function removeClothRowFromOrder(uid) {
+    draftClothRows = draftClothRows.filter(r => r.uid !== uid);
+    renderOrderClothRows();
+    updateOrderTotals();
+}
+
+function renderOrderClothRows() {
+    const container = document.getElementById('orderClothsContainer');
     const badge = document.getElementById('cartItemBadge');
     const totalCount = draftGarmentRows.length + draftClothRows.length;
     if (badge) badge.textContent = `${totalCount}টি আইটেম`;
+    if (!container) return;
 
-    if (draftGarmentRows.length === 0) {
-        container.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">কার্ট খালি — বাম পাশের পোশাকে ক্লিক করুন</div>`;
+    if (draftClothRows.length === 0) {
+        container.innerHTML = '';
         return;
     }
 
-    container.innerHTML = draftGarmentRows.map((row, idx) => {
-        const sub = Number(row.qty || 1) * Number(row.rate || 0);
-        const mSummary = Object.entries(row.measurements || {}).map(([k, v]) => `${k}:${v}`).join(', ');
-        return `<div class="bg-white rounded-xl p-2.5 border border-emerald-200 text-xs space-y-1 shadow-2xs">
-            <div class="flex items-start justify-between gap-1.5">
-                <div>
-                    <div class="font-bold text-emerald-950">${idx + 1}. ${escapeHtml(row.name)} × ${row.qty}</div>
-                    <div class="text-[11px] font-bold text-amber-800">${formatBDT(sub)} ${row.selectedDesign ? `• ${escapeHtml(row.selectedDesign)}` : ''}</div>
-                </div>
-                <div class="flex gap-1 shrink-0">
-                    <button type="button" onclick="openGarmentMeasurementDesignModalForService('${row.serviceId}', '${row.uid}')" class="px-2 py-0.5 rounded bg-blue-50 text-blue-800 font-bold text-[10px]">মাপ/এডিট</button>
-                    <button type="button" onclick="removeGarmentRowFromOrder('${row.uid}')" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[10px]">✕</button>
-                </div>
+    container.innerHTML = draftClothRows.map((row, idx) => {
+        const sub = Number(row.yards || 0) * Number(row.sellRate || 0);
+        return `<div class="bg-amber-50/70 rounded-xl p-2 border border-amber-200 text-xs flex items-center justify-between gap-1.5">
+            <div class="min-w-0">
+                <div class="font-bold text-amber-950 truncate">${idx + 1}. ${escapeHtml(row.name)}</div>
+                <div class="text-[11px] font-semibold text-gray-700">${row.yards} গজ × ${formatBDT(row.sellRate)} = <b class="text-amber-900">${formatBDT(sub)}</b></div>
             </div>
-            ${mSummary ? `<div class="text-[10px] text-gray-500 truncate">${escapeHtml(mSummary)}</div>` : ''}
+            <button type="button" onclick="removeClothRowFromOrder('${row.uid}')" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[10px] shrink-0">✕</button>
         </div>`;
     }).join('');
 }
@@ -3479,12 +3151,64 @@ function renderServicesSettings(container) {
 
 let pendingGarmentPhotoDataUrl = '';
 let pendingGarmentDesigns = [];
+let pendingGarmentSpecialDesigns = [];
+let pendingGarmentDesignGroups = {};
+
+const DEFAULT_DESIGN_DROPDOWN_GROUPS = [
+    { label: 'হ্যান্ড বাটন মডেল', options: ['মেটাল বডি মডেল', 'ক্লাসিক বাটন', 'ডাবল বাটন'] },
+    { label: 'হ্যান্ড বাটন সাইজ', options: ['স্ট্যান্ডার্ড সাইজ', 'মিডিয়াম', 'লার্জ'] },
+    { label: 'হ্যান্ড এক্সেসরিজ', options: ['সাধারণ', 'মেটাল ট্যাগ', 'কফ ক্লিপ'] },
+    { label: 'পিন ডিজাইন', options: ['সাধারণ পিন', 'মেটাল পিন', 'ডিজাইনার পিন'] },
+    { label: 'সুইট ডিজাইন', options: ['নরমাল সুইট', 'স্পেশাল সুইট'] },
+    { label: 'শার্ট কলার ডিজাইন', options: ['স্ট্যান্ডার্ড শার্ট কলার', 'সেমি-স্প্রেড কলার'] },
+    { label: 'কলার ডিজাইন', options: ['ক্লাসিক কলার', 'ব্যান্ড কলার', 'পাইপিং কলার'] },
+    { label: 'প্লেইট ডিজাইন', options: ['সাধারণ প্লেইট', 'ডাবল প্লেইট', 'হাইডেন প্লেইট'] },
+    { label: 'মাস্টার নোট', options: ['নিখুঁত ফিট দিন', 'লুজ ঠিক রাখুন', 'জরুরি ডেলিভারি'] },
+    { label: 'শার্ট কলার', options: ['নরমাল কলার', 'শার্ট কলার'] }
+];
+
+const DEFAULT_SPECIAL_DESIGN_ITEMS = [
+    { label: 'নেক বাটন প্লেট (+৳০)', add: 0 },
+    { label: 'রিং কফ হাব (+৳০)', add: 0 },
+    { label: 'রিং কফ হাব না (+৳০)', add: 0 },
+    { label: 'শোতায় কফ হাব (+৳০)', add: 0 },
+    { label: 'প্লেট কলার হাতা চেইন (+৳১৫০)', add: 150 },
+    { label: 'বক্স প্লেট (+৳০)', add: 0 },
+    { label: 'শার্ট কলার চেইন (+৳০)', add: 0 },
+    { label: 'প্লেট লুজ (+৳১০০)', add: 100 },
+    { label: 'শোতায়ানি লুজ (+৳০)', add: 0 },
+    { label: 'প্লেট ফিট বুতাম জাল (+৳৪০)', add: 40 },
+    { label: 'এক্সা নেক হাব (+৳০)', add: 0 },
+    { label: 'রিং কফ হাবিং হাব (+৳০)', add: 0 },
+    { label: 'কফ হাব (+৳৫০)', add: 50 },
+    { label: 'শার্ট কলার (+৳১০০)', add: 100 },
+    { label: 'শার্ট কলার+কফ (+৳১৫০)', add: 150 },
+    { label: 'কফালিন হাব (+৳২০০)', add: 200 },
+    { label: 'শার্ট কলার +কফালিন (+৳৩৫০)', add: 350 },
+    { label: 'কলারের নিচে কাল কাবড় (+৳০)', add: 0 }
+];
 
 function openGarmentServiceModal(serviceId = null) {
     const g = serviceId ? state.garmentServices.find(item => item.id === serviceId) : null;
     pendingGarmentPhotoDataUrl = g?.photo || '';
     pendingGarmentDesigns = Array.isArray(g?.designs) ? [...g.designs] : ['ক্লাসিক ডিজাইন'];
-    const currentMeas = g?.measurements || state.measurementTypes.slice(0, 8);
+    pendingGarmentSpecialDesigns = Array.isArray(g?.specialDesigns) && g.specialDesigns.length > 0
+        ? g.specialDesigns.map(item => ({ ...item }))
+        : DEFAULT_SPECIAL_DESIGN_ITEMS.map(item => ({ ...item }));
+
+    pendingGarmentDesignGroups = {};
+    DEFAULT_DESIGN_DROPDOWN_GROUPS.forEach(dg => {
+        const savedOpts = Array.isArray(g?.designGroups?.[dg.label]) ? g.designGroups[dg.label] : dg.options;
+        pendingGarmentDesignGroups[dg.label] = [...savedOpts];
+    });
+
+    // Ensure all standard measurements (কোমর, তিরা, হাতার লম্বা, হাতার মোহড়া, গলা, বেল্ট চওড়া, ঘের, লুজ, প্লেট ফাড়া, পকেট ফাড়া ইত্যাদি) appear in edit modal
+    const allAvailableMeasurements = Array.from(new Set([
+        ...DEFAULT_MEASUREMENTS,
+        ...state.measurementTypes,
+        ...(g?.measurements || [])
+    ]));
+    const currentMeas = g?.measurements || allAvailableMeasurements;
     const currentImg = pendingGarmentPhotoDataUrl || makeGarmentArtwork(g?.name || 'পোশাক', '#ecfdf5', '#047857');
 
     const html = `<form onsubmit="saveGarmentService(event, '${g ? g.id : ''}')" class="space-y-4">
@@ -3528,11 +3252,50 @@ function openGarmentServiceModal(serviceId = null) {
             </div>
         </div>
 
-        <!-- 3. Garment Designs (Add / Edit / Remove inside same modal) -->
+        <!-- 3. Garment Designs, Dropdown Categories & Special Designs -->
         <div class="bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="text-xs font-bold text-amber-950">৩. পোশাকের ডিজাইনসমূহ যোগ ও এডিট করুন</div>
                 <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                    <input type="text" id="newGarmentDesignInput" placeholder="নতুন ডিজাইনের নাম..."
+                           class="flex-1 sm:w-44 rounded-xl border border-amber-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+                    <button type="button" onclick="addDesignToPendingList()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold">
+                        + ডিজাইন যোগ
+                    </button>
+                </div>
+            </div>
+            <div id="garmentDesignsChipsContainer" class="flex flex-wrap gap-2">
+                ${renderPendingDesignChipsHtml()}
+            </div>
+
+            <!-- ডিজাইন ক্যাটাগরি ও অপশনসমূহ (হ্যান্ড বাটন মডেল, পিন ডিজাইন, কলার, প্লেইট ইত্যাদি) -->
+            <div class="border-t border-amber-200/80 pt-3 space-y-2">
+                <div class="text-xs font-bold text-amber-950">ডিজাইন অপশন ক্যাটাগরি (ক্লিক করে অপশন এডিট/যোগ করুন)</div>
+                <div id="garmentDesignGroupsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    ${renderPendingDesignGroupsHtml()}
+                </div>
+            </div>
+
+            <!-- স্পেশাল ডিজাইন ও অতিরিক্ত চার্জ এডিট করার অংশ -->
+            <div class="border-t border-amber-200/80 pt-3 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-amber-950">স্পেশাল ডিজাইন ও রেট (এডিট / যোগ করুন)</span>
+                    <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                        <input type="text" id="newSpecialDesignTitle" placeholder="স্পেশাল ডিজাইনের নাম..."
+                               class="flex-1 sm:w-40 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs outline-none">
+                        <input type="number" id="newSpecialDesignAddRate" min="0" value="0" placeholder="+৳"
+                               class="w-16 rounded-xl border border-amber-300 bg-white px-2 py-1 text-xs font-bold outline-none">
+                        <button type="button" onclick="addSpecialDesignToPendingList()" class="px-2.5 py-1 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold">
+                            + যুক্ত
+                        </button>
+                    </div>
+                </div>
+                <div id="garmentSpecialDesignsList" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
+                    ${renderPendingSpecialDesignsHtml()}
+                </div>
+            </div>
+        </div>
+
         <!-- 4. Measurements (Add New Measurement + Fit Presets + Edit/Check inside same modal) -->
         <div class="bg-gray-50 p-3.5 rounded-2xl border space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -3555,7 +3318,7 @@ function openGarmentServiceModal(serviceId = null) {
                 </div>
             </div>
             <div id="modalMeasurementCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                ${state.measurementTypes.map(m => {
+                ${allAvailableMeasurements.map(m => {
                     const checked = currentMeas.includes(m);
                     return `<label class="flex items-center justify-between gap-2 bg-white border ${checked ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200'} rounded-xl px-2.5 py-2 text-xs font-semibold cursor-pointer transition">
                         <span class="flex items-center gap-2 truncate">
@@ -3579,15 +3342,41 @@ function openGarmentServiceModal(serviceId = null) {
     openModal(g ? `পোশাক এডিট — ${g.name}` : 'নতুন পোশাকের ধরন যুক্ত করুন', html);
 }
 
+function renderPendingDesignGroupsHtml() {
+    return DEFAULT_DESIGN_DROPDOWN_GROUPS.map(dg => {
+        const opts = pendingGarmentDesignGroups[dg.label] || dg.options;
+        return `<div class="bg-white border border-amber-200 rounded-xl p-2 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+                <div class="font-bold text-gray-800 truncate">${escapeHtml(dg.label)}</div>
+                <div class="text-[11px] text-gray-500 truncate">${escapeHtml(opts.join(', '))}</div>
+            </div>
+            <button type="button" onclick="addOptionToDesignGroup('${escapeHtml(dg.label)}')" class="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-[11px] shrink-0">
+                + অপশন
+            </button>
+        </div>`;
+    }).join('');
+}
+
+function addOptionToDesignGroup(groupLabel) {
+    const newOpt = prompt(`"${groupLabel}" এর জন্য নতুন অপশনের নাম লিখুন:`);
+    if (!newOpt || !newOpt.trim()) return;
+    if (!Array.isArray(pendingGarmentDesignGroups[groupLabel])) {
+        pendingGarmentDesignGroups[groupLabel] = [];
+    }
+    pendingGarmentDesignGroups[groupLabel].push(newOpt.trim());
+    const grid = document.getElementById('garmentDesignGroupsGrid');
+    if (grid) grid.innerHTML = renderPendingDesignGroupsHtml();
+    showToast(`"${groupLabel}"-এ "${newOpt.trim()}" যুক্ত হয়েছে।`);
+}
+
 function renderPendingDesignChipsHtml() {
     if (!pendingGarmentDesigns.length) {
-        return `<span class="text-xs text-gray-500">কোনো ডিজাইন যুক্ত নেই। উপরে নতুন ডিজাইন যোগ করুন।</span>`;
+        return `<div class="text-xs text-gray-500">কোনো ডিজাইন যুক্ত নেই।</div>`;
     }
-    return pendingGarmentDesigns.map((d, idx) => `<div class="inline-flex items-center gap-1.5 bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-950 shadow-2xs">
+    return pendingGarmentDesigns.map((d, idx) => `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-amber-300 text-xs font-bold text-amber-950">
         <span>${escapeHtml(d)}</span>
-        <button type="button" onclick="editDesignInPendingList(${idx})" title="ডিজাইন এডিট" class="text-blue-700 hover:underline font-bold">✎</button>
-        <button type="button" onclick="removeDesignFromPendingList(${idx})" title="ডিজাইন মুছুন" class="text-rose-600 hover:text-rose-800 font-bold">✕</button>
-    </div>`).join('');
+        <button type="button" onclick="removeDesignFromPendingList(${idx})" class="text-rose-600 hover:text-rose-800 font-bold">✕</button>
+    </span>`).join('');
 }
 
 function refreshPendingDesignsUI() {
@@ -3602,23 +3391,66 @@ function addDesignToPendingList() {
     if (!pendingGarmentDesigns.includes(val)) {
         pendingGarmentDesigns.push(val);
         refreshPendingDesignsUI();
+        showToast(`"${val}" ডিজাইন যুক্ত হয়েছে।`);
     }
     inp.value = '';
-}
-
-function editDesignInPendingList(idx) {
-    const current = pendingGarmentDesigns[idx];
-    if (current === undefined) return;
-    const updated = prompt('ডিজাইনের নাম এডিট করুন:', current);
-    if (updated !== null && updated.trim() !== '') {
-        pendingGarmentDesigns[idx] = updated.trim();
-        refreshPendingDesignsUI();
-    }
 }
 
 function removeDesignFromPendingList(idx) {
     pendingGarmentDesigns.splice(idx, 1);
     refreshPendingDesignsUI();
+}
+
+function renderPendingSpecialDesignsHtml() {
+    if (!pendingGarmentSpecialDesigns.length) {
+        return `<div class="col-span-full text-xs text-gray-500">কোনো স্পেশাল ডিজাইন নেই।</div>`;
+    }
+    return pendingGarmentSpecialDesigns.map((sp, idx) => `<div class="flex items-center justify-between gap-2 bg-white border border-amber-200 rounded-xl px-2.5 py-1.5 text-xs">
+        <span class="font-semibold text-gray-800 truncate">${escapeHtml(sp.label)} <b class="text-amber-800">(+৳${Number(sp.add || 0)})</b></span>
+        <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="editSpecialDesignInPendingList(${idx})" class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[10px]">এডিট</button>
+            <button type="button" onclick="removeSpecialDesignFromPendingList(${idx})" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[10px]">✕</button>
+        </div>
+    </div>`).join('');
+}
+
+function refreshPendingSpecialDesignsUI() {
+    const box = document.getElementById('garmentSpecialDesignsList');
+    if (box) box.innerHTML = renderPendingSpecialDesignsHtml();
+}
+
+function addSpecialDesignToPendingList() {
+    const titleInp = document.getElementById('newSpecialDesignTitle');
+    const rateInp = document.getElementById('newSpecialDesignAddRate');
+    const namePart = (titleInp?.value || '').trim();
+    const addAmt = Math.max(0, Number(rateInp?.value || 0));
+    if (!namePart) return;
+    const fullLabel = namePart.includes('+৳') ? namePart : `${namePart} (+৳${addAmt})`;
+    pendingGarmentSpecialDesigns.push({ label: fullLabel, add: addAmt });
+    titleInp.value = '';
+    if (rateInp) rateInp.value = '0';
+    refreshPendingSpecialDesignsUI();
+    showToast('স্পেশাল ডিজাইন যুক্ত হয়েছে।');
+}
+
+function editSpecialDesignInPendingList(idx) {
+    const current = pendingGarmentSpecialDesigns[idx];
+    if (!current) return;
+    const updatedLabel = prompt('স্পেশাল ডিজাইনের নাম এডিট করুন:', current.label);
+    if (updatedLabel === null || !updatedLabel.trim()) return;
+    const updatedRate = prompt('অতিরিক্ত চার্জ (৳) লিখুন:', String(Number(current.add || 0)));
+    if (updatedRate === null) return;
+    pendingGarmentSpecialDesigns[idx] = {
+        label: updatedLabel.trim(),
+        add: Math.max(0, Number(updatedRate || 0))
+    };
+    refreshPendingSpecialDesignsUI();
+    showToast('স্পেশাল ডিজাইন আপডেট হয়েছে।');
+}
+
+function removeSpecialDesignFromPendingList(idx) {
+    pendingGarmentSpecialDesigns.splice(idx, 1);
+    refreshPendingSpecialDesignsUI();
 }
 
 function addInlineMeasurementInModal(serviceId) {
@@ -3706,6 +3538,8 @@ function saveGarmentService(event, id) {
     if (pendingTypedDesign && !designs.includes(pendingTypedDesign)) {
         designs.push(pendingTypedDesign);
     }
+    const specialDesigns = pendingGarmentSpecialDesigns.map(sp => ({ ...sp }));
+    const designGroups = { ...pendingGarmentDesignGroups };
     const checkedMeas = Array.from(document.querySelectorAll('input[name="srvMeasCheck"]:checked')).map(el => el.value);
     const photo = pendingGarmentPhotoDataUrl || makeGarmentArtwork(name, '#ecfdf5', '#047857');
 
@@ -3717,6 +3551,8 @@ function saveGarmentService(event, id) {
             srv.karigarPrice = karigarPrice;
             srv.completePrice = completePrice;
             srv.designs = designs;
+            srv.specialDesigns = specialDesigns;
+            srv.designGroups = designGroups;
             srv.measurements = checkedMeas;
             srv.photo = photo;
         }
@@ -3730,6 +3566,8 @@ function saveGarmentService(event, id) {
             active: true,
             photo,
             designs,
+            specialDesigns,
+            designGroups,
             measurements: checkedMeas
         });
     }
@@ -4198,5 +4036,24 @@ window.addEventListener('DOMContentLoaded', function() {
     navigateTo(state.currentTab || 'dashboard');
 });
 </script>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav id="mobileBottomNav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-emerald-950/95 backdrop-blur border-t border-emerald-800 text-white px-1 py-1.5 flex items-center justify-around no-print">
+    <button type="button" onclick="navigateTo('dashboard')" class="flex flex-col items-center px-2 py-1 rounded-xl text-[11px] font-bold text-emerald-100">
+        <span>হোম</span>
+    </button>
+    <button type="button" onclick="navigateTo('new-order')" class="flex flex-col items-center px-2.5 py-1 rounded-xl text-[11px] font-bold bg-amber-400 text-emerald-950">
+        <span>+ অর্ডার</span>
+    </button>
+    <button type="button" onclick="navigateTo('orders')" class="flex flex-col items-center px-2 py-1 rounded-xl text-[11px] font-bold text-emerald-100">
+        <span>অর্ডারসমূহ</span>
+    </button>
+    <button type="button" onclick="navigateTo('reports')" class="flex flex-col items-center px-2 py-1 rounded-xl text-[11px] font-bold text-emerald-100">
+        <span>রিপোর্ট</span>
+    </button>
+    <button type="button" onclick="navigateTo('settings')" class="flex flex-col items-center px-2 py-1 rounded-xl text-[11px] font-bold text-emerald-100">
+        <span>সেটিংস</span>
+    </button>
+</nav>
 </body>
 </html>
