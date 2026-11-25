@@ -156,50 +156,17 @@
 
     <!-- ==================== 1. DASHBOARD VIEW ==================== -->
     <section id="view-dashboard" class="space-y-5">
-        <!-- Hero Banner Card -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 text-white p-5 sm:p-7 shadow-xl border border-amber-400/30">
-            <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-amber-400/10 blur-2xl pointer-events-none"></div>
-            <div class="absolute -left-10 -bottom-12 w-44 h-44 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none"></div>
-
-            <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div class="space-y-1.5">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-300/40 text-amber-200 text-xs font-bold">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                        <span>আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স • কমান্ড ড্যাশবোর্ড</span>
-                    </div>
-                    <h2 class="text-xl sm:text-3xl font-bold tracking-tight text-white">
-                        আজকের ব্যবসা ও অর্ডার কন্ট্রোল রুম
-                    </h2>
-                    <p class="text-xs sm:text-sm text-emerald-100/90 max-w-2xl">
-                        টেইলার্স কাটিং-সেলাই-কমপ্লিট, ফেব্রিক্স স্টক, কাস্টমার বকেয়া এবং ডেলিভারি ক্যালেন্ডার—সবকিছু এক জায়গায় পরিষ্কার ও নির্ভুল।
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                    <button onclick="navigateTo('new-order')" class="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 text-xs sm:text-sm font-bold shadow-lg transition flex items-center gap-1.5">
-                        <span>+ নতুন অর্ডার নিন</span>
-                    </button>
-                    <button onclick="openDirectClothSaleModal()" class="px-4 py-2.5 rounded-2xl bg-emerald-800/90 hover:bg-emerald-700 text-white border border-emerald-500/40 text-xs sm:text-sm font-bold shadow transition">
-                        গজ কাপড় বিক্রি
-                    </button>
-                    <button onclick="navigateTo('reports')" class="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-amber-200 border border-white/15 text-xs sm:text-sm font-bold transition">
-                        লাভের রিপোর্ট →
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- KPI Cards Grid -->
         <div id="dashboardKpiGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"></div>
 
-        <!-- Sector Split & Quick Operations Row -->
+        <!-- Sector Split Row -->
         <div id="dashboardSectorSplit" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
         <!-- Monthly Order & Delivery Calendar Grid -->
         <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-emerald-100 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
                 <div>
-                    <h3 class="text-base sm:text-xl font-bold text-emerald-950">মাসিক অর্ডার ও ডেলিভারি ক্যালেন্ডার</h3>
+                    <h2 class="text-base sm:text-xl font-bold text-emerald-950">মাসিক অর্ডার ও ডেলিভারি ক্যালেন্ডার</h2>
                     <p class="text-xs text-gray-500">যে তারিখে অর্ডার বা ডেলিভারি আছে তার কার্ডে ক্লিক করে সরাসরি কাটিং বা মেমো দেখুন</p>
                 </div>
                 <span id="dashCalendarMonthBadge" class="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold self-start sm:self-auto"></span>
@@ -207,32 +174,32 @@
             <div id="dashboardCalendarGrid" class="overflow-x-auto"></div>
         </div>
 
-            <!-- Two Column Overview: Cutting Queue + Due Collection -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <!-- Cutting Queue Card -->
-                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h3 class="text-base sm:text-lg font-bold text-emerald-950">কাটিং ও প্রোডাকশন কিউ</h3>
-                            <p class="text-xs text-gray-500">অর্ডারে ক্লিক করে কাটিং ডান, সেলাই ডান ও কমপ্লিট ডান দিন</p>
-                        </div>
-                        <button onclick="navigateTo('orders')" class="text-xs font-bold text-emerald-700 hover:underline">সব দেখুন →</button>
+        <!-- Two Column Overview: Cutting Queue + Due Collection -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Cutting Queue Card -->
+            <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-emerald-950">কাটিং ও প্রোডাকশন কিউ</h3>
+                        <p class="text-xs text-gray-500">অর্ডারে ক্লিক করে কাটিং ডান, সেলাই ডান ও কমপ্লিট ডান দিন</p>
                     </div>
-                    <div id="dashCuttingList" class="space-y-2.5"></div>
+                    <button type="button" onclick="navigateTo('orders')" class="text-xs font-bold text-emerald-700 hover:underline">সব দেখুন →</button>
                 </div>
-
-                <!-- Pending Dues Card -->
-                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h3 class="text-base sm:text-lg font-bold text-emerald-950">বকেয়া আদায় তালিকা</h3>
-                            <p class="text-xs text-gray-500">দ্রুত জমা / পেমেন্ট নিতে পাশে ক্লিক করুন</p>
-                        </div>
-                        <button onclick="navigateTo('customers')" class="text-xs font-bold text-amber-700 hover:underline">লেজার দেখুন →</button>
-                    </div>
-                    <div id="dashDueList" class="space-y-2.5"></div>
-                </div>
+                <div id="dashCuttingList" class="space-y-2.5"></div>
             </div>
+
+            <!-- Pending Dues Card -->
+            <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-emerald-950">বকেয়া আদায় তালিকা</h3>
+                        <p class="text-xs text-gray-500">দ্রুত জমা / পেমেন্ট নিতে পাশে ক্লিক করুন</p>
+                    </div>
+                    <button type="button" onclick="navigateTo('customers')" class="text-xs font-bold text-amber-700 hover:underline">লেজার দেখুন →</button>
+                </div>
+                <div id="dashDueList" class="space-y-2.5"></div>
+            </div>
+        </div>
     </section>
 
     <!-- ==================== 2. NEW ORDER VIEW ==================== -->
@@ -295,18 +262,19 @@
                 <!-- Left: Garments Visual Grid -->
                 <div class="lg:col-span-6 bg-gray-50/80 border rounded-2xl p-3.5 space-y-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <h3 class="text-sm sm:text-base font-bold text-emerald-950">পোশাক সিলেক্ট করুন (মাপ ও ডিজাইন)</h3>
-                        <input type="text" id="garmentGridSearch" oninput="renderGarmentVisualGrid()" placeholder="পোশাক খুঁজুন..." class="rounded-xl border border-gray-300 bg-white px-3 py-1 text-xs outline-none">
+                        <h3 class="text-sm sm:text-base font-bold text-emerald-950">পোশাক ও প্রোডাক্ট সিলেক্ট করুন</h3>
+                        <input type="text" id="garmentGridSearch" oninput="renderGarmentVisualGrid()" placeholder="পোশাক বা প্রোডাক্ট সার্চ করুন..." class="w-full sm:w-52 rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold outline-none focus:border-emerald-600">
                     </div>
                     <div id="orderGarmentVisualGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                 </div>
 
                 <!-- Middle: Fabrics & Design Lots -->
                 <div class="lg:col-span-3 bg-amber-50/40 border border-amber-200/80 rounded-2xl p-3.5 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-amber-950">ফেব্রিক্স (গজ কাপড়)</h3>
+                    <div class="flex items-center justify-between gap-1.5">
+                        <h3 class="text-sm font-bold text-amber-950">Fabrics (ফেব্রিক্স)</h3>
                         <button type="button" onclick="addClothRowToOrder()" class="px-2 py-1 rounded-lg bg-amber-500 text-emerald-950 text-[11px] font-bold">+ কাপড়</button>
                     </div>
+                    <input type="text" id="middleFabricSearchInput" oninput="renderMiddleFabricsAndLots()" placeholder="ফেব্রিক্স সার্চ করুন..." class="w-full rounded-xl border border-amber-300 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-amber-600">
                     <div id="middleFabricsCategoryList" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
                     <div class="border-t border-amber-200/80 pt-2.5">
                         <div class="text-xs font-bold text-gray-700 mb-1.5">ডিজাইন ও লট ট্যাগ</div>
@@ -690,6 +658,58 @@ function showToast(message, type = 'success') {
 function getInitialState() {
     const today = getTodayISO();
     const deliv = addDaysISO(7);
+    const fullInventoryStock = [
+        { id: 'cl-inv-31', code: 'STK-31', name: 'আতর আল- ফারহান', stockYards: 100, buyRate: 890, sellRate: 110, lastRestockDate: today },
+        { id: 'cl-inv-80', code: 'STK-80', name: 'আতর আল-রেহাদ', stockYards: 6, buyRate: 885, sellRate: 150, lastRestockDate: today },
+        { id: 'cl-inv-30', code: 'STK-30', name: 'আতর আলিফ', stockYards: 70, buyRate: 883, sellRate: 120, lastRestockDate: today },
+        { id: 'cl-inv-78', code: 'STK-78', name: 'আতর আলিফ পাতা', stockYards: -6, buyRate: 817, sellRate: 150, lastRestockDate: today },
+        { id: 'cl-inv-13', code: 'STK-13', name: 'আদি সুতি', stockYards: 142.25, buyRate: 520, sellRate: 150, lastRestockDate: today },
+        { id: 'cl-inv-74', code: 'STK-74', name: 'আসসুন্নাহ পাঁচ কলি টুপি', stockYards: 15, buyRate: 850, sellRate: 100, lastRestockDate: today },
+        { id: 'cl-inv-15', code: 'STK-15', name: 'ইন্ডিয়ান ধুতি', stockYards: 27.5, buyRate: 180, sellRate: 280, lastRestockDate: today },
+        { id: 'cl-inv-51', code: 'STK-51', name: 'ইন্ডিয়ান প্রিন্ট সুতি', stockYards: 66.75, buyRate: 110, sellRate: 180, lastRestockDate: today },
+        { id: 'cl-inv-52', code: 'STK-52', name: 'ইন্ডিয়ান মাংগালাম প্রিন্ট', stockYards: 63.75, buyRate: 160, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-20', code: 'STK-20', name: 'ইন্ডিয়ান সিল্ক', stockYards: 6.25, buyRate: 180, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-11', code: 'STK-11', name: 'ইন্ডিয়ান সুতি', stockYards: 288.25, buyRate: 180, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-16', code: 'STK-16', name: 'উলেন ইন্ডিয়ান', stockYards: -2.75, buyRate: 180, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-12', code: 'STK-12', name: 'এম্ব্রয়ডারি সুতি', stockYards: 24.25, buyRate: 3383, sellRate: 450, lastRestockDate: today },
+        { id: 'cl-inv-5', code: 'STK-05', name: 'এল এক্সট্রা টের', stockYards: 123.75, buyRate: 105, sellRate: 180, lastRestockDate: today },
+        { id: 'cl-inv-33', code: 'STK-33', name: 'কলার ক্লিপ', stockYards: 100, buyRate: 25, sellRate: 50, lastRestockDate: today },
+        { id: 'cl-inv-10', code: 'STK-10', name: 'কাশ্মীরি সুতি', stockYards: 39, buyRate: 270, sellRate: 320, lastRestockDate: today },
+        { id: 'cl-inv-71', code: 'STK-71', name: 'গিজা ফেব্রিক্স', stockYards: 38, buyRate: 420, sellRate: 650, lastRestockDate: today },
+        { id: 'cl-inv-83', code: 'STK-83', name: 'গোল টুপি বুনিস', stockYards: -25, buyRate: 145, sellRate: 170, lastRestockDate: today },
+        { id: 'cl-inv-82', code: 'STK-82', name: 'গোল টুপি মকমল', stockYards: -60, buyRate: 150, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-72', code: 'STK-72', name: 'চায়না গিজা', stockYards: 96.75, buyRate: 380, sellRate: 450, lastRestockDate: today },
+        { id: 'cl-inv-6', code: 'STK-06', name: 'জাপানি টের', stockYards: -10.25, buyRate: 563, sellRate: 750, lastRestockDate: today },
+        { id: 'cl-inv-18', code: 'STK-18', name: 'টুড পায়জামার কাপড়', stockYards: 0.5, buyRate: 96, sellRate: 120, lastRestockDate: today },
+        { id: 'cl-inv-47', code: 'STK-47', name: 'নেকাব হাতা', stockYards: 24, buyRate: 280, sellRate: 350, lastRestockDate: today },
+        { id: 'cl-inv-46', code: 'STK-46', name: 'পকেট ক্লিপ', stockYards: 150, buyRate: 20, sellRate: 30, lastRestockDate: today },
+        { id: 'cl-inv-43', code: 'STK-43', name: 'পা মোজা', stockYards: 29, buyRate: 35, sellRate: 50, lastRestockDate: today },
+        { id: 'cl-inv-50', code: 'STK-50', name: 'পাকিজা সুতি', stockYards: 85.5, buyRate: 110, sellRate: 130, lastRestockDate: today },
+        { id: 'cl-inv-9', code: 'STK-09', name: 'পাকিস্তানি খাদি', stockYards: 73, buyRate: 240, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-49', code: 'STK-49', name: 'পাকিস্তানি গাজী', stockYards: 91.25, buyRate: 190, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-8', code: 'STK-08', name: 'পাকিস্তানি গ্রেজ', stockYards: 66.5, buyRate: 560, sellRate: 600, lastRestockDate: today },
+        { id: 'cl-inv-76', code: 'STK-76', name: 'পাকিস্তানি গ্রেজ টের', stockYards: -3.25, buyRate: 204, sellRate: 350, lastRestockDate: today },
+        { id: 'cl-inv-66', code: 'STK-66', name: 'পাকিস্তানি ব্লুম টার', stockYards: 105.75, buyRate: 370, sellRate: 450, lastRestockDate: today },
+        { id: 'cl-inv-64', code: 'STK-64', name: 'পাকিস্তানি লাইটিং', stockYards: 72, buyRate: 180, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-65', code: 'STK-65', name: 'পাকিস্তানি লাইটিং (৬৫)', stockYards: 82.75, buyRate: 280, sellRate: 350, lastRestockDate: today },
+        { id: 'cl-inv-7', code: 'STK-07', name: 'পাকিস্তানি লোন', stockYards: 150.75, buyRate: 180, sellRate: 230, lastRestockDate: today },
+        { id: 'cl-inv-21', code: 'STK-21', name: 'পাঁচ কলি নরমাল টুপি', stockYards: 135, buyRate: 20, sellRate: 30, lastRestockDate: today },
+        { id: 'cl-inv-22', code: 'STK-22', name: 'পাঁচ কলি বসুন্ধরা', stockYards: 135, buyRate: 44, sellRate: 60, lastRestockDate: today },
+        { id: 'cl-inv-4', code: 'STK-04', name: 'প্রেসিডেন্ট টের', stockYards: 140, buyRate: 250, sellRate: 350, lastRestockDate: today },
+        { id: 'cl-inv-75', code: 'STK-75', name: 'প্রেসিডেন্ট টের চায়না', stockYards: -7.5, buyRate: 170, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-1', code: 'STK-01', name: 'মাইক্রো আদারস', stockYards: 872.75, buyRate: 176, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-2', code: 'STK-02', name: 'মাইক্রো সাদা', stockYards: 346.75, buyRate: 170, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-63', code: 'STK-63', name: 'লেইজি', stockYards: 61.25, buyRate: 170, sellRate: 230, lastRestockDate: today },
+        { id: 'cl-inv-77', code: 'STK-77', name: 'সবুজ পাগড়ি মুজাহিদ মিনার মার্কা', stockYards: 80, buyRate: 270, sellRate: 450, lastRestockDate: today },
+        { id: 'cl-inv-39', code: 'STK-39', name: 'সবুজ পাগড়ি মুজাহিদ হাত পাখা মার্কা', stockYards: 24, buyRate: 324, sellRate: 350, lastRestockDate: today },
+        { id: 'cl-inv-38', code: 'STK-38', name: 'সবুজ পাগড়ি সিংগল', stockYards: 25, buyRate: 180, sellRate: 250, lastRestockDate: today },
+        { id: 'cl-inv-40', code: 'STK-40', name: 'সাদা পাগড়ি সিংগল', stockYards: 67, buyRate: 20, sellRate: 50, lastRestockDate: today },
+        { id: 'cl-inv-19', code: 'STK-19', name: 'সুতি পায়জামার কাপড়', stockYards: 48.75, buyRate: 170, sellRate: 180, lastRestockDate: today },
+        { id: 'cl-inv-70', code: 'STK-70', name: 'সৌদিয়ান ফেব্রিক্স', stockYards: 29, buyRate: 410, sellRate: 650, lastRestockDate: today },
+        { id: 'cl-inv-48', code: 'STK-48', name: 'স্ন্যাপ বাটন', stockYards: 621, buyRate: 10, sellRate: 20, lastRestockDate: today },
+        { id: 'cl-inv-42', code: 'STK-42', name: 'হাত মোজা', stockYards: 24, buyRate: 35, sellRate: 50, lastRestockDate: today }
+    ];
+
     return {
         currentTab: 'dashboard',
         currentSettingsTab: 'services',
@@ -721,10 +741,18 @@ function getInitialState() {
             { id: 'srv-5', name: 'তাবিজ পায়জামা', customerPrice: 450, karigarPrice: 150, completePrice: 50, active: true, photo: makeGarmentArtwork('তাবিজ পায়জামা', '#fefce8', '#a16207'), designs: ['তাবিজ পকেট', 'নরমাল'], measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া'] },
             { id: 'srv-6', name: 'প্যান্ট কাটিং পায়জামা', customerPrice: 550, karigarPrice: 180, completePrice: 60, active: true, photo: makeGarmentArtwork('প্যান্ট পায়জামা', '#f3f4f6', '#1f2937'), designs: ['স্লিম ফিট', 'রেগুলার'], measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া'] }
         ],
-        clothStock: [
-            { id: 'cl-1', code: 'FB-101', name: 'জাপানি সুতি পাঞ্জাবী কাপড়', stockYards: 48, buyRate: 260, sellRate: 400, lastRestockDate: today },
-            { id: 'cl-2', code: 'FB-102', name: 'পাকিস্তানি লোন কাপড়', stockYards: 36, buyRate: 310, sellRate: 460, lastRestockDate: today },
-            { id: 'cl-3', code: 'FB-103', name: 'কাবলি গ্যাবার্ডিন কাপড়', stockYards: 28, buyRate: 340, sellRate: 520, lastRestockDate: today }
+        clothStock: fullInventoryStock,
+        stockOutLogs: [
+            { id: 'out-1', date: '২৫ নভে ২০২৬', item: 'চায়না গিজা (72)', qtyOut: 52.5, source: 'STK-00582', note: 'Sold via Order #665' },
+            { id: 'out-2', date: '২২ নভে ২০২৬', item: 'স্ন্যাপ বাটন (48)', qtyOut: 88, source: 'STK-00581', note: 'Sold via Order #662' },
+            { id: 'out-3', date: '২২ নভে ২০২৬', item: 'মাইক্রো আদারস (1)', qtyOut: 88, source: 'STK-00581', note: 'Sold via Order #662' },
+            { id: 'out-4', date: '২০ নভে ২০২৬', item: 'এল এক্সট্রা টের (5)', qtyOut: 52.75, source: 'STK-00580', note: 'Sold via Order #661' },
+            { id: 'out-5', date: '২০ নভে ২০২৬', item: 'স্ন্যাপ বাটন (48)', qtyOut: 18, source: 'STK-00580', note: 'Sold via Order #661' },
+            { id: 'out-6', date: '২০ নভে ২০২৬', item: 'মাইক্রো আদারস (1)', qtyOut: 62.75, source: 'STK-00580', note: 'Sold via Order #661' },
+            { id: 'out-7', date: '১৯ নভে ২০২৬', item: 'মাইক্রো আদারস (1)', qtyOut: 84, source: 'STK-00579', note: 'Sold via Order #660' },
+            { id: 'out-8', date: '১৮ নভে ২০২৬', item: 'মাইক্রো আদারস (1)', qtyOut: 87, source: 'STK-00574', note: 'Sold via Order #656' },
+            { id: 'out-9', date: '১৮ নভে ২০২৬', item: 'চায়না গিজা (72)', qtyOut: 87, source: 'STK-00574', note: 'Sold via Order #656' },
+            { id: 'out-10', date: '১৮ নভে ২০২৬', item: 'স্ন্যাপ বাটন (48)', qtyOut: 84, source: 'STK-00575', note: 'Sold via Order #658' }
         ],
         karigors: [
             { id: 'kr-1', name: 'মোঃ রফিকুল ইসলাম', phone: '01711000111', specialty: 'পাঞ্জাবী ও কাবলি কারিগর', totalEarned: 1800, totalPaid: 1000 },
@@ -812,16 +840,25 @@ function getInitialState() {
         ],
         expenses: [
             { id: 'exp-1', date: today, sector: 'tailors', title: 'সুতা, বকরম ও বোতাম ক্রয়', amount: 650 },
-            { id: 'exp-2', date: today, sector: 'fabrics', title: 'মাল ঢোকা: জাপানি সুতি কাপড় (২০ গজ × ৳২৬০)', amount: 5200 }
-        ],
-        smsLogs: [
-            { id: 'sms-1', date: `${today} (সকাল)`, customer: 'আব্দুল করিম সাহেব', phone: '01712345678', channel: 'WhatsApp', message: 'আপনার মেমো #1001 কনফার্ম হয়েছে।', status: 'WhatsApp Ready' }
+            { id: 'exp-2', date: today, sector: 'fabrics', title: 'পাকিস্তানি লোন ও সুতি কাপড় ক্রয়', amount: 4200 }
         ],
         users: [
             { id: 'usr-1', name: 'মাস্টার অ্যাডমিন', role: 'অ্যাডমিন / কাটিং মাস্টার', phone: '01787265892' },
-            { id: 'usr-2', name: 'কাউন্টার ম্যানেজার', role: 'সেলস ও বকেয়া হিসাব', phone: '01811223344' }
-        ]
+            { id: 'usr-2', name: 'কাউন্টার ম্যানেজার', role: 'অর্ডার ও বিলিং', phone: '01711223344' },
+            { id: 'usr-3', name: 'কাটিং মাস্টার', role: 'কাটিং ও সেলাই তদারকি', phone: '01811223344' }
+        ],
+        smsLogs: []
     };
+}
+
+function deduplicateClothStock(items) {
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).filter(item => {
+        const key = `${String(item?.code || '').trim().toLowerCase()}__${String(item?.name || '').trim().toLowerCase()}`;
+        if (!item?.name || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 function loadAppState() {
@@ -829,7 +866,9 @@ function loadAppState() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return getInitialState();
         const parsed = JSON.parse(raw);
-        return { ...getInitialState(), ...parsed };
+        const merged = { ...getInitialState(), ...parsed };
+        merged.clothStock = deduplicateClothStock(merged.clothStock);
+        return merged;
     } catch (e) {
         return getInitialState();
     }
@@ -1110,12 +1149,20 @@ function renderGarmentVisualGrid() {
 
 function renderMiddleFabricsAndLots() {
     const fabBox = document.getElementById('middleFabricsCategoryList');
+    const fabSearch = (document.getElementById('middleFabricSearchInput')?.value || '').trim().toLowerCase();
     if (fabBox) {
-        fabBox.innerHTML = state.clothStock.map(c => `<button type="button" onclick="quickAddClothFromMiddle('${c.id}')"
-            class="w-full text-left px-2.5 py-2 rounded-xl bg-white hover:bg-amber-100/70 border border-emerald-100 flex items-center justify-between gap-2 text-xs transition">
-            <span class="font-bold text-gray-800 truncate">${escapeHtml(c.name)}</span>
-            <span class="text-[11px] font-bold text-emerald-800 shrink-0">${Number(c.stockYards || 0)} গজ • ${formatBDT(c.sellRate)}</span>
-        </button>`).join('');
+        const filteredCloths = state.clothStock.filter(c =>
+            !fabSearch ||
+            String(c.name || '').toLowerCase().includes(fabSearch) ||
+            String(c.code || '').toLowerCase().includes(fabSearch)
+        );
+        fabBox.innerHTML = filteredCloths.length === 0
+            ? `<div class="text-[11px] text-gray-400 text-center py-3">কোনো ফেব্রিক্স পাওয়া যায়নি।</div>`
+            : filteredCloths.map(c => `<button type="button" onclick="quickAddClothFromMiddle('${c.id}')"
+                class="w-full text-left px-2.5 py-2 rounded-xl bg-white hover:bg-amber-100/70 border border-emerald-100 flex items-center justify-between gap-2 text-xs transition">
+                <span class="font-bold text-gray-800 truncate">${escapeHtml(c.name)}</span>
+                <span class="text-[11px] font-bold text-emerald-800 shrink-0">${Number(c.stockYards || 0)} গজ • ${formatBDT(c.sellRate)}</span>
+            </button>`).join('');
     }
 
     const lotBox = document.getElementById('middleLotsList');
