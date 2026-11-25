@@ -236,116 +236,133 @@
     </section>
 
     <!-- ==================== 2. NEW ORDER VIEW ==================== -->
-    <section id="view-new-order" class="hidden space-y-5">
-        <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-emerald-100">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b">
+    <section id="view-new-order" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-emerald-100 space-y-4">
+            <!-- Top Bar: Memo # + Order Date + Delivery Date -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b">
                 <div>
-                    <h2 class="text-lg sm:text-2xl font-bold text-emerald-950">নতুন অর্ডার ও মেমো তৈরি</h2>
-                    <p class="text-xs sm:text-sm text-gray-500">পোশাকের মাপ, রেট, কাপড় এবং অগ্রিম জমা দিয়ে মেমো জেনারেট করুন</p>
+                    <h2 class="text-base sm:text-xl font-bold text-emerald-950">নতুন অর্ডার ও মেমো তৈরি</h2>
+                    <p class="text-xs text-gray-500">পোশাকের ছবিতে ক্লিক করে মাপ ও ডিজাইন দিন, মাঝখান থেকে ফেব্রিক্স/লট যুক্ত করুন, ডানে কার্ট দেখুন</p>
                 </div>
-                <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-                    <span class="text-xs text-emerald-800 font-semibold">মেমো নং:</span>
-                    <input type="text" id="orderMemoNo" class="w-24 bg-transparent font-bold text-emerald-950 text-sm outline-none">
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <div class="bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1">
+                        <span class="font-semibold text-emerald-900">মেমো #:</span>
+                        <input type="text" id="orderMemoNo" class="w-16 bg-transparent font-bold text-emerald-950 outline-none">
+                    </div>
+                    <div class="bg-gray-50 border px-2.5 py-1.5 rounded-xl flex items-center gap-1">
+                        <span class="font-semibold text-gray-700">অর্ডার তারিখ:</span>
+                        <input type="date" id="ordOrderDate" class="bg-transparent font-semibold text-gray-900 outline-none">
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1">
+                        <span class="font-semibold text-amber-900">ডেলিভারি:</span>
+                        <input type="date" id="ordDeliveryDate" required class="bg-transparent font-bold text-amber-950 outline-none">
+                    </div>
                 </div>
             </div>
 
-            <form id="newOrderForm" onsubmit="handleCreateOrder(event)" class="space-y-6">
-                <!-- Customer Information -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">কাস্টমারের নাম *</label>
-                        <input type="text" id="ordCustomerName" required list="existingCustomersList" oninput="autofillCustomerByName(this.value)"
-                               placeholder="যেমন: মো: রফিকুল ইসলাম"
-                               class="w-full rounded-xl border border-gray-300 focus:border-emerald-600 px-3 py-2 text-sm outline-none">
-                        <datalist id="existingCustomersList"></datalist>
+            <!-- Customer Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50/90 p-3 rounded-2xl border">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">কাস্টমারের নাম *</label>
+                    <input type="text" id="ordCustomerName" required list="existingCustomersList" oninput="autofillCustomerByName(this.value)"
+                           placeholder="কাস্টমারের নাম লিখুন..."
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                    <datalist id="existingCustomersList"></datalist>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">মোবাইল নম্বর *</label>
+                    <input type="tel" id="ordCustomerPhone" required placeholder="017XXXXXXXX"
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">হোয়াটসঅ্যাপ (থাকলে)</label>
+                    <input type="tel" id="ordCustomerWhatsapp" placeholder="017XXXXXXXX"
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">ঠিকানা</label>
+                    <input type="text" id="ordCustomerAddress" placeholder="সদর রোড, বাকেরগঞ্জ"
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
+                </div>
+            </div>
+
+            <!-- 3-Column Studio Layout: Left Garment Image Grid | Middle Fabrics & Lots | Right Cart & Billing -->
+            <form id="newOrderForm" onsubmit="handleCreateOrder(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                <!-- LEFT: Garment Visual Grid (6 cols) -->
+                <div class="lg:col-span-6 bg-white rounded-2xl border border-emerald-200 p-3 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-bold text-emerald-950">পোশাকের ধরন (ছবিতে ক্লিক করুন)</span>
+                        <input type="text" id="garmentGridSearch" oninput="renderGarmentVisualGrid()" placeholder="পোশাক খুঁজুন..."
+                               class="rounded-xl border border-gray-200 px-2.5 py-1 text-xs outline-none focus:border-emerald-500">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">মোবাইল নম্বর *</label>
-                        <input type="tel" id="ordCustomerPhone" required placeholder="017XXXXXXXX"
-                               class="w-full rounded-xl border border-gray-300 focus:border-emerald-600 px-3 py-2 text-sm outline-none">
+                    <div id="orderGarmentVisualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- MIDDLE: Fabrics & Lot Categories List (3 cols) -->
+                <div class="lg:col-span-3 bg-emerald-50/40 rounded-2xl border border-emerald-200 p-3 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-emerald-950">— Fabrics ও স্টক —</span>
+                        <button type="button" onclick="addClothRowToOrder()" class="text-[11px] font-bold text-amber-800 hover:underline">+ গজ</button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">হোয়াটসঅ্যাপ নম্বর (যদি থাকে)</label>
-                        <input type="tel" id="ordCustomerWhatsapp" placeholder="থাকলে দিন, নইলে ফোন নম্বরে SMS যাবে"
-                               class="w-full rounded-xl border border-gray-300 focus:border-emerald-600 px-3 py-2 text-sm outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">ঠিকানা</label>
-                        <input type="text" id="ordCustomerAddress" placeholder="সদর রোড, বাকেরগঞ্জ"
-                               class="w-full rounded-xl border border-gray-300 focus:border-emerald-600 px-3 py-2 text-sm outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">ডেলিভারির তারিখ *</label>
-                        <input type="date" id="ordDeliveryDate" required
-                               class="w-full rounded-xl border border-gray-300 focus:border-emerald-600 px-3 py-2 text-sm outline-none">
+                    <div id="middleFabricsCategoryList" class="space-y-1 max-h-[300px] overflow-y-auto pr-1"></div>
+
+                    <div class="border-t pt-2 space-y-1.5">
+                        <div class="text-xs font-bold text-gray-800">— লট ও ডিজাইন লিস্ট —</div>
+                        <div id="middleLotsList" class="space-y-1 max-h-[180px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
-                <!-- Garment Items Builder -->
-                <div class="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <h3 class="text-sm sm:text-base font-bold text-emerald-950">পোশাক ও শরীরের মাপসমূহ</h3>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <select id="garmentTemplateSelect" class="rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-emerald-950 outline-none"></select>
-                            <button type="button" onclick="addGarmentRowToOrder()" class="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold shadow transition">
-                                + পোশাক যোগ করুন
-                            </button>
-                        </div>
+                <!-- RIGHT: Cart & Billing Panel (3 cols) -->
+                <div class="lg:col-span-3 bg-gray-50 rounded-2xl border border-gray-200 p-3.5 space-y-3 sticky top-28">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <span class="text-xs sm:text-sm font-bold text-emerald-950">🛒 অর্ডার কার্ট</span>
+                        <span id="cartItemBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900">০টি আইটেম</span>
                     </div>
 
-                    <div id="orderGarmentsContainer" class="space-y-4"></div>
-                </div>
+                    <!-- Selected Garments & Cloths in Cart -->
+                    <div id="orderGarmentsContainer" class="space-y-2 max-h-56 overflow-y-auto pr-0.5"></div>
+                    <div id="orderClothsContainer" class="space-y-2 max-h-36 overflow-y-auto pr-0.5"></div>
 
-                <!-- Fabrics / Quick Cloth Purchase on Same Memo (Optional) -->
-                <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-amber-950">ফেব্রিক্স / কাপড় সংযুক্তি (ঐচ্ছিক)</h3>
-                            <p class="text-xs text-amber-800/80">দোকানের স্টক থেকে গজ কাপড় বিক্রি করলে এখানে যোগ করুন—ফেব্রিক্স রিপোর্টে স্বয়ংক্রিয় হিসাব হবে</p>
-                        </div>
-                        <button type="button" onclick="addClothRowToOrder()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold shadow transition">
-                            + গজ কাপড় যোগ করুন
-                        </button>
-                    </div>
-                    <div id="orderClothsContainer" class="space-y-2.5"></div>
-                </div>
-
-                <!-- Billing & Advance Payment Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                    <div class="lg:col-span-2 space-y-3">
-                        <label class="block text-xs font-semibold text-gray-700">বিশেষ নোট বা ডিজাইন নির্দেশনা</label>
-                        <input type="text" id="ordGeneralNote" placeholder="যেমন: হাতা কফ বোতাম, গলা পাইপিং, সাদা সুতা..."
-                               class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none">
-                        <div class="flex items-center gap-2 pt-1">
-                            <input type="checkbox" id="ordSendSms" checked class="w-4 h-4 rounded text-emerald-700">
-                            <label for="ordSendSms" class="text-xs sm:text-sm text-gray-700 font-medium">অর্ডার কনফার্মেশন SMS লগে সংরক্ষণ করুন</label>
-                        </div>
+                    <!-- Note & SMS -->
+                    <div>
+                        <input type="text" id="ordGeneralNote" placeholder="বিশেষ নোট / নির্দেশনা..."
+                               class="w-full rounded-xl border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+                        <label class="flex items-center gap-1.5 mt-1.5 text-[11px] text-gray-700 font-medium cursor-pointer">
+                            <input type="checkbox" id="ordSendSms" checked class="w-3.5 h-3.5 rounded text-emerald-700">
+                            <span>অর্ডার কনফার্ম SMS / WhatsApp</span>
+                        </label>
                     </div>
 
-                    <div class="bg-white rounded-xl p-4 border border-emerald-100 space-y-2.5 shadow-sm">
-                        <div class="flex justify-between text-xs sm:text-sm text-gray-600">
-                            <span>টেইলার্স সেলাই বিল:</span>
+                    <!-- Totals, Discount, Advance, Due -->
+                    <div class="bg-white rounded-xl p-3 border border-emerald-100 space-y-1.5 text-xs">
+                        <div class="flex justify-between text-gray-600">
+                            <span>টেইলার্স বিল:</span>
                             <span id="calcTailorTotal" class="font-bold text-gray-900">৳০</span>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm text-gray-600">
+                        <div class="flex justify-between text-gray-600">
                             <span>ফেব্রিক্স কাপড় বিল:</span>
                             <span id="calcClothTotal" class="font-bold text-amber-700">৳০</span>
                         </div>
-                        <div class="flex justify-between text-sm sm:text-base font-bold text-emerald-950 border-t pt-2">
+                        <div class="flex justify-between items-center text-gray-700 pt-1">
+                            <span>ছাড় (৳):</span>
+                            <input type="number" id="ordDiscountAmount" min="0" value="0" oninput="updateOrderTotals()"
+                                   class="w-20 rounded-lg border border-gray-300 px-2 py-0.5 text-xs font-bold text-right outline-none">
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-emerald-950 border-t pt-1.5">
                             <span>সর্বমোট বিল:</span>
                             <span id="calcGrandTotal">৳০</span>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="grid grid-cols-2 gap-1.5 pt-1">
                             <div>
-                                <label class="block text-[11px] font-semibold text-gray-600 mb-0.5">অগ্রিম জমা (৳)</label>
+                                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">অগ্রিম (৳)</label>
                                 <input type="number" id="ordAdvanceAmount" min="0" value="0" oninput="updateOrderTotals()"
-                                       class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm font-bold text-emerald-800 outline-none">
+                                       class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs font-bold text-emerald-800 outline-none">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-gray-600 mb-0.5">পেমেন্ট মাধ্যম</label>
-                                <select id="ordPaymentMethod" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs sm:text-sm outline-none bg-white">
-                                    <option value="Cash">Cash (ক্যাশ)</option>
+                                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">মাধ্যম</label>
+                                <select id="ordPaymentMethod" class="w-full rounded-lg border border-gray-300 px-1.5 py-1 text-xs outline-none bg-white">
+                                    <option value="Cash">Cash</option>
                                     <option value="bKash">bKash</option>
                                     <option value="Nagad">Nagad</option>
                                     <option value="Bank">Bank</option>
@@ -353,20 +370,20 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-between text-xs sm:text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg">
+                        <div class="flex justify-between text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1.5 rounded-lg">
                             <span>বকেয়া থাকবে:</span>
                             <span id="calcDueAmount">৳০</span>
                         </div>
                     </div>
-                </div>
 
-                <div class="flex flex-wrap justify-end gap-3">
-                    <button type="button" onclick="resetOrderForm()" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-100 transition">
-                        রিসেট
-                    </button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold shadow-md transition">
-                        মেমো সংরক্ষণ ও প্রিভিউ দেখুন
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="resetOrderForm()" class="px-3 py-2 rounded-xl border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100">
+                            রিসেট
+                        </button>
+                        <button type="submit" class="flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                            ✓ অর্ডার নিশ্চিত করুন
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -796,8 +813,10 @@ function getInitialState() {
                 name: 'অ্যারাবিয়ান ক্লাসিক পাঞ্জাবী',
                 customerPrice: 950,
                 karigarPrice: 320,
+                completePrice: 80,
                 active: true,
                 photo: makeGarmentArtwork('অ্যারাবিয়ান', '#ecfdf5', '#047857'),
+                designs: ['কফ বোতাম ডিজাইন', 'বুক পকেট ফাড়া', 'গলা পাইপিং', 'হাই কলার'],
                 measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের', 'লুজ', 'প্লেট ফাড়া']
             },
             {
@@ -805,8 +824,10 @@ function getInitialState() {
                 name: 'কাবলি পাঞ্জাবী (পকেট/বেল্ট)',
                 customerPrice: 1150,
                 karigarPrice: 380,
+                completePrice: 100,
                 active: true,
                 photo: makeGarmentArtwork('কাবলি', '#fffbeb', '#b45309'),
+                designs: ['চওড়া বেল্ট ডিজাইন', 'ডাবল পকেট', 'কফ স্লিভ'],
                 measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'বেল্ট চওড়া', 'ঘের', 'পকেট ফাড়া']
             },
             {
@@ -814,8 +835,10 @@ function getInitialState() {
                 name: 'ফতুয়া / শর্ট পাঞ্জাবী',
                 customerPrice: 700,
                 karigarPrice: 220,
+                completePrice: 60,
                 active: true,
                 photo: makeGarmentArtwork('ফতুয়া', '#eff6ff', '#1d4ed8'),
+                designs: ['শর্ট কলার', 'সাইড কাট', 'হাতা ফোল্ডিং'],
                 measurements: ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের']
             },
             {
@@ -823,8 +846,10 @@ function getInitialState() {
                 name: 'পাজামা (প্যান্ট কাটিং / নরমাল)',
                 customerPrice: 450,
                 karigarPrice: 140,
+                completePrice: 50,
                 active: true,
                 photo: makeGarmentArtwork('পাজামা', '#fdf2f8', '#be185d'),
+                designs: ['প্যান্ট কাটিং + চেইন', 'নরমাল পাজামা', 'ইলাস্টিক ও ফিতা'],
                 measurements: ['লম্বা', 'কোমর', 'হাতার মোহড়া', 'বেল্ট চওড়া', 'লুজ']
             }
         ],
@@ -1400,152 +1425,77 @@ let draftClothRows = [];
 
 function initNewOrderForm() {
     document.getElementById('orderMemoNo').value = state.orderSettings.nextMemoNumber || 1005;
+    const orderDateEl = document.getElementById('ordOrderDate');
+    if (orderDateEl) orderDateEl.value = getTodayISO();
     const d = new Date();
     d.setDate(d.getDate() + Number(state.orderSettings.defaultDeliveryDays || 7));
     document.getElementById('ordDeliveryDate').value = d.toISOString().split('T')[0];
 
-    // Datalist of existing customers
     const dl = document.getElementById('existingCustomersList');
     dl.innerHTML = state.customers.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.phone)}</option>`).join('');
 
-    // Garment template dropdown
-    const sel = document.getElementById('garmentTemplateSelect');
-    const activeServices = state.garmentServices.filter(g => g.active);
-    sel.innerHTML = activeServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${formatBDT(s.customerPrice)}</option>`).join('');
-
-    if (draftGarmentRows.length === 0 && activeServices.length > 0) {
-        addGarmentRowToOrder(activeServices[0].id);
-    } else {
-        renderOrderGarmentRows();
-    }
+    renderGarmentVisualGrid();
+    renderMiddleFabricsAndLots();
+    renderOrderGarmentRows();
     renderOrderClothRows();
     updateOrderTotals();
 }
 
-function autofillCustomerByName(nameVal) {
-    const found = state.customers.find(c => c.name.trim() === (nameVal || '').trim());
-    if (found) {
-        document.getElementById('ordCustomerPhone').value = found.phone || '';
-        if (document.getElementById('ordCustomerWhatsapp')) {
-            document.getElementById('ordCustomerWhatsapp').value = found.whatsapp || '';
-        }
-        document.getElementById('ordCustomerAddress').value = found.address || '';
-    }
-}
+function renderGarmentVisualGrid() {
+    const grid = document.getElementById('orderGarmentVisualGrid');
+    if (!grid) return;
+    const q = (document.getElementById('garmentGridSearch')?.value || '').trim().toLowerCase();
+    const list = state.garmentServices.filter(g => g.active && (!q || g.name.toLowerCase().includes(q)));
 
-function addGarmentRowToOrder(forceServiceId = null) {
-    const srvId = forceServiceId || document.getElementById('garmentTemplateSelect').value;
-    const srv = state.garmentServices.find(g => g.id === srvId) || state.garmentServices[0];
-    if (!srv) return;
-
-    const measObj = {};
-    (srv.measurements || []).forEach(m => { measObj[m] = ''; });
-
-    draftGarmentRows.push({
-        uid: 'dg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-        serviceId: srv.id,
-        name: srv.name,
-        photo: srv.photo,
-        qty: 1,
-        rate: Number(srv.customerPrice || 0),
-        karigarRate: Number(srv.karigarPrice || 0),
-        karigarId: state.karigors[0]?.id || '',
-        cuttingDone: false,
-        measurements: measObj
-    });
-    renderOrderGarmentRows();
-    updateOrderTotals();
-}
-
-function removeGarmentRowFromOrder(uid) {
-    draftGarmentRows = draftGarmentRows.filter(r => r.uid !== uid);
-    renderOrderGarmentRows();
-    updateOrderTotals();
-}
-
-function updateDraftGarmentField(uid, field, value) {
-    const row = draftGarmentRows.find(r => r.uid === uid);
-    if (!row) return;
-    if (field === 'qty' || field === 'rate' || field === 'karigarRate') {
-        row[field] = Math.max(0, Number(value || 0));
-    } else {
-        row[field] = value;
-    }
-    updateOrderTotals();
-}
-
-function updateDraftMeasurement(uid, mKey, val) {
-    const row = draftGarmentRows.find(r => r.uid === uid);
-    if (!row) return;
-    row.measurements[mKey] = val;
-}
-
-function renderOrderGarmentRows() {
-    const container = document.getElementById('orderGarmentsContainer');
-    if (draftGarmentRows.length === 0) {
-        container.innerHTML = `<div class="text-center py-4 text-xs sm:text-sm text-gray-500">কোনো পোশাক যোগ করা হয়নি। উপরে "+ পোশাক যোগ করুন" চাপুন।</div>`;
+    if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-gray-500">কোনো পোশাক পাওয়া যায়নি।</div>`;
         return;
     }
 
-    container.innerHTML = draftGarmentRows.map((row, idx) => {
-        const srv = state.garmentServices.find(s => s.id === row.serviceId);
-        const mKeys = Object.keys(row.measurements || {});
-        const imgSrc = row.photo || srv?.photo || makeGarmentArtwork(row.name, '#ecfdf5', '#047857');
-
-        return `<div class="bg-white rounded-xl p-3.5 sm:p-4 border border-emerald-200 shadow-sm space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
-                <div class="flex items-center gap-3">
-                    <img src="${imgSrc}" alt="${escapeHtml(row.name)}" class="w-12 h-12 rounded-xl object-cover border border-emerald-200 shrink-0">
-                    <div>
-                        <div class="text-xs font-bold text-emerald-700">পোশাক #${idx + 1}</div>
-                        <div class="text-sm sm:text-base font-bold text-gray-900">${escapeHtml(row.name)}</div>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-500">সংখ্যা (পিস)</label>
-                        <input type="number" min="1" value="${row.qty}" oninput="updateDraftGarmentField('${row.uid}', 'qty', this.value)"
-                               class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm font-bold text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-500">রেট (৳)</label>
-                        <input type="number" min="0" value="${row.rate}" oninput="updateDraftGarmentField('${row.uid}', 'rate', this.value)"
-                               class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm font-bold text-emerald-800">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-500">কারিগর</label>
-                        <select onchange="updateDraftGarmentField('${row.uid}', 'karigarId', this.value)"
-                                class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm bg-white">
-                            ${state.karigors.map(k => `<option value="${k.id}" ${row.karigarId === k.id ? 'selected' : ''}>${escapeHtml(k.name)}</option>`).join('')}
-                        </select>
-                    </div>
-                    <button type="button" onclick="removeGarmentRowFromOrder('${row.uid}')" class="mt-3 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
-                        বাদ
-                    </button>
-                </div>
+    grid.innerHTML = list.map(srv => {
+        const img = srv.photo || makeGarmentArtwork(srv.name, '#ecfdf5', '#047857');
+        return `<button type="button" onclick="openGarmentMeasurementDesignModalForService('${srv.id}')"
+            class="group relative rounded-xl overflow-hidden border border-gray-200 hover:border-amber-400 bg-white shadow-2xs hover:shadow-md transition text-left flex flex-col">
+            <div class="aspect-square w-full bg-gray-50 overflow-hidden">
+                <img src="${img}" alt="${escapeHtml(srv.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
             </div>
-
-            <!-- Measurement Inputs -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
-                ${mKeys.map(m => `<div>
-                    <label class="block text-[11px] font-semibold text-gray-600 mb-0.5">${escapeHtml(m)}</label>
-                    <input type="text" value="${escapeHtml(row.measurements[m] || '')}"
-                           oninput="updateDraftMeasurement('${row.uid}', '${escapeHtml(m)}', this.value)"
-                           placeholder="মাপ..."
-                           class="w-full rounded-lg border border-gray-200 focus:border-emerald-600 px-2.5 py-1.5 text-xs sm:text-sm outline-none">
-                </div>`).join('')}
+            <div class="w-full bg-amber-400 text-emerald-950 font-bold text-[11px] sm:text-xs px-1.5 py-1 text-center truncate">
+                ${escapeHtml(srv.name)}
             </div>
-        </div>`;
+            <div class="w-full bg-emerald-950/90 text-amber-200 text-[10px] font-bold px-1.5 py-0.5 text-center">
+                ${formatBDT(srv.customerPrice)} • মাপ ও ডিজাইন
+            </div>
+        </button>`;
     }).join('');
 }
 
-function addClothRowToOrder() {
-    if (state.clothStock.length === 0) {
-        showToast('স্টকে কোনো কাপড় নেই। আগে কাপড় ও স্টক থেকে কাপড় যুক্ত করুন।', 'warn');
-        return;
+function renderMiddleFabricsAndLots() {
+    const fabBox = document.getElementById('middleFabricsCategoryList');
+    const lotBox = document.getElementById('middleLotsList');
+
+    if (fabBox) {
+        fabBox.innerHTML = state.clothStock.length === 0
+            ? `<div class="text-xs text-gray-400 py-2">কোনো ফেব্রিক্স নেই</div>`
+            : state.clothStock.map((c, idx) => `<button type="button" onclick="quickAddClothFromMiddle('${c.id}')"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-300 text-xs flex items-center justify-between gap-1 transition">
+                <span class="font-semibold text-gray-800 truncate">${escapeHtml(c.name)} (${idx + 1})</span>
+                <span class="text-[11px] font-bold text-amber-800 shrink-0">${formatBDT(c.sellRate)}/গজ</span>
+            </button>`).join('');
     }
-    const c = state.clothStock[0];
+
+    if (lotBox) {
+        const allDesigns = Array.from(new Set(state.garmentServices.flatMap(g => g.designs || [])));
+        lotBox.innerHTML = allDesigns.length === 0
+            ? `<div class="text-xs text-gray-400">ডিজাইন লিস্ট খালি</div>`
+            : allDesigns.map(d => `<div class="px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 truncate">
+                ✦ ${escapeHtml(d)}
+            </div>`).join('');
+    }
+}
+
+function quickAddClothFromMiddle(clothId) {
+    const c = state.clothStock.find(item => item.id === clothId);
+    if (!c) return;
     draftClothRows.push({
         uid: 'dc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
         clothId: c.id,
@@ -1556,54 +1506,253 @@ function addClothRowToOrder() {
     });
     renderOrderClothRows();
     updateOrderTotals();
+    showToast(`"${c.name}" (২.৫ গজ) কার্টে যুক্ত হয়েছে।`);
 }
 
-function removeClothRowFromOrder(uid) {
-    draftClothRows = draftClothRows.filter(r => r.uid !== uid);
-    renderOrderClothRows();
-    updateOrderTotals();
+function openGarmentMeasurementDesignModalForService(serviceId, existingDraftUid = null) {
+    const srv = state.garmentServices.find(g => g.id === serviceId) || state.garmentServices[0];
+    if (!srv) return;
+    const existingRow = existingDraftUid ? draftGarmentRows.find(r => r.uid === existingDraftUid) : null;
+
+    const qtyVal = existingRow ? existingRow.qty : 1;
+    const rateVal = existingRow ? existingRow.rate : Number(srv.customerPrice || 750);
+    const priorityVal = existingRow ? (existingRow.priority || 'Normal') : 'Normal';
+    // ছবির মাপগুলোর ক্রমানুযায়ী লম্বা তালিকা
+    const measList = Array.from(new Set([...DEFAULT_MEASUREMENTS, ...(srv.measurements || []), ...state.measurementTypes]));
+    const currentMeas = existingRow?.measurements || {};
+    const designs = srv.designs && srv.designs.length > 0 ? srv.designs : ['ক্লাসিক ডিজাইন', 'অ্যারাবিয়ান ডিজাইন', 'কাবলি ডিজাইন'];
+    const selectedDesign = existingRow?.selectedDesign || designs[0];
+    const extraChargeVal = existingRow ? Number(existingRow.extraCharge || 0) : 0;
+    const groupNameVal = existingRow?.groupName || '';
+    const lotNoVal = existingRow?.lotNo || '';
+    const masterVal = existingRow?.masterName || state.users[1]?.name || '';
+    const karigarVal = existingRow?.karigarId || state.karigors[0]?.id || '';
+
+    // ছবিতে থাকা ডিজাইন ড্রপডাউন ক্যাটাগরি ও স্পেশাল ডিজাইন লিস্ট
+    const designDropdownGroups = [
+        { label: 'হ্যান্ড বাটন মডেল', options: ['মেটাল বডি মডেল', 'ক্লাসিক বাটন', 'ডাবল বাটন'] },
+        { label: 'হ্যান্ড বাটন সাইজ', options: ['স্ট্যান্ডার্ড সাইজ', 'মিডিয়াম', 'লার্জ'] },
+        { label: 'হ্যান্ড এক্সেসরিজ', options: ['সাধারণ', 'মেটাল ট্যাগ', 'কফ ক্লিপ'] },
+        { label: 'পিন ডিজাইন', options: ['সাধারণ পিন', 'মেটাল পিন', 'ডিজাইনার পিন'] },
+        { label: 'সুইট ডিজাইন', options: ['নরমাল সুইট', 'স্পেশাল সুইট'] },
+        { label: 'শার্ট কলার ডিজাইন', options: ['স্ট্যান্ডার্ড শার্ট কলার', 'সেমি-স্প্রেড কলার'] },
+        { label: 'কলার ডিজাইন', options: ['ক্লাসিক কলার', 'ব্যান্ড কলার', 'পাইপিং কলার'] },
+        { label: 'প্লেইট ডিজাইন', options: ['সাধারণ প্লেইট', 'ডাবল প্লেইট', 'হাইডেন প্লেইট'] },
+        { label: 'মাস্টার নোট', options: ['নিখুঁত ফিট দিন', 'লুজ ঠিক রাখুন', 'জরুরি ডেলিভারি'] },
+        { label: 'শার্ট কলার', options: ['নরমাল কলার', 'শার্ট কলার'] }
+    ];
+
+    const specialOptions = [
+        { label: 'নেক বাটন প্লেট (+৳০)', add: 0 },
+        { label: 'রিং কফ হাব (+৳০)', add: 0 },
+        { label: 'রিং কফ হাব না (+৳০)', add: 0 },
+        { label: 'শোতায় কফ হাব (+৳০)', add: 0 },
+        { label: 'প্লেট কলার হাতা চেইন (+৳১৫০)', add: 150 },
+        { label: 'বক্স প্লেট (+৳০)', add: 0 },
+        { label: 'শার্ট কলার চেইন (+৳০)', add: 0 },
+        { label: 'প্লেট লুজ (+৳১০০)', add: 100 },
+        { label: 'শোতায়ানি লুজ (+৳০)', add: 0 },
+        { label: 'প্লেট ফিট বুতাম জাল (+৳৪০)', add: 40 },
+        { label: 'এক্সা নেক হাব (+৳০)', add: 0 },
+        { label: 'রিং কফ হাবিং হাব (+৳০)', add: 0 },
+        { label: 'কফ হাব (+৳৫০)', add: 50 },
+        { label: 'শার্ট কলার (+৳১০০)', add: 100 },
+        { label: 'শার্ট কলার+কফ (+৳১৫০)', add: 150 },
+        { label: 'কফালিন হাব (+৳২০০)', add: 200 },
+        { label: 'শার্ট কলার +কফালিন (+৳৩৫০)', add: 350 },
+        { label: 'কলারের নিচে কাল কাবড় (+৳০)', add: 0 }
+    ];
+
+    const html = `<form onsubmit="saveMeasurementDesignToCart(event, '${srv.id}', '${existingDraftUid || ''}')" class="space-y-3.5">
+        <!-- Top Bar: Quantity, Rate, Priority (matching reference modal) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-cyan-50/80 border border-cyan-200 p-3 rounded-xl">
+            <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">পরিমাণ</label>
+                <input type="number" id="mModalQty" min="1" value="${qtyVal}" required
+                       class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-bold">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">দর (৳)</label>
+                <input type="number" id="mModalRate" min="0" value="${rateVal}" required
+                       class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-bold text-emerald-900">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-0.5">প্রায়োরিটি</label>
+                <select id="mModalPriority" class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-semibold">
+                    <option value="Normal" ${priorityVal === 'Normal' ? 'selected' : ''}>Normal</option>
+                    <option value="Urgent" ${priorityVal === 'Urgent' ? 'selected' : ''}>Urgent (জরুরি)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Two Columns: Left Measurements | Right Design & Special Options -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            <div class="md:col-span-5 bg-gray-50/80 border rounded-xl p-2.5 space-y-2 max-h-[420px] overflow-y-auto">
+                <div class="text-xs font-bold text-emerald-950 border-b pb-1">শরীরের মাপ (${escapeHtml(srv.name)})</div>
+                ${measList.map(m => `<div class="flex items-center justify-between gap-2">
+                    <label class="text-xs font-semibold text-gray-700 w-24 shrink-0">${escapeHtml(m)}</label>
+                    <input type="text" data-meas-key="${escapeHtml(m)}" value="${escapeHtml(currentMeas[m] || '')}"
+                           placeholder="মাপ..."
+                           class="m-modal-input flex-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-semibold outline-none focus:border-emerald-600">
+                </div>`).join('')}
+            </div>
+
+            <div class="md:col-span-7 bg-gray-50/60 border rounded-xl p-3 space-y-3 max-h-[420px] overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">মূল ডিজাইন</label>
+                        <select id="mModalDesign" class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold">
+                            ${designs.map(d => `<option value="${escapeHtml(d)}" ${selectedDesign === d ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">অতিরিক্ত ডিজাইন চার্জ (৳)</label>
+                        <input type="number" id="mModalExtraCharge" min="0" value="${extraChargeVal}"
+                               class="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-bold text-amber-800">
+                    </div>
+                </div>
+
+                <!-- ছবিতে থাকা ডিজাইন ড্রপডাউনগুলো -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t pt-2">
+                    ${designDropdownGroups.map((dg, idx) => `<div class="flex flex-col gap-0.5">
+                        <span class="text-[10px] font-bold text-gray-500">${escapeHtml(dg.label)}</span>
+                        <select data-design-group="${escapeHtml(dg.label)}" id="designGrp_${idx}" class="m-design-select w-full rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
+                            <option value="">${escapeHtml(dg.label)}</option>
+                            ${dg.options.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+                        </select>
+                    </div>`).join('')}
+                </div>
+
+                <!-- ছবিতে থাকা স্পেশাল ডিজাইন চেকবক্সগুলো -->
+                <div class="border-t pt-2 space-y-1.5">
+                    <div class="text-xs font-bold text-emerald-950">স্পেশাল ডিজাইন</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pr-1">
+                        ${specialOptions.map(op => `<label class="flex items-center gap-1.5 bg-white border rounded-lg px-2 py-1 text-[11px] font-semibold cursor-pointer">
+                            <input type="checkbox" data-special-label="${escapeHtml(op.label)}" onchange="toggleModalExtraCharge(${op.add}, this.checked)" class="m-special-check rounded text-emerald-700">
+                            <span>${escapeHtml(op.label)}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Strip: Group, Lot, Master, Karigar -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-cyan-50/70 border border-cyan-200 p-2.5 rounded-xl">
+            <input type="text" id="mModalGroup" value="${escapeHtml(groupNameVal)}" placeholder="গ্রুপের নাম"
+                   class="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+            <input type="text" id="mModalLot" value="${escapeHtml(lotNoVal)}" placeholder="লট"
+                   class="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+            <input type="text" id="mModalMaster" value="${escapeHtml(masterVal)}" placeholder="মাস্টার"
+                   class="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+            <select id="mModalKarigar" class="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs bg-white">
+                <option value="">কারিগর নির্বাচন...</option>
+                ${state.karigors.map(k => `<option value="${k.id}" ${karigarVal === k.id ? 'selected' : ''}>${escapeHtml(k.name)}</option>`).join('')}
+            </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
+                কার্টে যুক্ত করুন
+            </button>
+        </div>
+    </form>`;
+
+    openModal(`${srv.name} — মাপ ও ডিজাইন`, html);
 }
 
-function updateDraftCloth(uid, field, val) {
-    const row = draftClothRows.find(r => r.uid === uid);
-    if (!row) return;
-    if (field === 'clothId') {
-        const found = state.clothStock.find(c => c.id === val);
-        if (found) {
-            row.clothId = found.id;
-            row.name = found.name;
-            row.buyRate = Number(found.buyRate || 0);
-            row.sellRate = Number(found.sellRate || 0);
-        }
+function toggleModalExtraCharge(addAmount, isChecked) {
+    const inp = document.getElementById('mModalExtraCharge');
+    if (!inp) return;
+    const cur = Number(inp.value || 0);
+    inp.value = Math.max(0, isChecked ? cur + Number(addAmount) : cur - Number(addAmount));
+}
+
+function saveMeasurementDesignToCart(event, serviceId, existingDraftUid) {
+    event.preventDefault();
+    const srv = state.garmentServices.find(g => g.id === serviceId) || state.garmentServices[0];
+    if (!srv) return;
+
+    const qty = Math.max(1, Number(document.getElementById('mModalQty').value || 1));
+    const baseRate = Math.max(0, Number(document.getElementById('mModalRate').value || 0));
+    const extraCharge = Math.max(0, Number(document.getElementById('mModalExtraCharge')?.value || 0));
+    const finalRate = baseRate + extraCharge;
+    const priority = document.getElementById('mModalPriority')?.value || 'Normal';
+    const selectedDesign = document.getElementById('mModalDesign')?.value || '';
+    const groupName = (document.getElementById('mModalGroup')?.value || '').trim();
+    const lotNo = (document.getElementById('mModalLot')?.value || '').trim();
+    const masterName = (document.getElementById('mModalMaster')?.value || '').trim();
+    const karigarId = document.getElementById('mModalKarigar')?.value || state.karigors[0]?.id || '';
+
+    const measObj = {};
+    document.querySelectorAll('.m-modal-input').forEach(inp => {
+        const key = inp.dataset.measKey;
+        const val = (inp.value || '').trim();
+        if (key && val) measObj[key] = val;
+    });
+
+    const payload = {
+        uid: existingDraftUid || ('dg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
+        serviceId: srv.id,
+        name: srv.name,
+        photo: srv.photo,
+        qty,
+        rate: finalRate,
+        karigarRate: Number(srv.karigarPrice || 0),
+        completeRate: Number(srv.completePrice ?? 80),
+        karigarId,
+        priority,
+        selectedDesign,
+        extraCharge,
+        groupName,
+        lotNo,
+        masterName,
+        cuttingDone: false,
+        sewingDone: false,
+        completedDone: false,
+        measurements: measObj
+    };
+
+    if (existingDraftUid) {
+        const idx = draftGarmentRows.findIndex(r => r.uid === existingDraftUid);
+        if (idx !== -1) draftGarmentRows[idx] = payload;
+        else draftGarmentRows.push(payload);
     } else {
-        row[field] = Math.max(0, Number(val || 0));
+        draftGarmentRows.push(payload);
     }
-    renderOrderClothRows();
+
+    closeModal();
+    renderOrderGarmentRows();
     updateOrderTotals();
+    showToast(`"${srv.name}" (${qty} পিস) কার্টে যুক্ত হয়েছে!`);
 }
 
-function renderOrderClothRows() {
-    const container = document.getElementById('orderClothsContainer');
-    if (draftClothRows.length === 0) {
-        container.innerHTML = `<div class="text-xs text-amber-800/70">এই মেমোতে কোনো আলাদা গজ কাপড় যোগ করা হয়নি।</div>`;
+function renderOrderGarmentRows() {
+    const container = document.getElementById('orderGarmentsContainer');
+    const badge = document.getElementById('cartItemBadge');
+    const totalCount = draftGarmentRows.length + draftClothRows.length;
+    if (badge) badge.textContent = `${totalCount}টি আইটেম`;
+
+    if (draftGarmentRows.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">কার্ট খালি — বাম পাশের পোশাকে ক্লিক করুন</div>`;
         return;
     }
 
-    container.innerHTML = draftClothRows.map(row => {
-        const sub = Number(row.yards || 0) * Number(row.sellRate || 0);
-        return `<div class="bg-white rounded-xl p-3 border border-amber-200 flex flex-wrap items-center justify-between gap-2">
-            <select onchange="updateDraftCloth('${row.uid}', 'clothId', this.value)" class="flex-1 min-w-[200px] rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm bg-white">
-                ${state.clothStock.map(c => `<option value="${c.id}" ${row.clothId === c.id ? 'selected' : ''}>${escapeHtml(c.name)} (স্টক: ${c.stockYards} গজ)</option>`).join('')}
-            </select>
-            <div class="flex items-center gap-2">
-                <input type="number" step="0.1" min="0.1" value="${row.yards}" oninput="updateDraftCloth('${row.uid}', 'yards', this.value)"
-                       class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm font-bold text-center" placeholder="গজ">
-                <span class="text-xs text-gray-500">গজ ×</span>
-                <input type="number" min="0" value="${row.sellRate}" oninput="updateDraftCloth('${row.uid}', 'sellRate', this.value)"
-                       class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm font-bold" placeholder="দর">
-                <span class="text-xs sm:text-sm font-bold text-amber-800 min-w-[65px] text-right">${formatBDT(sub)}</span>
-                <button type="button" onclick="removeClothRowFromOrder('${row.uid}')" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-bold">✕</button>
+    container.innerHTML = draftGarmentRows.map((row, idx) => {
+        const sub = Number(row.qty || 1) * Number(row.rate || 0);
+        const mSummary = Object.entries(row.measurements || {}).map(([k, v]) => `${k}:${v}`).join(', ');
+        return `<div class="bg-white rounded-xl p-2.5 border border-emerald-200 text-xs space-y-1 shadow-2xs">
+            <div class="flex items-start justify-between gap-1.5">
+                <div>
+                    <div class="font-bold text-emerald-950">${idx + 1}. ${escapeHtml(row.name)} × ${row.qty}</div>
+                    <div class="text-[11px] font-bold text-amber-800">${formatBDT(sub)} ${row.selectedDesign ? `• ${escapeHtml(row.selectedDesign)}` : ''}</div>
+                </div>
+                <div class="flex gap-1 shrink-0">
+                    <button type="button" onclick="openGarmentMeasurementDesignModalForService('${row.serviceId}', '${row.uid}')" class="px-2 py-0.5 rounded bg-blue-50 text-blue-800 font-bold text-[10px]">মাপ/এডিট</button>
+                    <button type="button" onclick="removeGarmentRowFromOrder('${row.uid}')" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[10px]">✕</button>
+                </div>
             </div>
+            ${mSummary ? `<div class="text-[10px] text-gray-500 truncate">${escapeHtml(mSummary)}</div>` : ''}
         </div>`;
     }).join('');
 }
@@ -1611,7 +1760,8 @@ function renderOrderClothRows() {
 function updateOrderTotals() {
     const tailorTotal = draftGarmentRows.reduce((s, r) => s + (Number(r.qty || 0) * Number(r.rate || 0)), 0);
     const clothTotal = draftClothRows.reduce((s, r) => s + (Number(r.yards || 0) * Number(r.sellRate || 0)), 0);
-    const grandTotal = tailorTotal + clothTotal;
+    const discount = Math.max(0, Number(document.getElementById('ordDiscountAmount')?.value || 0));
+    const grandTotal = Math.max(0, tailorTotal + clothTotal - discount);
     const advance = Math.max(0, Number(document.getElementById('ordAdvanceAmount')?.value || 0));
     const due = Math.max(0, grandTotal - advance);
 
@@ -3271,8 +3421,8 @@ function renderServicesSettings(container) {
     container.innerHTML = `<div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-                <h3 class="text-base sm:text-lg font-bold text-emerald-950">পোশাক ও সার্ভিস তালিকা (কাস্টমার রেট, কারিগর মজুরি ও পিকচার)</h3>
-                <p class="text-xs text-gray-500">প্রতিটি পোশাকের পাশে "এডিট" বাটনে ক্লিক করে সুন্দর পিকচার আপলোড, রেট ও মাপ পরিবর্তন করুন</p>
+                <h3 class="text-base sm:text-lg font-bold text-emerald-950">পোশাক ও সার্ভিস তালিকা (ছবি, ডিজাইন, মাপ ও রেট)</h3>
+                <p class="text-xs text-gray-500">প্রতিটি পোশাকের পাশে "এডিট" বাটনে ক্লিক করে পিকচার, ডিজাইন, মাপ এবং রেট—সব একসাথে এডিট করুন</p>
             </div>
             <button onclick="openGarmentServiceModal(null)" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
                 + নতুন পোশাকের ধরন
@@ -3284,33 +3434,39 @@ function renderServicesSettings(container) {
                 <thead>
                     <tr class="bg-gray-50 border-b text-xs sm:text-sm text-gray-700">
                         <th class="py-3 px-3">ছবি</th>
-                        <th class="py-3 px-3">পোশাকের নাম</th>
-                        <th class="py-3 px-3">মাপসমূহ</th>
+                        <th class="py-3 px-3">পোশাক, ডিজাইন ও মাপ</th>
                         <th class="py-3 px-3 text-right">কাস্টমার রেট</th>
-                        <th class="py-3 px-3 text-right">কারিগর মজুরি</th>
+                        <th class="py-3 px-3 text-right">কারিগর ও কমপ্লিট</th>
                         <th class="py-3 px-3 text-center">এক্টিভ</th>
-                        <th class="py-3 px-3 text-center">পিকচার ও রেট এডিট</th>
+                        <th class="py-3 px-3 text-center">এডিট (সব একসাথে)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y text-xs sm:text-sm">
                     ${state.garmentServices.map(g => {
                         const img = g.photo || makeGarmentArtwork(g.name, '#ecfdf5', '#047857');
+                        const designText = (g.designs || []).length > 0 ? (g.designs || []).join(', ') : 'সাধারণ ডিজাইন';
                         return `<tr class="hover:bg-emerald-50/40">
                             <td class="py-2.5 px-3">
-                                <button type="button" onclick="openGarmentServiceModal('${g.id}')" title="ছবি পরিবর্তন করতে ক্লিক করুন" class="group relative block">
+                                <button type="button" onclick="openGarmentServiceModal('${g.id}')" title="ছবি, ডিজাইন, মাপ ও রেট এডিট করতে ক্লিক করুন" class="group relative block">
                                     <img src="${img}" alt="${escapeHtml(g.name)}" class="w-12 h-12 rounded-xl object-cover border border-emerald-200 group-hover:opacity-80 transition">
                                 </button>
                             </td>
-                            <td class="py-2.5 px-3 font-bold text-gray-900">${escapeHtml(g.name)}</td>
-                            <td class="py-2.5 px-3 text-xs text-gray-600 max-w-xs">${escapeHtml((g.measurements || []).join(', '))}</td>
+                            <td class="py-2.5 px-3">
+                                <div class="font-bold text-gray-900">${escapeHtml(g.name)}</div>
+                                <div class="text-[11px] text-amber-800 font-semibold mt-0.5">ডিজাইন: ${escapeHtml(designText)}</div>
+                                <div class="text-xs text-gray-600 max-w-xs mt-0.5">মাপ: ${escapeHtml((g.measurements || []).join(', '))}</div>
+                            </td>
                             <td class="py-2.5 px-3 text-right font-bold text-emerald-800">${formatBDT(g.customerPrice)}</td>
-                            <td class="py-2.5 px-3 text-right font-bold text-amber-700">${formatBDT(g.karigarPrice)}</td>
+                            <td class="py-2.5 px-3 text-right font-semibold text-gray-800">
+                                <div>সেলাই: <b class="text-amber-700">${formatBDT(g.karigarPrice)}</b></div>
+                                <div class="text-[11px] text-teal-700">কমপ্লিট: <b>${formatBDT(g.completePrice ?? 80)}</b></div>
+                            </td>
                             <td class="py-2.5 px-3 text-center">
                                 <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleGarmentActive('${g.id}', this.checked)" class="w-4 h-4 rounded text-emerald-700 cursor-pointer">
                             </td>
                             <td class="py-2.5 px-3 text-center">
                                 <button type="button" onclick="openGarmentServiceModal('${g.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow whitespace-nowrap">
-                                    ✏️ এডিট (পিকচার)
+                                    ✏️ এডিট
                                 </button>
                             </td>
                         </tr>`;
@@ -3322,18 +3478,21 @@ function renderServicesSettings(container) {
 }
 
 let pendingGarmentPhotoDataUrl = '';
+let pendingGarmentDesigns = [];
 
 function openGarmentServiceModal(serviceId = null) {
     const g = serviceId ? state.garmentServices.find(item => item.id === serviceId) : null;
     pendingGarmentPhotoDataUrl = g?.photo || '';
+    pendingGarmentDesigns = Array.isArray(g?.designs) ? [...g.designs] : ['ক্লাসিক ডিজাইন'];
     const currentMeas = g?.measurements || state.measurementTypes.slice(0, 8);
     const currentImg = pendingGarmentPhotoDataUrl || makeGarmentArtwork(g?.name || 'পোশাক', '#ecfdf5', '#047857');
 
     const html = `<form onsubmit="saveGarmentService(event, '${g ? g.id : ''}')" class="space-y-4">
+        <!-- 1. Garment Picture Upload / URL -->
         <div class="flex flex-col sm:flex-row items-center gap-4 bg-emerald-50/60 p-3.5 rounded-2xl border border-emerald-200">
-            <img id="garmentModalPreviewImg" src="${currentImg}" alt="Preview" class="w-24 h-24 rounded-2xl object-cover border-2 border-emerald-500 bg-white shadow">
+            <img id="garmentModalPreviewImg" src="${currentImg}" alt="Preview" class="w-24 h-24 rounded-2xl object-cover border-2 border-emerald-500 bg-white shadow shrink-0">
             <div class="flex-1 space-y-2 w-full">
-                <div class="text-xs font-bold text-emerald-950">পোশাকের পিকচার আপলোড করুন</div>
+                <div class="text-xs font-bold text-emerald-950">১. পোশাকের পিকচার আপলোড করুন</div>
                 <input type="file" id="garmentPhotoFileInput" accept="image/*" onchange="handleGarmentPhotoUpload(event)"
                        class="block w-full text-xs text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800">
                 <input type="url" id="garmentPhotoUrlInput" value="${pendingGarmentPhotoDataUrl.startsWith('http') ? escapeHtml(pendingGarmentPhotoDataUrl) : ''}"
@@ -3342,32 +3501,68 @@ function openGarmentServiceModal(serviceId = null) {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">পোশাকের নাম *</label>
-                <input type="text" id="srvModalName" value="${escapeHtml(g?.name || '')}" required placeholder="যেমন: অ্যারাবিয়ান পাঞ্জাবী"
-                       class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">কাস্টমার রেট (৳) *</label>
-                <input type="number" id="srvModalCustPrice" value="${Number(g?.customerPrice || 900)}" required
-                       class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm font-bold text-emerald-800">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">কারিগর মজুরি (৳) *</label>
-                <input type="number" id="srvModalKarPrice" value="${Number(g?.karigarPrice || 300)}" required
-                       class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm font-bold text-amber-700">
+        <!-- 2. Garment Name & Rates -->
+        <div class="bg-gray-50 p-3.5 rounded-2xl border space-y-3">
+            <div class="text-xs font-bold text-emerald-950">২. পোশাকের নাম ও রেট নির্ধারণ</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">পোশাকের নাম *</label>
+                    <input type="text" id="srvModalName" value="${escapeHtml(g?.name || '')}" required placeholder="যেমন: অ্যারাবিয়ান পাঞ্জাবী"
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">কাস্টমার রেট (৳) *</label>
+                    <input type="number" id="srvModalCustPrice" value="${Number(g?.customerPrice || 900)}" required
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-emerald-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">সেলাই কারিগর মজুরি (৳) *</label>
+                    <input type="number" id="srvModalKarPrice" value="${Number(g?.karigarPrice || 300)}" required
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-amber-700">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">কমপ্লিট (আয়রন/হাতের কাজ) মজুরি (৳)</label>
+                    <input type="number" id="srvModalCompletePrice" value="${Number(g?.completePrice ?? 80)}"
+                           class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-teal-800">
+                </div>
             </div>
         </div>
 
-        <div>
-            <label class="block text-xs font-bold text-gray-700 mb-2">এই পোশাকের জন্য প্রয়োজনীয় মাপসমূহ:</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <!-- 3. Garment Designs (Add / Edit / Remove inside same modal) -->
+        <div class="bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs font-bold text-amber-950">৩. পোশাকের ডিজাইনসমূহ যোগ ও এডিট করুন</div>
+                <div class="flex items-center gap-1.5 w-full sm:w-auto">
+        <!-- 4. Measurements (Add New Measurement + Fit Presets + Edit/Check inside same modal) -->
+        <div class="bg-gray-50 p-3.5 rounded-2xl border space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <label class="text-xs font-bold text-emerald-950">৪. এই পোশাকের মাপসমূহ (টিক দিন বা নতুন মাপ যোগ করুন)</label>
+                <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                    <button type="button" onclick="applyMeasurementPreset('classic')" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 text-[11px] font-bold">
+                        ক্লাসিক মাপ
+                    </button>
+                    <button type="button" onclick="applyMeasurementPreset('all')" class="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-950 text-[11px] font-bold">
+                        সব টিক দিন
+                    </button>
+                    <button type="button" onclick="applyMeasurementPreset('clear')" class="px-2.5 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 text-[11px] font-bold">
+                        সব আনটিক
+                    </button>
+                    <input type="text" id="inlineNewMeasName" placeholder="নতুন মাপের নাম..."
+                           class="flex-1 sm:w-40 rounded-xl border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none">
+                    <button type="button" onclick="addInlineMeasurementInModal('${g ? g.id : ''}')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold">
+                        + মাপ যোগ
+                    </button>
+                </div>
+            </div>
+            <div id="modalMeasurementCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 ${state.measurementTypes.map(m => {
                     const checked = currentMeas.includes(m);
-                    return `<label class="flex items-center gap-2 bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs font-semibold cursor-pointer">
-                        <input type="checkbox" name="srvMeasCheck" value="${escapeHtml(m)}" ${checked ? 'checked' : ''} class="rounded text-emerald-700">
-                        <span>${escapeHtml(m)}</span>
+                    return `<label class="flex items-center justify-between gap-2 bg-white border ${checked ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200'} rounded-xl px-2.5 py-2 text-xs font-semibold cursor-pointer transition">
+                        <span class="flex items-center gap-2 truncate">
+                            <input type="checkbox" name="srvMeasCheck" value="${escapeHtml(m)}" ${checked ? 'checked' : ''} class="rounded text-emerald-700">
+                            <span class="truncate">${escapeHtml(m)}</span>
+                        </span>
+                        <span class="text-[10px] font-bold text-emerald-700 shrink-0">ইঞ্চি</span>
                     </label>`;
                 }).join('')}
             </div>
@@ -3376,12 +3571,108 @@ function openGarmentServiceModal(serviceId = null) {
         <div class="flex justify-end gap-2 pt-2 border-t">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs sm:text-sm font-semibold">বাতিল</button>
             <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow">
-                পোশাক ও ছবি সংরক্ষণ করুন
+                ছবি, ডিজাইন, মাপ ও রেট সেভ করুন
             </button>
         </div>
     </form>`;
 
     openModal(g ? `পোশাক এডিট — ${g.name}` : 'নতুন পোশাকের ধরন যুক্ত করুন', html);
+}
+
+function renderPendingDesignChipsHtml() {
+    if (!pendingGarmentDesigns.length) {
+        return `<span class="text-xs text-gray-500">কোনো ডিজাইন যুক্ত নেই। উপরে নতুন ডিজাইন যোগ করুন।</span>`;
+    }
+    return pendingGarmentDesigns.map((d, idx) => `<div class="inline-flex items-center gap-1.5 bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-950 shadow-2xs">
+        <span>${escapeHtml(d)}</span>
+        <button type="button" onclick="editDesignInPendingList(${idx})" title="ডিজাইন এডিট" class="text-blue-700 hover:underline font-bold">✎</button>
+        <button type="button" onclick="removeDesignFromPendingList(${idx})" title="ডিজাইন মুছুন" class="text-rose-600 hover:text-rose-800 font-bold">✕</button>
+    </div>`).join('');
+}
+
+function refreshPendingDesignsUI() {
+    const box = document.getElementById('garmentDesignsChipsContainer');
+    if (box) box.innerHTML = renderPendingDesignChipsHtml();
+}
+
+function addDesignToPendingList() {
+    const inp = document.getElementById('newGarmentDesignInput');
+    const val = (inp?.value || '').trim();
+    if (!val) return;
+    if (!pendingGarmentDesigns.includes(val)) {
+        pendingGarmentDesigns.push(val);
+        refreshPendingDesignsUI();
+    }
+    inp.value = '';
+}
+
+function editDesignInPendingList(idx) {
+    const current = pendingGarmentDesigns[idx];
+    if (current === undefined) return;
+    const updated = prompt('ডিজাইনের নাম এডিট করুন:', current);
+    if (updated !== null && updated.trim() !== '') {
+        pendingGarmentDesigns[idx] = updated.trim();
+        refreshPendingDesignsUI();
+    }
+}
+
+function removeDesignFromPendingList(idx) {
+    pendingGarmentDesigns.splice(idx, 1);
+    refreshPendingDesignsUI();
+}
+
+function addInlineMeasurementInModal(serviceId) {
+    const inp = document.getElementById('inlineNewMeasName');
+    const mName = (inp?.value || '').trim();
+    if (!mName) return;
+
+    const currentlyChecked = Array.from(document.querySelectorAll('input[name="srvMeasCheck"]:checked')).map(el => el.value);
+    if (!state.measurementTypes.includes(mName)) {
+        state.measurementTypes.push(mName);
+        saveAppState();
+    }
+    if (!currentlyChecked.includes(mName)) {
+        currentlyChecked.push(mName);
+    }
+
+    const grid = document.getElementById('modalMeasurementCheckboxes');
+    if (grid) {
+        grid.innerHTML = state.measurementTypes.map(m => {
+            const checked = currentlyChecked.includes(m);
+            return `<label class="flex items-center justify-between gap-2 bg-white border ${checked ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200'} rounded-xl px-2.5 py-2 text-xs font-semibold cursor-pointer transition">
+                <span class="flex items-center gap-2 truncate">
+                    <input type="checkbox" name="srvMeasCheck" value="${escapeHtml(m)}" ${checked ? 'checked' : ''} class="rounded text-emerald-700">
+                    <span class="truncate">${escapeHtml(m)}</span>
+                </span>
+                <span class="text-[10px] font-bold text-emerald-700 shrink-0">ইঞ্চি</span>
+            </label>`;
+        }).join('');
+    }
+    inp.value = '';
+    showToast(`"${mName}" মাপ যুক্ত করা হয়েছে।`);
+}
+
+function applyMeasurementPreset(mode) {
+    const classicSet = ['লম্বা', 'বডি', 'কোমর', 'তিরা', 'হাতার লম্বা', 'হাতার মোহড়া', 'গলা', 'ঘের'];
+    const boxes = Array.from(document.querySelectorAll('input[name="srvMeasCheck"]'));
+    boxes.forEach(cb => {
+        if (mode === 'all') {
+            cb.checked = true;
+        } else if (mode === 'clear') {
+            cb.checked = false;
+        } else if (mode === 'classic') {
+            cb.checked = classicSet.includes(cb.value);
+        }
+        const label = cb.closest('label');
+        if (label) {
+            label.classList.toggle('border-emerald-400', cb.checked);
+            label.classList.toggle('bg-emerald-50/40', cb.checked);
+            label.classList.toggle('border-gray-200', !cb.checked);
+        }
+    });
+    if (mode === 'classic') showToast('ক্লাসিক মাপগুলো সিলেক্ট করা হয়েছে।');
+    if (mode === 'all') showToast('সব মাপ সিলেক্ট করা হয়েছে।');
+    if (mode === 'clear') showToast('সব মাপ আনটিক করা হয়েছে।');
 }
 
 function handleGarmentPhotoUpload(event) {
@@ -3409,6 +3700,12 @@ function saveGarmentService(event, id) {
     const name = document.getElementById('srvModalName').value.trim();
     const customerPrice = Math.max(0, Number(document.getElementById('srvModalCustPrice').value || 0));
     const karigarPrice = Math.max(0, Number(document.getElementById('srvModalKarPrice').value || 0));
+    const completePrice = Math.max(0, Number(document.getElementById('srvModalCompletePrice')?.value ?? 80));
+    const pendingTypedDesign = (document.getElementById('newGarmentDesignInput')?.value || '').trim();
+    const designs = [...pendingGarmentDesigns];
+    if (pendingTypedDesign && !designs.includes(pendingTypedDesign)) {
+        designs.push(pendingTypedDesign);
+    }
     const checkedMeas = Array.from(document.querySelectorAll('input[name="srvMeasCheck"]:checked')).map(el => el.value);
     const photo = pendingGarmentPhotoDataUrl || makeGarmentArtwork(name, '#ecfdf5', '#047857');
 
@@ -3418,6 +3715,8 @@ function saveGarmentService(event, id) {
             srv.name = name;
             srv.customerPrice = customerPrice;
             srv.karigarPrice = karigarPrice;
+            srv.completePrice = completePrice;
+            srv.designs = designs;
             srv.measurements = checkedMeas;
             srv.photo = photo;
         }
@@ -3427,15 +3726,17 @@ function saveGarmentService(event, id) {
             name,
             customerPrice,
             karigarPrice,
+            completePrice,
             active: true,
             photo,
+            designs,
             measurements: checkedMeas
         });
     }
 
     saveAppState();
     closeModal();
-    showToast(`"${name}"-এর রেট, মাপ ও ছবি সংরক্ষণ করা হয়েছে!`);
+    showToast(`"${name}"-এর ছবি, ডিজাইন, মাপ ও রেট সংরক্ষণ করা হয়েছে!`);
     renderServicesSettings(document.getElementById('settingsBody'));
 }
 
