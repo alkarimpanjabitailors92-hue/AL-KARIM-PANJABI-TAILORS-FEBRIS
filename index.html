@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#042f2e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="আল-কারীম টেইলার্স" />
+  <link id="pwa-manifest-link" rel="manifest" />
+  <link id="pwa-apple-icon" rel="apple-touch-icon" />
   <title>আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স — Royal Atelier &amp; Inventory ERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -610,6 +616,10 @@
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
+              <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl gold-gradient text-emerald-950 font-extrabold text-xs shadow-sm hover:opacity-95 transition cursor-pointer">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>অ্যাপ ইনস্টল</span>
+              </button>
               ${state.currentUser.canViewReports ? `
                 <button onclick="setTab('profit-report')" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-900/90 hover:bg-emerald-800 text-amber-300 border border-amber-400/40 transition text-xs font-bold cursor-pointer">
                   <i data-lucide="pie-chart" class="w-4 h-4"></i>
@@ -3349,8 +3359,124 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      setupPwaSupport();
       renderApp();
     });
+
+    let deferredInstallPrompt = null;
+
+    function setupPwaSupport() {
+      try {
+        const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#042f2e"/>
+              <stop offset="100%" stop-color="#065f46"/>
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+          <circle cx="256" cy="256" r="190" fill="none" stroke="#f59e0b" stroke-width="14"/>
+          <text x="256" y="255" text-anchor="middle" font-size="145" fill="#fbbf24">✂️</text>
+          <text x="256" y="365" text-anchor="middle" font-family="sans-serif" font-size="48" font-weight="bold" fill="#ffffff">আল-কারীম</text>
+        </svg>`;
+        const iconDataUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(iconSvg);
+
+        const appleIcon = document.getElementById('pwa-apple-icon');
+        if (appleIcon) appleIcon.href = iconDataUrl;
+
+        const manifestObj = {
+          name: 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স',
+          short_name: 'আল-কারীম টেইলার্স',
+          description: 'Royal Atelier, Tailoring & Fabrics Inventory ERP',
+          start_url: window.location.href,
+          scope: './',
+          display: 'standalone',
+          orientation: 'portrait',
+          background_color: '#042f2e',
+          theme_color: '#042f2e',
+          icons: [
+            {
+              src: iconDataUrl,
+              sizes: '192x192',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            },
+            {
+              src: iconDataUrl,
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            }
+          ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.getElementById('pwa-manifest-link');
+        if (manifestLink) manifestLink.setAttribute('href', manifestUrl);
+
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+          const swCode = `
+            self.addEventListener('install', (e) => { self.skipWaiting(); });
+            self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+            self.addEventListener('fetch', (e) => {
+              e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+            });
+          `;
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+      } catch (err) {}
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      showToast('অ্যাপটি সফলভাবে আপনার ফোনে ইনস্টল হয়েছে!', 'success');
+    });
+
+    async function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          showToast('অ্যাপ ইনস্টল শুরু হয়েছে...', 'success');
+        }
+        deferredInstallPrompt = null;
+        return;
+      }
+
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between royal-gradient text-white">
+          <h3 class="text-base font-extrabold text-amber-300">📲 ফোনে অ্যাপ ইনস্টল করার নিয়ম</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-white/10 text-white cursor-pointer">✕</button>
+        </div>
+        <div class="p-5 space-y-3 text-xs text-slate-700 leading-relaxed">
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 font-bold text-emerald-950">
+            ১. আপনার লাইভ GitHub লিংকটি সরাসরি Google Chrome ব্রাউজারে ওপেন করুন:
+            <div class="mt-1 font-mono text-[11px] text-emerald-800 break-all select-all">https://alkarimpanjabitailors92-hue.github.io/AL-KARIM-PANJABI-TAILORS-FEBRIS/</div>
+          </div>
+          <div class="space-y-1.5">
+            <div><b>২. Android (Chrome ব্রাউজার):</b> ওপরে ডানপাশে <b>⋮ (তিন ডট মেনু)</b> চাপুন → <b>"Install app"</b> অথবা <b>"Add to Home screen"</b> চাপুন → <b>Install</b> দিন।</div>
+            <div><b>৩. iPhone (Safari ব্রাউজার):</b> নিচে মাঝখানে <b>Share (↑)</b> বাটনে চাপুন → <b>"Add to Home Screen"</b> সিলেক্ট করে <b>Add</b> দিন।</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 font-semibold">
+            ইনস্টল হয়ে গেলে ফোনের হোম স্ক্রিনে <b>"আল-কারীম টেইলার্স"</b> নামে আইকন চলে আসবে এবং সাধারণ অ্যাপের মতো ফুল-স্ক্রিনে চলবে।
+          </div>
+        </div>
+        <div class="px-5 py-3 border-t border-slate-200 flex justify-end">
+          <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-emerald-700 text-white font-bold text-xs cursor-pointer">বুঝেছি</button>
+        </div>
+      `;
+      openModal(html, 'max-w-md');
+    }
   </script>
 </body>
 </html>
