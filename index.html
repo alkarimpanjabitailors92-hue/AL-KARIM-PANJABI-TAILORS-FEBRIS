@@ -423,12 +423,23 @@
     };
 
     let state = JSON.parse(JSON.stringify(initialState));
-    const STORAGE_KEY_ERP = 'alkarim_royal_atelier_editable_v2';
+    const STORAGE_KEY_ERP = 'alkarim_royal_atelier_editable_v3';
     try {
       const savedRaw = localStorage.getItem(STORAGE_KEY_ERP);
       if (savedRaw) {
         const parsed = JSON.parse(savedRaw);
         state = { ...state, ...parsed };
+      } else {
+        // পুরনো ভার্সনের ডাটা থাকলে সেগুলোর অর্ডার ও কাস্টমার রেখে নতুন ৪৯টি ফেব্রিক্স ও প্রোডাক্ট লোড করা হবে
+        const legacyRaw = localStorage.getItem('alkarim_royal_atelier_editable_v2');
+        if (legacyRaw) {
+          const legacy = JSON.parse(legacyRaw);
+          if (Array.isArray(legacy.orders)) state.orders = legacy.orders;
+          if (Array.isArray(legacy.customers)) state.customers = legacy.customers;
+          if (Array.isArray(legacy.purchases)) state.purchases = legacy.purchases;
+          if (legacy.shop) state.shop = { ...state.shop, ...legacy.shop };
+        }
+        persistState();
       }
     } catch (e) {}
 
@@ -647,7 +658,8 @@
     }
 
     function getNavItemsList() {
-      const lowStockCount = state.inventory.filter((i) => i.active && Number(i.stock) <= Number(i.minAlert)).length;
+      const fabricsCount = state.inventory.filter((i) => i.category === 'Fabrics').length;
+      const productsCount = state.inventory.filter((i) => i.category !== 'Fabrics').length;
       return [
         { id: 'dashboard', label: 'ড্যাশবোর্ড', icon: 'layout-dashboard', badge: null },
         { id: 'menu-hub', label: 'মেনু হাব', icon: 'grid', badge: null },
@@ -655,7 +667,8 @@
         { id: 'orders', label: 'অর্ডার তালিকা', icon: 'clipboard-list', badge: toBnNum(state.orders.length) },
         { id: 'quick-sale', label: 'কুইক সেল', icon: 'shopping-bag', badge: 'POS' },
         { id: 'purchases', label: 'ক্রয় ও সাপ্লায়ার', icon: 'truck', badge: toBnNum(state.purchases.length) },
-        { id: 'inventory', label: 'পণ্যের তালিকা', icon: 'layers', badge: lowStockCount > 0 ? `${toBnNum(lowStockCount)} কম` : toBnNum(state.inventory.length), badgeWarn: lowStockCount > 0 },
+        { id: 'products-list', label: 'প্রোডাক্ট (পণ্য)', icon: 'package', badge: toBnNum(productsCount) },
+        { id: 'fabrics-list', label: 'ফেব্রিক্স (কাপড়)', icon: 'layers', badge: toBnNum(fabricsCount) },
         { id: 'customers', label: 'কাস্টমার', icon: 'users', badge: toBnNum(state.customers.length) },
         { id: 'services', label: 'পোশাক ও মাপ', icon: 'ruler', badge: toBnNum(state.garmentGallery.length) },
         ...(state.currentUser.canViewReports
@@ -905,13 +918,13 @@
               <div class="text-[11px] text-rose-600 font-semibold mt-0.5">বকেয়া আদায়যোগ্য</div>
             </div>
 
-            <div onclick="setTab('inventory')" class="bg-amber-50/90 hover:bg-amber-100/70 border border-amber-200 p-3.5 rounded-2xl transition cursor-pointer">
+            <div onclick="setTab('fabrics-list')" class="bg-amber-50/90 hover:bg-amber-100/70 border border-amber-200 p-3.5 rounded-2xl transition cursor-pointer">
               <div class="flex items-center justify-between text-amber-800 text-xs font-bold">
                 <span>স্টক ভ্যালু</span>
                 <i data-lucide="layers" class="w-4 h-4"></i>
               </div>
               <div class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1.5">${formatTk(totalStockVal)}</div>
-              <div class="text-[11px] text-amber-800 font-semibold mt-0.5">পণ্য: ${toBnNum(state.inventory.length)}টি</div>
+              <div class="text-[11px] text-amber-800 font-semibold mt-0.5">প্রোডাক্ট ও ফেব্রিক্স: ${toBnNum(state.inventory.length)}টি</div>
             </div>
 
             <div onclick="setTab('orders')" class="bg-sky-50/90 hover:bg-sky-100/70 border border-sky-200 p-3.5 rounded-2xl transition cursor-pointer">
@@ -1029,12 +1042,15 @@
     }
 
     function renderMenuHub() {
+      const fabricsCount = state.inventory.filter((i) => i.category === 'Fabrics').length;
+      const productsCount = state.inventory.filter((i) => i.category !== 'Fabrics').length;
       const tiles = [
         { title: 'পোশাক ও মাপ', count: toBnNum(state.garmentGallery.length), icon: 'ruler', color: 'bg-amber-100 text-amber-800', action: "setTab('services')" },
-        { title: 'পণ্য ও ফেব্রিক্স', count: toBnNum(state.inventory.length), icon: 'layers', color: 'bg-emerald-100 text-emerald-800', action: "setTab('inventory')" },
+        { title: 'প্রোডাক্ট (পণ্য)', count: toBnNum(productsCount), icon: 'package', color: 'bg-indigo-100 text-indigo-800', action: "setTab('products-list')" },
+        { title: 'ফেব্রিক্স (কাপড়)', count: toBnNum(fabricsCount), icon: 'layers', color: 'bg-emerald-100 text-emerald-800', action: "setTab('fabrics-list')" },
         { title: 'কাস্টমার তালিকা', count: toBnNum(state.customers.length), icon: 'users', color: 'bg-sky-100 text-sky-800', action: "setTab('customers')" },
-        { title: 'নতুন অর্ডার', count: '+', icon: 'scissors', color: 'bg-indigo-100 text-indigo-800', action: "setTab('new-order')" },
-        { title: 'অর্ডার তালিকা', count: toBnNum(state.orders.length), icon: 'clipboard-list', color: 'bg-teal-100 text-teal-800', action: "setTab('orders')" },
+        { title: 'নতুন অর্ডার', count: '+', icon: 'scissors', color: 'bg-teal-100 text-teal-800', action: "setTab('new-order')" },
+        { title: 'অর্ডার তালিকা', count: toBnNum(state.orders.length), icon: 'clipboard-list', color: 'bg-cyan-100 text-cyan-800', action: "setTab('orders')" },
         { title: 'কুইক সেল', count: 'POS', icon: 'shopping-bag', color: 'bg-rose-100 text-rose-800', action: "setTab('quick-sale')" },
         { title: 'ক্রয় ও সাপ্লায়ার', count: toBnNum(state.purchases.length), icon: 'truck', color: 'bg-orange-100 text-orange-800', action: "setTab('purchases')" },
         ...(state.currentUser.canViewReports
@@ -2152,19 +2168,20 @@
       }
     }
 
-    function openAddInventoryModal() {
+    function openAddInventoryModal(defaultType = 'Product') {
       modalUploadedProductDataUrl = null;
-      const defaultPreview = garmentSvgDataUri('নতুন পণ্য', '#eef2ff', '#3730a3');
+      const isFabricDefault = defaultType === 'Fabrics';
+      const defaultPreview = garmentSvgDataUri(isFabricDefault ? 'নতুন ফেব্রিক্স' : 'নতুন প্রোডাক্ট', isFabricDefault ? '#fffbeb' : '#eef2ff', isFabricDefault ? '#92400e' : '#3730a3');
       const html = `
         <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-slate-900">নতুন পণ্য / ফেব্রিক্স যোগ করুন</h3>
-          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+          <h3 class="text-base font-extrabold text-slate-900">${isFabricDefault ? 'নতুন ফেব্রিক্স (কাপড়) যোগ করুন' : 'নতুন প্রোডাক্ট (পণ্য) যোগ করুন'}</h3>
+          <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
         </div>
         <form onsubmit="handleAddInventoryItem(event)" class="p-5 space-y-3 text-xs overflow-y-auto">
           <div class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 flex items-center gap-3">
             <img id="inv-live-preview" src="${defaultPreview}" alt="Product" class="w-16 h-16 rounded-xl object-cover border-2 border-indigo-400 bg-white shrink-0" />
             <div class="flex-1 space-y-1.5">
-              <div class="font-extrabold text-indigo-950">পণ্যের ছবি দিন</div>
+              <div class="font-extrabold text-indigo-950">${isFabricDefault ? 'ফেব্রিক্সের ছবি দিন' : 'প্রোডাক্টের ছবি দিন'}</div>
               <div class="flex flex-wrap gap-1.5">
                 <label class="px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white font-bold cursor-pointer inline-flex items-center">
                   <span>📁 ফাইল থেকে ছবি</span>
@@ -2179,46 +2196,43 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
-              <input id="new-inv-name" type="text" required placeholder="যেমন: জাপানি টের কাপড় বা আতর" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <label class="block font-bold text-slate-700 mb-1">${isFabricDefault ? 'ফেব্রিক্সের নাম *' : 'প্রোডাক্টের নাম *'}</label>
+              <input id="new-inv-name" type="text" required placeholder="${isFabricDefault ? 'যেমন: জাপানি টের কাপড়' : 'যেমন: আতর আলিফ বা পাঁচ কল্লি টুপি'}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">কোড</label>
-              <input id="new-inv-code" type="text" value="PRD-${state.inventory.length + 1}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <input id="new-inv-code" type="text" value="Code: ${state.inventory.length + 100}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
-              <select id="new-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                <option value="রেডিমেড">রেডিমেড (প্রোডাক্ট)</option>
-                <option value="আতর">আতর (প্রোডাক্ট)</option>
-                <option value="তসবি">তসবি (প্রোডাক্ট)</option>
-                <option value="Fabrics">Fabrics (গজ কাপড়)</option>
-                <option value="Accessories">Accessories</option>
+              <label class="block font-bold text-slate-700 mb-1">ধরন (Type)</label>
+              <select id="new-inv-cat" onchange="const u=document.getElementById('new-inv-unit'); if(u) u.value=(this.value==='Fabrics'?'গজ':'পিস');" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                <option value="Product" ${!isFabricDefault ? 'selected' : ''}>Product (প্রোডাক্ট / পণ্য)</option>
+                <option value="Fabrics" ${isFabricDefault ? 'selected' : ''}>Fabrics (গজ কাপড়)</option>
               </select>
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">একক (Unit)</label>
               <select id="new-inv-unit" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                <option value="পিস">পিস</option>
-                <option value="গজ">গজ</option>
+                <option value="পিস" ${!isFabricDefault ? 'selected' : ''}>পিস</option>
+                <option value="গজ" ${isFabricDefault ? 'selected' : ''}>গজ</option>
               </select>
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳) *</label>
-              <input id="new-inv-cost" type="number" min="0" value="150" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <label class="block font-bold text-slate-700 mb-1">ক্রয় মূল্য (৳) *</label>
+              <input id="new-inv-cost" type="number" step="0.01" min="0" value="100" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳) *</label>
-              <input id="new-inv-sell" type="number" min="0" value="250" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <label class="block font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳) *</label>
+              <input id="new-inv-sell" type="number" step="0.01" min="0" value="150" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-700 mb-1">প্রাথমিক স্টক *</label>
-              <input id="new-inv-stock" type="number" step="0.1" min="0" value="50" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <input id="new-inv-stock" type="number" step="0.01" min="0" value="20" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
           </div>
           <div class="pt-2 flex justify-end gap-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">যোগ করুন</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">✓ যোগ করুন</button>
           </div>
         </form>
       `;
@@ -2234,9 +2248,10 @@
       const costPrice = Number(document.getElementById('new-inv-cost').value || 0);
       const sellPrice = Number(document.getElementById('new-inv-sell').value || 0);
       const stock = Number(document.getElementById('new-inv-stock').value || 0);
+      const chosenImg = modalUploadedProductDataUrl || garmentSvgDataUri(name, category === 'Fabrics' ? '#fffbeb' : '#eef2ff', category === 'Fabrics' ? '#92400e' : '#3730a3');
 
       state.inventory.unshift({
-        id: `inv-${Date.now()}`,
+        id: `${category === 'Fabrics' ? 'fab' : 'prd'}-${Date.now()}`,
         code,
         name,
         category,
@@ -2246,119 +2261,13 @@
         stock,
         minAlert: 10,
         active: true,
-        img: modalUploadedProductDataUrl || garmentSvgDataUri(name, category === 'Fabrics' ? '#fffbeb' : '#eef2ff', category === 'Fabrics' ? '#92400e' : '#3730a3')
+        img: chosenImg
       });
       modalUploadedProductDataUrl = null;
+      persistState();
       closeModal();
-      showToast(`"${name}" পণ্যের তালিকায় যোগ হয়েছে।`, 'success');
+      showToast(`"${name}" সফলভাবে যুক্ত হয়েছে!`, 'success');
       renderApp();
-    }
-
-    function renderInventory() {
-      const currentFilter = state.inventoryFilter || 'all';
-      const searchVal = (state.searchQuery || '').trim().toLowerCase();
-
-      const filteredList = state.inventory.filter((item) => {
-        const matchesType =
-          currentFilter === 'all'
-            ? true
-            : currentFilter === 'fabrics'
-            ? item.category === 'Fabrics'
-            : item.category !== 'Fabrics';
-        const matchesSearch =
-          !searchVal ||
-          item.name.toLowerCase().includes(searchVal) ||
-          item.code.toLowerCase().includes(searchVal) ||
-          (item.category || '').toLowerCase().includes(searchVal);
-        return matchesType && matchesSearch;
-      });
-
-      const fabricsCount = state.inventory.filter((i) => i.category === 'Fabrics').length;
-      const productsCount = state.inventory.filter((i) => i.category !== 'Fabrics').length;
-
-      return `
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 class="text-lg sm:text-xl font-bold text-slate-900">পণ্যের তালিকা ও স্টক (${toBnNum(state.inventory.length)}টি)</h2>
-              <p class="text-xs text-slate-500">সব প্রোডাক্ট ও ফেব্রিক্সের ছবি, ক্রয়-বিক্রয় দর ও স্টক এখান থেকে পরিচালনা করুন</p>
-            </div>
-            <button onclick="openAddInventoryModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm cursor-pointer">
-              + নতুন পণ্য / ফেব্রিক্স যোগ
-            </button>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-            <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="state.inventoryFilter='all'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'all' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
-                সব তালিকা (${toBnNum(state.inventory.length)})
-              </button>
-              <button type="button" onclick="state.inventoryFilter='products'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'products' ? 'bg-indigo-700 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
-                প্রোডাক্ট (${toBnNum(productsCount)})
-              </button>
-              <button type="button" onclick="state.inventoryFilter='fabrics'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'fabrics' ? 'bg-amber-500 text-slate-950' : 'bg-white text-slate-700 border border-slate-200'}">
-                ফেব্রিক্স (${toBnNum(fabricsCount)})
-              </button>
-            </div>
-            <input type="text" value="${state.searchQuery}" oninput="state.searchQuery=this.value; renderApp();" placeholder="🔍 পণ্য বা কোড খুঁজুন..." class="w-full sm:w-64 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold outline-none" />
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b border-slate-200 text-slate-500 bg-slate-50">
-                  <th class="py-2.5 px-3">ছবি ও পণ্যের নাম</th>
-                  <th class="py-2.5 px-3">ক্যাটাগরি</th>
-                  <th class="py-2.5 px-3 text-right">ক্রয় মূল্য</th>
-                  <th class="py-2.5 px-3 text-right">বিক্রয় মূল্য</th>
-                  <th class="py-2.5 px-3 text-right">স্টক</th>
-                  <th class="py-2.5 px-3 text-center">এক্টিভ</th>
-                  <th class="py-2.5 px-3 text-right">অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${filteredList.length === 0 ? `
-                  <tr><td colspan="7" class="py-8 text-center text-slate-400">কোনো পণ্য পাওয়া যায়নি।</td></tr>
-                ` : filteredList.map((i) => {
-                  const realIdx = state.inventory.findIndex((x) => x.id === i.id);
-                  return `
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-2.5 px-3">
-                        <div class="flex items-center gap-2.5">
-                          <img src="${getInventoryItemImage(i)}" alt="${i.name}" class="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-white shrink-0" />
-                          <div>
-                            <div class="font-bold text-slate-900">${i.name}</div>
-                            <div class="text-[11px] font-mono text-slate-400">Code: ${i.code}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="py-2.5 px-3 text-xs font-semibold">${i.category}</td>
-                      <td class="py-2.5 px-3 text-right">
-                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-xs">${formatTk(i.costPrice)}</span>
-                      </td>
-                      <td class="py-2.5 px-3 text-right">
-                        <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 font-bold text-xs">${formatTk(i.sellPrice)}</span>
-                      </td>
-                      <td class="py-2.5 px-3 text-right font-extrabold ${Number(i.stock) <= Number(i.minAlert) ? 'text-rose-600' : 'text-emerald-700'}">${toBnNum(i.stock)} ${i.unit}</td>
-                      <td class="py-2.5 px-3 text-center">
-                        <button type="button" onclick="state.inventory[${realIdx}].active = !state.inventory[${realIdx}].active; persistState(); renderApp();" class="w-10 h-5 rounded-full transition p-0.5 cursor-pointer ${i.active ? 'bg-emerald-600' : 'bg-slate-300'}">
-                          <span class="block w-4 h-4 rounded-full bg-white transition-transform ${i.active ? 'translate-x-5' : 'translate-x-0'}"></span>
-                        </button>
-                      </td>
-                      <td class="py-2.5 px-3 text-right">
-                        <div class="inline-flex items-center gap-1">
-                          <button onclick="openEditInventoryModal('${i.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold cursor-pointer">ছবি / এডিট</button>
-                          <button onclick="deleteInventoryItem('${i.id}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer">✕</button>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
     }
 
     function openEditInventoryModal(invId) {
@@ -2367,18 +2276,20 @@
       modalUploadedProductDataUrl = null;
       const html = `
         <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-slate-900">পণ্য / ফেব্রিক্স ও ছবি এডিট করুন</h3>
-          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+          <h3 class="text-base font-extrabold text-slate-900">${item.category === 'Fabrics' ? 'ফেব্রিক্স এডিট করুন' : 'প্রোডাক্ট এডিট করুন'}</h3>
+          <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
         </div>
         <form onsubmit="handleUpdateInventoryItem(event, '${item.id}')" class="p-5 space-y-3 text-xs overflow-y-auto">
           <div class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 flex items-center gap-3">
             <img id="inv-live-preview" src="${getInventoryItemImage(item)}" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover border-2 border-indigo-400 bg-white shrink-0" />
             <div class="flex-1 space-y-1.5">
-              <div class="font-extrabold text-indigo-950">পণ্যের ছবি পরিবর্তন করুন</div>
-              <label class="px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white font-bold cursor-pointer inline-flex items-center">
-                <span>📁 ফাইল থেকে ছবি</span>
-                <input type="file" accept="image/*" onchange="handleModalProductFileChange(event)" class="hidden" />
-              </label>
+              <div class="font-extrabold text-indigo-950">ছবি পরিবর্তন করুন</div>
+              <div class="flex flex-wrap gap-1.5">
+                <label class="px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white font-bold cursor-pointer inline-flex items-center">
+                  <span>📁 ফাইল থেকে ছবি</span>
+                  <input type="file" accept="image/*" onchange="handleModalProductFileChange(event)" class="hidden" />
+                </label>
+              </div>
               <div contenteditable="true" onpaste="handleProductPasteZone(event)" class="px-2.5 py-1 rounded-lg border border-dashed border-indigo-400 bg-white text-[10px] text-slate-500 outline-none">
                 অথবা গ্যালারি থেকে ছবি Copy করে এখানে ট্যাপ করে Paste চাপুন...
               </div>
@@ -2387,7 +2298,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
+              <label class="block font-bold text-slate-700 mb-1">নাম *</label>
               <input id="edit-inv-name" type="text" value="${item.name}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
@@ -2395,31 +2306,28 @@
               <input id="edit-inv-code" type="text" value="${item.code}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
+              <label class="block font-bold text-slate-700 mb-1">ধরন (Type)</label>
               <select id="edit-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                <option value="Product" ${item.category !== 'Fabrics' ? 'selected' : ''}>Product (প্রোডাক্ট / পণ্য)</option>
                 <option value="Fabrics" ${item.category === 'Fabrics' ? 'selected' : ''}>Fabrics (গজ কাপড়)</option>
-                <option value="রেডিমেড" ${item.category === 'রেডিমেড' ? 'selected' : ''}>রেডিমেড</option>
-                <option value="আতর" ${item.category === 'আতর' ? 'selected' : ''}>আতর</option>
-                <option value="তসবি" ${item.category === 'তসবি' ? 'selected' : ''}>তসবি</option>
-                <option value="Accessories" ${item.category === 'Accessories' ? 'selected' : ''}>Accessories</option>
               </select>
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">বর্তমান স্টক (${item.unit})</label>
-              <input id="edit-inv-stock" type="number" step="0.1" value="${Number(item.stock)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <input id="edit-inv-stock" type="number" step="0.01" value="${Number(item.stock)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳)</label>
-              <input id="edit-inv-cost" type="number" value="${Number(item.costPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <label class="block font-bold text-slate-700 mb-1">ক্রয় মূল্য (৳)</label>
+              <input id="edit-inv-cost" type="number" step="0.01" value="${Number(item.costPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳)</label>
-              <input id="edit-inv-sell" type="number" value="${Number(item.sellPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <label class="block font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳)</label>
+              <input id="edit-inv-sell" type="number" step="0.01" value="${Number(item.sellPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
             </div>
           </div>
           <div class="pt-2 flex justify-end gap-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">সেভ করুন</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">✓ সেভ করুন</button>
           </div>
         </form>
       `;
@@ -2433,6 +2341,7 @@
       item.name = document.getElementById('edit-inv-name').value.trim();
       item.code = document.getElementById('edit-inv-code').value.trim();
       item.category = document.getElementById('edit-inv-cat').value;
+      item.unit = item.category === 'Fabrics' ? 'গজ' : 'পিস';
       item.stock = Number(document.getElementById('edit-inv-stock').value || 0);
       item.costPrice = Number(document.getElementById('edit-inv-cost').value || 0);
       item.sellPrice = Number(document.getElementById('edit-inv-sell').value || 0);
@@ -2440,8 +2349,118 @@
         item.img = modalUploadedProductDataUrl;
       }
       modalUploadedProductDataUrl = null;
+      persistState();
       closeModal();
-      showToast(`"${item.name}" ও ছবি আপডেট হয়েছে।`, 'success');
+      showToast(`"${item.name}" আপডেট হয়েছে।`, 'success');
+      renderApp();
+    }
+
+    function renderInventory(viewMode = 'products') {
+      const isFabricsView = viewMode === 'fabrics';
+      const searchLower = (state.searchQuery || '').trim().toLowerCase();
+
+      const filteredList = state.inventory.filter((item) => {
+        const matchesCat = isFabricsView ? item.category === 'Fabrics' : item.category !== 'Fabrics';
+        const matchesSearch = !searchLower || item.name.toLowerCase().includes(searchLower) || item.code.toLowerCase().includes(searchLower);
+        return matchesCat && matchesSearch;
+      });
+
+      const fabricsCount = state.inventory.filter((i) => i.category === 'Fabrics').length;
+      const productsCount = state.inventory.filter((i) => i.category !== 'Fabrics').length;
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">
+                ${isFabricsView ? `ফেব্রিক্স (গজ কাপড়) তালিকা (${toBnNum(fabricsCount)}টি)` : `প্রোডাক্ট (পণ্য) তালিকা (${toBnNum(productsCount)}টি)`}
+              </h2>
+              <p class="text-xs text-slate-500">
+                ${isFabricsView ? 'শুধুমাত্র গজ কাপড় ও থান কাপড়ের ক্রয়-বিক্রয় দর ও স্টক' : 'টুপি, আতর, পাগড়ি, মোজা, রুমাল ও অন্যান্য প্রোডাক্টের তালিকা'}
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="setTab('products-list')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${!isFabricsView ? 'bg-indigo-700 text-white border-indigo-800' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-indigo-50'}">
+                প্রোডাক্ট (${toBnNum(productsCount)})
+              </button>
+              <button type="button" onclick="setTab('fabrics-list')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${isFabricsView ? 'bg-amber-500 text-slate-950 border-amber-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50'}">
+                ফেব্রিক্স (${toBnNum(fabricsCount)})
+              </button>
+              <button type="button" onclick="openAddInventoryModal('${isFabricsView ? 'Fabrics' : 'Product'}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs cursor-pointer">
+                + নতুন ${isFabricsView ? 'ফেব্রিক্স' : 'প্রোডাক্ট'} যোগ
+              </button>
+            </div>
+          </div>
+
+          <div class="relative max-w-md">
+            <input type="text" value="${state.searchQuery}" oninput="state.searchQuery=this.value; renderApp();" placeholder="🔍 ${isFabricsView ? 'ফেব্রিক্সের নাম বা কোড খুঁজুন...' : 'প্রোডাক্টের নাম বা কোড খুঁজুন...'}" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-emerald-600 outline-none text-xs font-bold" />
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 bg-slate-50">
+                  <th class="py-2.5 px-3">ছবি ও নাম</th>
+                  <th class="py-2.5 px-3">ক্যাটাগরি</th>
+                  <th class="py-2.5 px-3 text-right">ক্রয় মূল্য</th>
+                  <th class="py-2.5 px-3 text-right">বিক্রয় মূল্য</th>
+                  <th class="py-2.5 px-3 text-right">স্টক</th>
+                  <th class="py-2.5 px-3 text-center">এক্টিভ</th>
+                  <th class="py-2.5 px-3 text-right">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${filteredList.length === 0 ? `
+                  <tr><td colspan="7" class="py-8 text-center text-slate-400">কোনো আইটেম পাওয়া যায়নি।</td></tr>
+                ` : filteredList.map((i) => {
+                  const realIndex = state.inventory.findIndex((x) => x.id === i.id);
+                  return `
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-2.5 px-3">
+                        <div class="flex items-center gap-2.5">
+                          <img src="${getInventoryItemImage(i)}" alt="${i.name}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 bg-white shrink-0" />
+                          <div>
+                            <div class="font-bold text-slate-900">${i.name}</div>
+                            <div class="text-[11px] font-mono text-slate-400">${i.code}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${i.category === 'Fabrics' ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'}">${i.category}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-xs">${formatTk(i.costPrice)}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 font-bold text-xs">${formatTk(i.sellPrice)}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-extrabold ${Number(i.stock) <= Number(i.minAlert) ? 'text-rose-600' : 'text-emerald-700'}">${toBnNum(i.stock)} ${i.unit}</td>
+                      <td class="py-2.5 px-3 text-center">
+                        <button type="button" onclick="state.inventory[${realIndex}].active = !state.inventory[${realIndex}].active; persistState(); renderApp();" class="w-10 h-5 rounded-full transition p-0.5 cursor-pointer ${i.active ? 'bg-emerald-600' : 'bg-slate-300'}">
+                          <span class="block w-4 h-4 rounded-full bg-white transition-transform ${i.active ? 'translate-x-5' : 'translate-x-0'}"></span>
+                        </button>
+                      </td>
+                      <td class="py-2.5 px-3 text-right">
+                        <div class="inline-flex items-center gap-1">
+                          <button type="button" onclick="openEditInventoryModal('${i.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold cursor-pointer">এডিট</button>
+                          <button type="button" onclick="deleteInventoryItem('${i.id}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer">✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      const ord = state.orders.find((o) => o.id === orderId);
+      if (!ord) return;
+      ord.status = newStatus;
+      showToast(`অর্ডার #${ord.id} স্ট্যাটাস "${newStatus}" করা হয়েছে।`, 'success');
       renderApp();
     }
 
@@ -2456,42 +2475,7 @@
     function viewOrderModal(orderId) {
       const ord = state.orders.find((o) => o.id === orderId);
       if (!ord) return;
-
-      const fin = calculateFinancials([ord]);
-      const bd = fin.orderBreakdown[0];
-
-      const html = `
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h3 class="text-base font-extrabold text-slate-900">মেমো #${ord.id} — ${ord.customerName}</h3>
-            <p class="text-xs text-slate-500">ফোন: ${ord.customerPhone} • ডেলিভারি: ${ord.deliveryDate}</p>
-          </div>
-          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
-        </div>
-        <div class="p-5 overflow-y-auto space-y-3 text-xs">
-          ${(ord.items || []).map((it) => `
-            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
-              <div class="font-bold text-slate-900">${it.serviceName} × ${toBnNum(it.qty || 1)}</div>
-              ${it.designNote ? `<div class="text-[11px] text-indigo-700">ডিজাইন: ${it.designNote}</div>` : ''}
-              ${Object.keys(it.measurements || {}).length > 0 ? `
-                <div class="flex flex-wrap gap-1.5 pt-1">
-                  ${Object.entries(it.measurements).map(([k, v]) => `<span class="px-2 py-0.5 rounded bg-white border text-[11px]"><b>${k}:</b> ${v}</span>`).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex justify-between font-bold text-sm">
-            <span>মোট বিল: ${formatTk(bd.netTotal)}</span>
-            <span class="text-emerald-800">জমা: ${formatTk(bd.paid)}</span>
-            <span class="text-rose-700">বাকি: ${formatTk(bd.due)}</span>
-          </div>
-        </div>
-        <div class="px-5 py-3 border-t border-slate-200 flex justify-between gap-2">
-          <button onclick="printOrderMemo('${ord.id}')" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold cursor-pointer">🖨️ মেমো প্রিন্ট করুন</button>
-          <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold cursor-pointer">বন্ধ করুন</button>
-        </div>
-      `;
-      openModal(html, 'max-w-2xl');
+      openOrderConfirmedA4Modal(orderId);
     }
 
     function renderOrdersList() {
@@ -2501,7 +2485,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 class="text-lg sm:text-xl font-bold text-slate-900">অর্ডার তালিকা (${toBnNum(state.orders.length)}টি)</h2>
-              <p class="text-xs text-slate-500">অর্ডার স্ট্যাটাস আপডেট ও মেমো বিবরণ দেখুন</p>
+              <p class="text-xs text-slate-500">অর্ডার স্ট্যাটাস আপডেট, A4 মেমো প্রিন্ট ও বিবরণ দেখুন</p>
             </div>
             <button onclick="setTab('new-order')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer">+ নতুন অর্ডার</button>
           </div>
@@ -2543,7 +2527,7 @@
                     </td>
                     <td class="py-3 px-3 text-right">
                       <div class="inline-flex items-center gap-1">
-                        <button onclick="viewOrderModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold cursor-pointer">মেমো</button>
+                        <button onclick="viewOrderModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold cursor-pointer">🖨️ মেমো</button>
                         <button onclick="openEditOrderModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold cursor-pointer">এডিট</button>
                         <button onclick="deleteOrderRecord('${ord.id}')" class="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer">✕</button>
                       </div>
@@ -2686,12 +2670,14 @@
       state.orders.unshift({
         id: orderCode,
         orderDate: todayISO(),
+        orderTime: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
         deliveryDate: todayISO(),
         customerName: custName,
         customerPhone: 'N/A',
         customerAddress: '',
         status: 'Delivered',
         paymentMethod: 'Cash',
+        previousDue: 0,
         discount: 0,
         paidAmount: fabRev,
         items
@@ -2699,7 +2685,14 @@
 
       quickCart = [];
       showToast(`কুইক সেল #${orderCode} সম্পন্ন হয়েছে!`, 'success');
-      setTab('orders');
+      state.activeTab = 'orders';
+      renderApp();
+      openOrderConfirmedA4Modal(orderCode);
+    }
+
+    function setProfitSubTab(subTab) {
+      state.profitSubTab = subTab;
+      renderApp();
     }
 
     function renderQuickSale() {
@@ -2746,213 +2739,6 @@
           </div>
         </div>
       `;
-    }
-
-    function openAddInventoryModal() {
-      const html = `
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-slate-900">নতুন পণ্য / ফেব্রিক্স যোগ করুন</h3>
-          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
-        </div>
-        <form onsubmit="handleAddInventoryItem(event)" class="p-5 space-y-3 text-xs">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
-              <input id="new-inv-name" type="text" required placeholder="যেমন: জাপানি টের কাপড় বা আতর" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">কোড</label>
-              <input id="new-inv-code" type="text" value="PRD-${state.inventory.length + 1}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
-              <select id="new-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                <option value="Fabrics">Fabrics (গজ কাপড়)</option>
-                <option value="রেডিমেড">রেডিমেড</option>
-                <option value="আতর">আতর</option>
-                <option value="তসবি">তসবি</option>
-                <option value="Accessories">Accessories</option>
-              </select>
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">একক (Unit)</label>
-              <select id="new-inv-unit" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                <option value="গজ">গজ</option>
-                <option value="পিস">পিস</option>
-              </select>
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳) *</label>
-              <input id="new-inv-cost" type="number" min="0" value="150" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳) *</label>
-              <input id="new-inv-sell" type="number" min="0" value="250" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block font-bold text-slate-700 mb-1">প্রাথমিক স্টক *</label>
-              <input id="new-inv-stock" type="number" step="0.1" min="0" value="50" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-          </div>
-          <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">যোগ করুন</button>
-          </div>
-        </form>
-      `;
-      openModal(html, 'max-w-lg');
-    }
-
-    function handleAddInventoryItem(e) {
-      e.preventDefault();
-      const name = document.getElementById('new-inv-name').value.trim();
-      const code = document.getElementById('new-inv-code').value.trim();
-      const category = document.getElementById('new-inv-cat').value;
-      const unit = document.getElementById('new-inv-unit').value;
-      const costPrice = Number(document.getElementById('new-inv-cost').value || 0);
-      const sellPrice = Number(document.getElementById('new-inv-sell').value || 0);
-      const stock = Number(document.getElementById('new-inv-stock').value || 0);
-
-      state.inventory.unshift({
-        id: `inv-${Date.now()}`,
-        code,
-        name,
-        category,
-        unit,
-        costPrice,
-        sellPrice,
-        stock,
-        minAlert: 10,
-        active: true
-      });
-      closeModal();
-      showToast(`"${name}" পণ্যের তালিকায় যোগ হয়েছে।`, 'success');
-      renderApp();
-    }
-
-    function renderInventory() {
-      return `
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 class="text-lg sm:text-xl font-bold text-slate-900">পণ্যের তালিকা ও স্টক (${toBnNum(state.inventory.length)}টি)</h2>
-              <p class="text-xs text-slate-500">ফেব্রিক্স ও প্রোডাক্টের ক্রয়-বিক্রয় মূল্য, স্টক এবং এক্টিভ স্ট্যাটাস নিয়ন্ত্রণ করুন</p>
-            </div>
-            <button onclick="openAddInventoryModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm cursor-pointer">
-              + নতুন পণ্য / ফেব্রিক্স যোগ
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b border-slate-200 text-slate-500 bg-slate-50">
-                  <th class="py-2.5 px-3">নাম ও কোড</th>
-                  <th class="py-2.5 px-3">ক্যাটাগরি</th>
-                  <th class="py-2.5 px-3 text-right">ক্রয় মূল্য</th>
-                  <th class="py-2.5 px-3 text-right">বিক্রয় মূল্য</th>
-                  <th class="py-2.5 px-3 text-right">স্টক</th>
-                  <th class="py-2.5 px-3 text-center">এক্টিভ</th>
-                  <th class="py-2.5 px-3 text-right">অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${state.inventory.map((i, idx) => `
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-2.5 px-3">
-                      <div class="font-bold text-slate-900">${i.name}</div>
-                      <div class="text-[11px] font-mono text-slate-400">Code: ${i.code}</div>
-                    </td>
-                    <td class="py-2.5 px-3 text-xs font-semibold">${i.category}</td>
-                    <td class="py-2.5 px-3 text-right">
-                      <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-xs">${formatTk(i.costPrice)}</span>
-                    </td>
-                    <td class="py-2.5 px-3 text-right">
-                      <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 font-bold text-xs">${formatTk(i.sellPrice)}</span>
-                    </td>
-                    <td class="py-2.5 px-3 text-right font-extrabold ${Number(i.stock) <= Number(i.minAlert) ? 'text-rose-600' : 'text-emerald-700'}">${toBnNum(i.stock)} ${i.unit}</td>
-                    <td class="py-2.5 px-3 text-center">
-                      <button type="button" onclick="state.inventory[${idx}].active = !state.inventory[${idx}].active; persistState(); renderApp();" class="w-10 h-5 rounded-full transition p-0.5 cursor-pointer ${i.active ? 'bg-emerald-600' : 'bg-slate-300'}">
-                        <span class="block w-4 h-4 rounded-full bg-white transition-transform ${i.active ? 'translate-x-5' : 'translate-x-0'}"></span>
-                      </button>
-                    </td>
-                    <td class="py-2.5 px-3 text-right">
-                      <div class="inline-flex items-center gap-1">
-                        <button onclick="openEditInventoryModal('${i.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold cursor-pointer">এডিট</button>
-                        <button onclick="deleteInventoryItem('${i.id}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer">✕</button>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    function openEditInventoryModal(invId) {
-      const item = state.inventory.find((i) => i.id === invId);
-      if (!item) return;
-      const html = `
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-slate-900">পণ্য / ফেব্রিক্স এডিট করুন</h3>
-          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
-        </div>
-        <form onsubmit="handleUpdateInventoryItem(event, '${item.id}')" class="p-5 space-y-3 text-xs">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
-              <input id="edit-inv-name" type="text" value="${item.name}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">কোড</label>
-              <input id="edit-inv-code" type="text" value="${item.code}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
-              <select id="edit-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                <option value="Fabrics" ${item.category === 'Fabrics' ? 'selected' : ''}>Fabrics (গজ কাপড়)</option>
-                <option value="রেডিমেড" ${item.category === 'রেডিমেড' ? 'selected' : ''}>রেডিমেড</option>
-                <option value="আতর" ${item.category === 'আতর' ? 'selected' : ''}>আতর</option>
-                <option value="তসবি" ${item.category === 'তসবি' ? 'selected' : ''}>তসবি</option>
-                <option value="Accessories" ${item.category === 'Accessories' ? 'selected' : ''}>Accessories</option>
-              </select>
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">বর্তমান স্টক (${item.unit})</label>
-              <input id="edit-inv-stock" type="number" step="0.1" value="${Number(item.stock)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳)</label>
-              <input id="edit-inv-cost" type="number" value="${Number(item.costPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳)</label>
-              <input id="edit-inv-sell" type="number" value="${Number(item.sellPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-            </div>
-          </div>
-          <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">সেভ করুন</button>
-          </div>
-        </form>
-      `;
-      openModal(html, 'max-w-lg');
-    }
-
-    function handleUpdateInventoryItem(e, invId) {
-      e.preventDefault();
-      const item = state.inventory.find((i) => i.id === invId);
-      if (!item) return;
-      item.name = document.getElementById('edit-inv-name').value.trim();
-      item.code = document.getElementById('edit-inv-code').value.trim();
-      item.category = document.getElementById('edit-inv-cat').value;
-      item.stock = Number(document.getElementById('edit-inv-stock').value || 0);
-      item.costPrice = Number(document.getElementById('edit-inv-cost').value || 0);
-      item.sellPrice = Number(document.getElementById('edit-inv-sell').value || 0);
-      closeModal();
-      showToast(`"${item.name}" আপডেট হয়েছে।`, 'success');
-      renderApp();
     }
 
     function deleteInventoryItem(invId) {
@@ -3073,8 +2859,12 @@
                       </div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
+                      <label for="direct-file-${g.id}" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer inline-flex items-center gap-1 select-none">
+                        <span>📷 ছবি দিন</span>
+                        <input id="direct-file-${g.id}" type="file" accept="image/*" onchange="handleDirectGarmentImageUpload(event, '${g.id}')" class="sr-only" />
+                      </label>
                       <button type="button" onclick="openGarmentGalleryEditModal('${g.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer inline-flex items-center gap-1">
-                        <span>📷 ছবি / এডিট</span>
+                        <span>✏️ এডিট</span>
                       </button>
                       <button type="button" onclick="state.garmentGallery = state.garmentGallery.filter(x => x.id !== '${g.id}'); persistState(); showToast('পোশাক মুছে ফেলা হয়েছে','warn'); renderApp();" class="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕</button>
                     </div>
@@ -3110,8 +2900,6 @@
         </div>
       `;
     }
-
-    let modalUploadedGarmentDataUrl = null;
 
     function processImageFileToDataUrl(file, onDone) {
       if (!file) return;
@@ -3173,6 +2961,92 @@
       g.img = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
       persistState();
       showToast(`"${g.name}"-এ ${emojiChar} ইমোজি সেট করা হয়েছে!`, 'success');
+      renderApp();
+    }
+
+    function renderCustomers() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900">কাস্টমার তালিকা (${toBnNum(state.customers.length)}জন)</h2>
+              <p class="text-xs text-slate-500">কাস্টমারের তথ্য, বকেয়া আদায় ও এডিট করুন</p>
+            </div>
+            <button onclick="openCustomerEditModal(null)" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold cursor-pointer">+ নতুন কাস্টমার</button>
+          </div>
+          <div class="space-y-2">
+            ${state.customers.length === 0 ? `<div class="text-xs text-slate-400 py-8 text-center">এখনো কোনো কাস্টমার যোগ হয়নি।</div>` : state.customers.map((c) => `
+              <div class="p-3 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div>
+                  <div class="font-bold text-slate-900">${c.name}</div>
+                  <div class="text-slate-500">${c.phone} • ${c.address}</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <div class="text-right mr-1">
+                    <div class="font-bold text-rose-600">বকেয়া: ${formatTk(c.due)}</div>
+                    <div class="text-[11px] text-slate-500">অর্ডার: ${toBnNum(c.totalOrders)}টি</div>
+                  </div>
+                  ${Number(c.due || 0) > 0 ? `
+                    <button onclick="openCustomerDueCollectModal('${c.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer">বকেয়া আদায়</button>
+                  ` : ''}
+                  <button onclick="openCustomerEditModal('${c.id}')" class="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold cursor-pointer">এডিট</button>
+                  <button onclick="state.customers = state.customers.filter(x => x.id !== '${c.id}'); persistState(); showToast('কাস্টমার ডিলিট হয়েছে','warn'); renderApp();" class="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function openCustomerDueCollectModal(custId) {
+      const c = state.customers.find((x) => x.id === custId);
+      if (!c) return;
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-slate-900">বকেয়া আদায় — ${c.name}</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="handleCollectCustomerDue(event, '${c.id}')" class="p-5 space-y-3 text-xs">
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 font-bold text-rose-800">
+            বর্তমান মোট বকেয়া: ${formatTk(c.due)}
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">জমা টাকার পরিমাণ (৳) *</label>
+            <input id="due-collect-amt" type="number" min="1" max="${Number(c.due)}" value="${Number(c.due)}" required class="w-full px-3 py-2 rounded-xl border border-emerald-400 bg-emerald-50/40 font-extrabold text-emerald-900" />
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">✓ জমা নিশ্চিত করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-sm');
+    }
+
+    function handleCollectCustomerDue(e, custId) {
+      e.preventDefault();
+      const c = state.customers.find((x) => x.id === custId);
+      if (!c) return;
+      const amt = Math.max(0, Number(document.getElementById('due-collect-amt').value || 0));
+      c.due = Math.max(0, Number(c.due || 0) - amt);
+
+      let rem = amt;
+      state.orders.forEach((ord) => {
+        if (rem <= 0) return;
+        if (ord.customerName === c.name || ord.customerPhone === c.phone) {
+          const bd = calculateFinancials([ord]).orderBreakdown[0];
+          if (bd && bd.due > 0) {
+            const addPay = Math.min(rem, bd.due);
+            ord.paidAmount = Number(ord.paidAmount || 0) + addPay;
+            rem -= addPay;
+          }
+        }
+      });
+
+      persistState();
+      closeModal();
+      showToast(`${c.name}-এর কাছ থেকে ${formatTk(amt)} বকেয়া আদায় হয়েছে!`, 'success');
       renderApp();
     }
 
@@ -3681,9 +3555,14 @@
                 <h2 class="text-lg sm:text-xl font-bold text-slate-900">ক্রয় তালিকা ও সাপ্লায়ার</h2>
                 <p class="text-xs text-slate-500">নতুন কাপড় বা পণ্য ক্রয় করলে স্বয়ংক্রিয়ভাবে স্টক বৃদ্ধি পাবে</p>
               </div>
-              <button onclick="openNewPurchaseModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold cursor-pointer">
-                + নতুন ক্রয় (Purchase)
-              </button>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="openNewSupplierModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold cursor-pointer">
+                  + নতুন সাপ্লায়ার
+                </button>
+                <button onclick="openNewPurchaseModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold cursor-pointer">
+                  + নতুন ক্রয় (Purchase)
+                </button>
+              </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -3714,8 +3593,63 @@
               </table>
             </div>
           </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
+            <h3 class="text-base font-extrabold text-slate-900">সাপ্লায়ার তালিকা (${toBnNum(state.suppliers.length)}জন)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              ${state.suppliers.map((s) => `
+                <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between gap-2">
+                  <div>
+                    <div class="font-extrabold text-slate-900">${s.name}</div>
+                    <div class="text-slate-500">${s.phone} • ${s.address}</div>
+                  </div>
+                  <button type="button" onclick="state.suppliers = state.suppliers.filter(x => x.id !== '${s.id}'); persistState(); showToast('সাপ্লায়ার মুছে ফেলা হয়েছে','warn'); renderApp();" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
         </div>
       `;
+    }
+
+    function openNewSupplierModal() {
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-slate-900">নতুন সাপ্লায়ার যোগ করুন</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="handleSaveNewSupplier(event)" class="p-5 space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">সাপ্লায়ার / প্রতিষ্ঠানের নাম *</label>
+            <input id="sup-new-name" type="text" required placeholder="যেমন: ইসলামপুর ফেব্রিক্স হাউস" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">মোবাইল নম্বর *</label>
+            <input id="sup-new-phone" type="text" required placeholder="017..." class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ঠিকানা</label>
+            <input id="sup-new-addr" type="text" placeholder="ঢাকা / বরিশাল" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">✓ সেভ করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-md');
+    }
+
+    function handleSaveNewSupplier(e) {
+      e.preventDefault();
+      const name = document.getElementById('sup-new-name').value.trim();
+      const phone = document.getElementById('sup-new-phone').value.trim();
+      const address = document.getElementById('sup-new-addr').value.trim() || 'বাংলাদেশ';
+      state.suppliers.unshift({ id: `sup-${Date.now()}`, name, phone, address, due: 0, active: true });
+      persistState();
+      closeModal();
+      showToast(`সাপ্লায়ার "${name}" যোগ করা হয়েছে।`, 'success');
+      renderApp();
     }
 
     function renderSettings() {
@@ -3826,7 +3760,7 @@
                     </div>
                     <div class="flex items-center gap-1">
                       <button type="button" onclick="openSpecialDesignEditModal(${idx})" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold cursor-pointer">এডিট</button>
-                      <button type="button" onclick="state.specialDesigns.splice(${idx}, 1); showToast('ডিজাইন ডিলিট হয়েছে','warn'); renderApp();" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕</button>
+                      <button type="button" onclick="state.specialDesigns.splice(${idx}, 1); persistState(); showToast('ডিজাইন ডিলিট হয়েছে','warn'); renderApp();" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕</button>
                     </div>
                   </div>
                 `).join('')}
@@ -3881,6 +3815,7 @@
       state.shop.altPhone = document.getElementById('set-shop-altphone').value.trim();
       state.shop.address = document.getElementById('set-shop-addr').value.trim();
       state.shop.memoFooterNote = document.getElementById('set-memo-note').value.trim();
+      persistState();
       showToast('দোকানের তথ্য ও মেমো সেটিংস সেভ হয়েছে!', 'success');
       renderApp();
     }
@@ -4053,7 +3988,9 @@
         case 'orders': bodyContent = renderOrdersList(); break;
         case 'quick-sale': bodyContent = renderQuickSale(); break;
         case 'purchases': bodyContent = renderPurchasesAndSuppliers(); break;
-        case 'inventory': bodyContent = renderInventory(); break;
+        case 'products-list': bodyContent = renderInventory('products'); break;
+        case 'fabrics-list': bodyContent = renderInventory('fabrics'); break;
+        case 'inventory': bodyContent = renderInventory('products'); break;
         case 'customers': bodyContent = renderCustomers(); break;
         case 'services': bodyContent = renderServicesAndMeasurements(); break;
         case 'profit-report': bodyContent = renderProfitReport(); break;
