@@ -1489,20 +1489,29 @@
       const payableTotal = bd.netTotal + prevDue;
       const totalDueWithPrev = Math.max(0, payableTotal - bd.paid);
 
-      // প্রতিটি আইটেম ও তার Quantity অনুযায়ী আলাদা কারিগর কপি তৈরি
+      // শুধুমাত্র সেলাইয়ের মেজারমেন্ট আইটেমগুলোর জন্য কারিগর কপি তৈরি হবে (কাপড় বা প্রোডাক্টের কোনো কারিগর কপি হবে না)
+      const tailorOnlyItems = (ord.items || []).filter((it) => it.type === 'tailor');
+
+      // পাঞ্জাবি/জুব্বা/কাবলি/ফতুয়া আগে এবং পাজামা তার পাশেই সাজানো হবে
+      const nonPajamaItems = tailorOnlyItems.filter((it) => !String(it.serviceName || '').includes('পাজামা'));
+      const pajamaItems = tailorOnlyItems.filter((it) => String(it.serviceName || '').includes('পাজামা'));
+      const orderedTailorItems = [...nonPajamaItems, ...pajamaItems];
+
       const karigarSlips = [];
       let slipCounter = 0;
-      (ord.items || []).forEach((it) => {
-        const count = it.type === 'tailor' ? Math.max(1, Math.round(Number(it.qty || 1))) : 1;
+      orderedTailorItems.forEach((it) => {
+        const count = Math.max(1, Math.round(Number(it.qty || 1)));
+        const codesList = [];
         for (let c = 0; c < count; c++) {
           const uniqueCode = (2632 + ((rawSerialNum * 3 + slipCounter) % 7000)).toLocaleString('en-US');
           slipCounter++;
-          karigarSlips.push({
-            item: it,
-            code: uniqueCode,
-            unitQty: it.type === 'tailor' ? 1 : Number(it.qty || 1)
-          });
+          codesList.push(uniqueCode);
         }
+        karigarSlips.push({
+          item: it,
+          codes: codesList,
+          totalQty: count
+        });
       });
 
       const sewingMachineLogoSvg = `
@@ -1516,32 +1525,44 @@
         </svg>
       `;
 
-      // প্রতি A4 পাতায় সর্বোচ্চ ৬টি কারিগর কার্ড (২ কলাম × ৩ সারি)
+      // প্রতি A4 পাতায় সর্বোচ্চ ৬টি কারিগর কার্ড (২ কলাম × ৩ সারি); কোনো সেলাই না থাকলে শুধু ১ পাতায় কাস্টমার কপি থাকবে
       const SLIPS_PER_PAGE = 6;
       const slipChunks = [];
-      for (let i = 0; i < Math.max(1, karigarSlips.length); i += SLIPS_PER_PAGE) {
-        slipChunks.push(karigarSlips.slice(i, i + SLIPS_PER_PAGE));
+      if (karigarSlips.length === 0) {
+        slipChunks.push([]);
+      } else {
+        for (let i = 0; i < karigarSlips.length; i += SLIPS_PER_PAGE) {
+          slipChunks.push(karigarSlips.slice(i, i + SLIPS_PER_PAGE));
+        }
       }
 
       const renderTopCustomerSectionHtml = (pageIndex) => `
         <div style="width: 100%; background: #ffffff; padding: 4px 6px 2px 6px; box-sizing: border-box;">
           <!-- টপ হেডার: বামে সেলাই মেশিন লোগো + ডানে দোকানের নাম, ঠিকানা ও কালো মোবাইল পিল -->
-          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px;">
             <div style="shrink: 0;">${sewingMachineLogoSvg}</div>
             <div style="text-align: center;">
-              <div style="font-size: 19px; font-weight: 900; color: #166534; line-height: 1.1; letter-spacing: 0.2px; text-shadow: 0.5px 0.5px 0 #bbf7d0;">
+              <div style="font-size: 19px; font-weight: 900; color: #166534; line-height: 1.1; letter-spacing: 0.2px;">
                 ${state.shop.name}
               </div>
               <div style="font-size: 10.5px; font-weight: 700; color: #0f172a; margin-top: 1px;">
                 ${state.shop.address}
               </div>
-              <div style="display: inline-block; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 800; padding: 1px 16px; border-radius: 999px; margin-top: 2px; letter-spacing: 0.5px;">
+              <div style="display: inline-block; background: #0f172a; color: #ffffff; font-size: 10.5px; font-weight: 800; padding: 1px 16px; border-radius: 999px; margin-top: 2px; letter-spacing: 0.5px;">
                 মোবাইলঃ ${state.shop.phone}${state.shop.altPhone ? `, ${state.shop.altPhone}` : ''}
               </div>
             </div>
           </div>
 
-          <!-- ৩-কলাম কাস্টমার রিসিট বডি (হুবহু ছবির মতো) -->
+          <!-- কাস্টমার কপি পরিচিতি ও কাস্টমারের নাম বার -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #0f172a; background: #f1f5f9; padding: 2.5px 8px; margin-bottom: 4px; font-size: 9.8px;">
+            <span style="background: #0f172a; color: #ffffff; padding: 1px 8px; border-radius: 3px; font-weight: 900; font-size: 9px;">কাস্টমার কপি</span>
+            <span style="font-weight: 900; color: #020617;">কাস্টমারের নাম: ${ord.customerName}</span>
+            <span style="font-weight: 800; color: #0f172a;">মোবাইল: ${ord.customerPhone}</span>
+            <span style="font-weight: 800; color: #166534;">ডেলিভারি: ${deliveryDateDisplay}</span>
+          </div>
+
+          <!-- ৩-কলাম কাস্টমার রিসিট বডি -->
           <div style="display: flex; align-items: flex-start; gap: 7px; font-size: 9px;">
             <!-- বাম কলাম: Serial/Order/Delivery/Name/Mobile টেবিল + শর্তাবলী -->
             <div style="width: 34%;">
@@ -1654,14 +1675,13 @@
             ★★ Thank you, please come again ★★
             ${slipChunks.length > 1 ? `<span style="margin-left: 10px; font-size: 8px; color: #fde047;">(পাতা ${toBnNum(pageIndex + 1)} / ${toBnNum(slipChunks.length)})</span>` : ''}
           </div>
-          <div style="border-bottom: 1.5px dashed #334155; margin: 5px 0 7px 0;"></div>
+          ${karigarSlips.length > 0 ? `<div style="border-bottom: 1.5px dashed #334155; margin: 5px 0 7px 0;"></div>` : ''}
         </div>
       `;
 
       const renderKarigarCardHtml = (slip) => {
         const it = slip.item;
         const measObj = it.measurements || {};
-        // যে মাপগুলো দেওয়া হয়েছে সেগুলো দেখাবে, অথবা খালি থাকলে মূল মাপগুলো দেখাবে
         const enteredKeys = Object.keys(measObj).filter((k) => String(measObj[k] || '').trim() !== '');
         const keysToDisplay = enteredKeys.length > 0
           ? enteredKeys
@@ -1670,16 +1690,26 @@
         return `
           <div style="border: 1px solid #94a3b8; background: #fafafa; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; font-size: 9px;">
             <div>
-              <!-- টপ-লেফট কাস্টমার ও কোড বক্স -->
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
-                <div style="border: 1px solid #cbd5e1; background: #f1f5f9; padding: 3px 6px; width: 54%; line-height: 1.25;">
-                  <div style="display: flex; justify-content: space-between; gap: 4px;">
-                    <span><b>Serial:</b> ${serialFormatted}</span>
-                    <span><b>Code:</b> ${slip.code}</span>
+              <!-- টপ বার: কারিগর কপি ব্যাজ -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #0f172a;">মোট পিস: ${toBnNum(slip.totalQty)}টি</span>
+                <span style="font-size: 8px; font-weight: 800; background: #e2e8f0; color: #0f172a; padding: 1.5px 6px; border-radius: 3px;">কারিগর কপি</span>
+              </div>
+
+              <!-- কোয়ান্টিটি অনুযায়ী ছোট হেডিং বক্সগুলো (১টি থাকলে ১টি, ৪টি থাকলে ৪টি পাশাপাশি) -->
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-bottom: 5px;">
+                ${slip.codes.map((codeVal, qIdx) => `
+                  <div style="border: 1px solid #94a3b8; background: #f1f5f9; padding: 3px 5px; line-height: 1.25; border-radius: 3px;">
+                    <div style="display: flex; justify-content: space-between; gap: 3px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 1px; margin-bottom: 1px;">
+                      <span><b>Serial:</b> ${serialFormatted}</span>
+                      <span><b>Code:</b> ${codeVal}</span>
+                    </div>
+                    <div style="font-weight: 800; color: #020617; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      ${ord.customerName} (${toBnNum(qIdx + 1)}/${toBnNum(slip.totalQty)})
+                    </div>
+                    <div style="font-weight: 700; color: #334155;">${ord.customerPhone}</div>
                   </div>
-                  <div style="font-weight: 700; margin-top: 1px;">${ord.customerName} -</div>
-                  <div style="font-weight: 700;">${ord.customerPhone}</div>
-                </div>
+                `).join('')}
               </div>
 
               <!-- পোশাকের নাম | Serial | Delivery | Qty এবং ডিজাইন বক্স -->
@@ -1688,7 +1718,7 @@
                   <div style="padding: 2.5px 5px; font-weight: 800; border-right: 1px solid #cbd5e1; flex: 1;">${it.serviceName}</div>
                   <div style="padding: 2.5px 5px; font-weight: 700; border-right: 1px solid #cbd5e1;">Serial: ${serialFormatted}</div>
                   <div style="padding: 2.5px 5px; font-weight: 700; border-right: 1px solid #cbd5e1;">Delivery: ${deliveryDateDisplay}</div>
-                  <div style="padding: 2.5px 5px; font-weight: 800;">Qty: ${toBnNum(slip.unitQty)}</div>
+                  <div style="padding: 2.5px 5px; font-weight: 800;">Qty: ${toBnNum(slip.totalQty)}</div>
                 </div>
                 <div style="padding: 3px 5px; font-size: 8.5px; font-weight: 600; color: #1e293b;">
                   ${it.serviceName} ডিজাইন: ${it.designNote || 'সাধারণ ডিজাইন'}
@@ -1696,27 +1726,19 @@
               </div>
 
               <!-- Karigor Fee -->
-              ${it.type === 'tailor' ? `
-                <div style="font-size: 11px; font-weight: 900; color: #020617; margin-bottom: 4px;">
-                  Karigor Fee: ৳${toBnNum(it.karigarCost || 0)}
-                </div>
-              ` : ''}
+              <div style="font-size: 11px; font-weight: 900; color: #020617; margin-bottom: 4px;">
+                Karigor Fee: ৳${toBnNum(it.karigarCost || 0)}
+              </div>
 
-              <!-- তির্যক দাগ (\) সহ মাপের লিস্ট (হুবহু ছবির মতো) -->
-              ${it.type === 'tailor' ? `
-                <div style="display: flex; flex-wrap: wrap; align-items: stretch; row-gap: 4px; margin-bottom: 4px;">
-                  ${keysToDisplay.map((mKey, idx) => `
-                    <div style="padding: 0 5px; text-align: center; border-right: ${idx < keysToDisplay.length - 1 ? '1px solid #64748b' : 'none'}; transform: skewX(-10deg);">
-                      <div style="transform: skewX(10deg); font-size: 8.5px; font-weight: 700; color: #0f172a; white-space: nowrap;">${mKey}</div>
-                      <div style="transform: skewX(10deg); font-size: 9.5px; font-weight: 900; color: #020617; min-height: 13px;">${measObj[mKey] || '-'}</div>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : `
-                <div style="font-size: 9px; font-weight: 700; color: #0f172a;">
-                  পরিমাণ: ${toBnNum(it.qty)} • ${it.designNote || ''}
-                </div>
-              `}
+              <!-- তির্যক দাগ (\) সহ মাপের লিস্ট -->
+              <div style="display: flex; flex-wrap: wrap; align-items: stretch; row-gap: 4px; margin-bottom: 4px;">
+                ${keysToDisplay.map((mKey, idx) => `
+                  <div style="padding: 0 5px; text-align: center; border-right: ${idx < keysToDisplay.length - 1 ? '1px solid #64748b' : 'none'}; transform: skewX(-10deg);">
+                    <div style="transform: skewX(10deg); font-size: 8.5px; font-weight: 700; color: #0f172a; white-space: nowrap;">${mKey}</div>
+                    <div style="transform: skewX(10deg); font-size: 9.5px; font-weight: 900; color: #020617; min-height: 13px;">${measObj[mKey] || '-'}</div>
+                  </div>
+                `).join('')}
+              </div>
             </div>
 
             <div style="text-align: right; font-size: 8px; font-weight: 700; color: #64748b; margin-top: 2px;">
@@ -1734,10 +1756,12 @@
               <!-- উপরের অংশ: কাস্টমার রিসিট কপি -->
               ${renderTopCustomerSectionHtml(pageIdx)}
 
-              <!-- নিচের অংশ: ২ কলামে কারিগর কপি কার্ডসমূহ (১ পাতায় ৬টি পর্যন্ত ধরে) -->
-              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 0 6px;">
-                ${chunk.map((slip) => renderKarigarCardHtml(slip)).join('')}
-              </div>
+              <!-- নিচের অংশ: শুধুমাত্র সেলাইয়ের মেজারমেন্ট কপি (২ কলামে পাশাপাশি, ১ পাতায় ৬টি পর্যন্ত ধরে) -->
+              ${chunk.length > 0 ? `
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 0 6px;">
+                  ${chunk.map((slip) => renderKarigarCardHtml(slip)).join('')}
+                </div>
+              ` : ''}
 
             </div>
           `).join('')}
