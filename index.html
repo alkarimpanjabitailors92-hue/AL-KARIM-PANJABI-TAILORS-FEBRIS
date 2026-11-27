@@ -69,6 +69,10 @@
       border-radius: 9999px;
     }
 
+    /* অফলাইন বা ইন্টারনেট ছাড়া চলার জন্য বিল্ট-ইন ব্যাকআপ স্টাইল */
+    * { box-sizing: border-box; }
+    button, input, select, textarea { font-family: inherit; }
+
     @media print {
       @page {
         size: A4 portrait;
@@ -304,6 +308,7 @@
         }
       ],
       activeTab: 'dashboard',
+      mobileSidebarOpen: false,
       settingsSubTab: 'shop',
       searchQuery: '',
       shop: {
@@ -335,15 +340,60 @@
         { id: 'm12', name: 'পকেট ফাড়া', unit: 'ইঞ্চি' }
       ],
       inventory: [
-        { id: 'inv-1', code: 'FAB-01', name: 'মাইক্রো অ্যারাবিয়ান কাপড়', category: 'Fabrics', unit: 'গজ', costPrice: 180, sellPrice: 280, stock: 145.5, minAlert: 20, active: true },
-        { id: 'inv-2', code: 'FAB-02', name: 'পাকিস্তানি লিলেন ফেব্রিক্স', category: 'Fabrics', unit: 'গজ', costPrice: 240, sellPrice: 360, stock: 82.0, minAlert: 15, active: true },
-        { id: 'inv-3', code: 'FAB-03', name: 'প্রিমিয়াম কটন সাদা থান', category: 'Fabrics', unit: 'গজ', costPrice: 150, sellPrice: 230, stock: 12.5, minAlert: 25, active: true },
-        { id: 'inv-4', code: 'FAB-04', name: 'কাবলি সুতি গ্যাবার্ডিন', category: 'Fabrics', unit: 'গজ', costPrice: 210, sellPrice: 320, stock: 64.0, minAlert: 15, active: true },
-        { id: 'inv-5', code: 'PRD-01', name: 'আল-হারামাইন আতর (৬ মি.লি.)', category: 'আতর', unit: 'পিস', costPrice: 160, sellPrice: 280, stock: 35, minAlert: 10, active: true },
-        { id: 'inv-6', code: 'PRD-02', name: 'ক্রিস্টাল তসবি মালা (৯৯ দানা)', category: 'তসবি', unit: 'পিস', costPrice: 90, sellPrice: 160, stock: 48, minAlert: 10, active: true },
-        { id: 'inv-7', code: 'PRD-03', name: 'রেডিমেড জুব্বা / কুর্তা', category: 'রেডিমেড', unit: 'পিস', costPrice: 620, sellPrice: 950, stock: 18, minAlert: 5, active: true },
-        { id: 'inv-8', code: 'ACC-05', name: 'স্ন্যাপ বাটন ও কফ প্যাক', category: 'Accessories', unit: 'পিস', costPrice: 15, sellPrice: 35, stock: 210, minAlert: 30, active: true }
+        // ফেব্রিক্স তালিকা (শুধুমাত্র গজ কাপড়)
+        { id: 'fab-1', code: 'Code: 1', name: 'মাইক্রো অ্যারাবিয়ান', category: 'Fabrics', unit: 'গজ', costPrice: 176, sellPrice: 250, stock: 472.75, minAlert: 20, active: true },
+        { id: 'fab-2', code: 'Code: 2', name: 'মাইক্রো সাদা', category: 'Fabrics', unit: 'গজ', costPrice: 176, sellPrice: 250, stock: 349.75, minAlert: 20, active: true },
+        { id: 'fab-4', code: 'Code: 4', name: 'প্রেসিডেন্ট টের', category: 'Fabrics', unit: 'গজ', costPrice: 266, sellPrice: 380, stock: 146, minAlert: 20, active: true },
+        { id: 'fab-5', code: 'Code: 5', name: 'এল এন্ড টের', category: 'Fabrics', unit: 'গজ', costPrice: 165, sellPrice: 260, stock: 123.75, minAlert: 20, active: true },
+        { id: 'fab-6', code: 'Code: 6', name: 'জাপানি টের', category: 'Fabrics', unit: 'গজ', costPrice: 336, sellPrice: 470, stock: 61.25, minAlert: 15, active: true },
+        { id: 'fab-7', code: 'Code: 7', name: 'পাকিস্তানি লোন', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 156.75, minAlert: 20, active: true },
+        { id: 'fab-8', code: 'Code: 8', name: 'পাকিস্তানি গ্রেজ', category: 'Fabrics', unit: 'গজ', costPrice: 356, sellPrice: 500, stock: 40.5, minAlert: 15, active: true },
+        { id: 'fab-9', code: 'Code: 9', name: 'পাকিস্তানি খাদি', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 74, minAlert: 15, active: true },
+        { id: 'fab-10', code: 'Code: 10', name: 'কাশ্মীরি সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 276, sellPrice: 380, stock: 68, minAlert: 15, active: true },
+        { id: 'fab-11', code: 'Code: 11', name: 'ইন্ডিয়ান সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 96.25, minAlert: 15, active: true },
+        { id: 'fab-12', code: 'Code: 12', name: 'এক্সপোর্ট সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 348.5, sellPrice: 450, stock: 24.25, minAlert: 15, active: true },
+        { id: 'fab-13', code: 'Code: 13', name: 'খাদি সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 126, sellPrice: 250, stock: 142.25, minAlert: 20, active: true },
+        { id: 'fab-15', code: 'Code: 15', name: 'ইন্ডিয়ান সুতি প্রিমিয়াম', category: 'Fabrics', unit: 'গজ', costPrice: 146, sellPrice: 260, stock: 50.5, minAlert: 15, active: true },
+        { id: 'fab-16', code: 'Code: 16', name: 'চায়না ইন্ডিয়ান', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 2.75, minAlert: 15, active: true },
+        { id: 'fab-18', code: 'Code: 18', name: 'ট্রিপল পাজামার কাপড়', category: 'Fabrics', unit: 'গজ', costPrice: 95, sellPrice: 160, stock: 5.5, minAlert: 15, active: true },
+        { id: 'fab-19', code: 'Code: 19', name: 'সুতি পাজামার কাপড়', category: 'Fabrics', unit: 'গজ', costPrice: 175, sellPrice: 240, stock: 48.75, minAlert: 15, active: true },
+        { id: 'fab-20', code: 'Code: 20', name: 'ইন্ডিয়ান সিল্ক', category: 'Fabrics', unit: 'গজ', costPrice: 146, sellPrice: 250, stock: 4.25, minAlert: 15, active: true },
+        { id: 'fab-49', code: 'Code: 49', name: 'পাকিস্তানি গাজী', category: 'Fabrics', unit: 'গজ', costPrice: 126, sellPrice: 250, stock: 46.25, minAlert: 15, active: true },
+        { id: 'fab-50', code: 'Code: 50', name: 'পাকিজা সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 166, sellPrice: 300, stock: 86.5, minAlert: 15, active: true },
+        { id: 'fab-51', code: 'Code: 51', name: 'ইন্ডিয়ান প্রিন্ট সুতি', category: 'Fabrics', unit: 'গজ', costPrice: 116, sellPrice: 180, stock: 68.75, minAlert: 15, active: true },
+        { id: 'fab-52', code: 'Code: 52', name: 'ইন্ডিয়ান মংগালম প্রিন্ট', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 84.75, minAlert: 15, active: true },
+        { id: 'fab-75', code: 'Code: 75', name: 'প্রেসিডেন্ট টের চায়না', category: 'Fabrics', unit: 'গজ', costPrice: 176, sellPrice: 250, stock: 12.5, minAlert: 15, active: true },
+        { id: 'fab-76', code: 'Code: 76', name: 'পাকিস্তানি গ্রেজ টের', category: 'Fabrics', unit: 'গজ', costPrice: 264, sellPrice: 380, stock: 18.25, minAlert: 15, active: true },
+        { id: 'fab-63', code: 'Code: 63', name: 'লেসলি', category: 'Fabrics', unit: 'গজ', costPrice: 176, sellPrice: 250, stock: 86.25, minAlert: 15, active: true },
+        { id: 'fab-64', code: 'Code: 64', name: 'পাকিস্তানি লাইনিং', category: 'Fabrics', unit: 'গজ', costPrice: 140, sellPrice: 250, stock: 42, minAlert: 15, active: true },
+        { id: 'fab-65', code: 'Code: 65', name: 'পাকিস্তানি লাইনিং প্রিমিয়াম', category: 'Fabrics', unit: 'গজ', costPrice: 246, sellPrice: 360, stock: 85.75, minAlert: 15, active: true },
+        { id: 'fab-66', code: 'Code: 66', name: 'পাকিস্তানি বুম টের', category: 'Fabrics', unit: 'গজ', costPrice: 376, sellPrice: 480, stock: 135.75, minAlert: 15, active: true },
+        { id: 'fab-70', code: 'Code: 70', name: 'ইন্ডিয়ান ফ্যাব্রিক্স', category: 'Fabrics', unit: 'গজ', costPrice: 416, sellPrice: 580, stock: 18, minAlert: 15, active: true },
+        { id: 'fab-71', code: 'Code: 71', name: 'গিজা ফেব্রিক্স', category: 'Fabrics', unit: 'গজ', costPrice: 445, sellPrice: 650, stock: 47, minAlert: 15, active: true },
+        { id: 'fab-72', code: 'Code: 72', name: 'সফট গিজা', category: 'Fabrics', unit: 'গজ', costPrice: 348.5, sellPrice: 480, stock: 84.75, minAlert: 15, active: true },
+
+        // প্রোডাক্ট তালিকা (টুপি, আতর, পাগড়ি, মোজা, রুমাল, চাবি ইত্যাদি)
+        { id: 'prd-21', code: 'Code: 21', name: 'পাঁচ কল্লি নরমাল টুপি', category: 'Product', unit: 'পিস', costPrice: 20, sellPrice: 40, stock: 181, minAlert: 15, active: true, img: customStyleGarmentSvg('classic', 'নরমাল টুপি', '#f0f9ff', '#075985', '#0284c7') },
+        { id: 'prd-22', code: 'Code: 22', name: 'পাঁচ কল্লি বসুন্ধরা টুপি', category: 'Product', unit: 'পিস', costPrice: 44, sellPrice: 60, stock: 69, minAlert: 10, active: true, img: customStyleGarmentSvg('classic', 'বসুন্ধরা টুপি', '#ecfdf5', '#065f46', '#d97706') },
+        { id: 'prd-30', code: 'Code: 30', name: 'আতর আলিফ', category: 'Product', unit: 'পিস', costPrice: 86, sellPrice: 120, stock: 70, minAlert: 10, active: true, img: customStyleGarmentSvg('classic', 'আতর আলিফ', '#fffbeb', '#b45309', '#059669') },
+        { id: 'prd-31', code: 'Code: 31', name: 'আতর আল-নূরান', category: 'Product', unit: 'পিস', costPrice: 80, sellPrice: 120, stock: 130, minAlert: 10, active: true, img: customStyleGarmentSvg('classic', 'আল-নূরান', '#fffbeb', '#92400e', '#d97706') },
+        { id: 'prd-38', code: 'Code: 38', name: 'সবুজ পাগড়ি সিংগেল', category: 'Product', unit: 'পিস', costPrice: 146, sellPrice: 250, stock: 27, minAlert: 5, active: true, img: customStyleGarmentSvg('arabian', 'সবুজ পাগড়ি', '#f0fdf4', '#166534', '#ca8a04') },
+        { id: 'prd-39', code: 'Code: 39', name: 'সবুজ পাগড়ি মুজাহিদ হাত পাখা মার্কা', category: 'Product', unit: 'পিস', costPrice: 248, sellPrice: 350, stock: 8, minAlert: 5, active: true, img: customStyleGarmentSvg('arabian', 'মুজাহিদ পাগড়ি', '#ecfdf5', '#064e3b', '#f59e0b') },
+        { id: 'prd-40', code: 'Code: 40', name: 'সাদা পাগড়ি সিংগেল', category: 'Product', unit: 'পিস', costPrice: 156, sellPrice: 250, stock: 47, minAlert: 5, active: true, img: customStyleGarmentSvg('arabian', 'সাদা পাগড়ি', '#f8fafc', '#1e293b', '#0d9488') },
+        { id: 'prd-42', code: 'Code: 42', name: 'হাত মোজা', category: 'Product', unit: 'পিস', costPrice: 45, sellPrice: 70, stock: 24, minAlert: 10, active: true, img: customStyleGarmentSvg('classic', 'হাত মোজা', '#fdf4ff', '#701a75', '#c026d3') },
+        { id: 'prd-43', code: 'Code: 43', name: 'পা মোজা', category: 'Product', unit: 'পিস', costPrice: 45, sellPrice: 70, stock: 29, minAlert: 10, active: true, img: customStyleGarmentSvg('classic', 'পা মোজা', '#eff6ff', '#1e40af', '#2563eb') },
+        { id: 'prd-47', code: 'Code: 47', name: 'নেকাব ছুটি', category: 'Product', unit: 'পিস', costPrice: 246, sellPrice: 350, stock: 4, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'নেকাব', '#f1f5f9', '#0f172a', '#475569') },
+        { id: 'prd-74', code: 'Code: 74', name: 'আব্দুল্লাহ পাঁচ কল্লি টুপি', category: 'Product', unit: 'পিস', costPrice: 66, sellPrice: 100, stock: 15, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'আব্দুল্লাহ টুপি', '#ecfdf5', '#065f46', '#059669') },
+        { id: 'prd-77', code: 'Code: 77', name: 'সবুজ পাগড়ি চিলার মার্কা', category: 'Product', unit: 'পিস', costPrice: 276, sellPrice: 400, stock: 16, minAlert: 5, active: true, img: customStyleGarmentSvg('arabian', 'চিলার পাগড়ি', '#f0fdf4', '#14532d', '#ca8a04') },
+        { id: 'prd-79', code: 'Code: 79', name: 'আতর আলিফ পাতা', category: 'Product', unit: 'পিস', costPrice: 67, sellPrice: 100, stock: 12, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'আলিফ পাতা', '#fffbeb', '#b45309', '#d97706') },
+        { id: 'prd-80', code: 'Code: 80', name: 'আতর আল-রেহাব', category: 'Product', unit: 'পিস', costPrice: 86, sellPrice: 150, stock: 6, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'আল-রেহাব', '#fef3c7', '#78350f', '#b45309') },
+        { id: 'prd-82', code: 'Code: 82', name: 'গোল টুপি নরমাল', category: 'Product', unit: 'পিস', costPrice: 136, sellPrice: 200, stock: 10, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'গোল টুপি', '#f0f9ff', '#075985', '#0284c7') },
+        { id: 'prd-83', code: 'Code: 83', name: 'গোল টুপি কুলিং', category: 'Product', unit: 'পিস', costPrice: 145, sellPrice: 270, stock: 15, minAlert: 5, active: true, img: customStyleGarmentSvg('classic', 'কুলিং টুপি', '#eff6ff', '#1e40af', '#2563eb') },
+        { id: 'prd-45', code: 'Code: 45', name: 'চাবির রিং / ডান চাবি', category: 'Product', unit: 'পিস', costPrice: 16, sellPrice: 25, stock: 125, minAlert: 20, active: true, img: customStyleGarmentSvg('classic', 'চাবি রিং', '#f8fafc', '#334155', '#f59e0b') },
+        { id: 'prd-46', code: 'Code: 46', name: 'পকেট রুমাল', category: 'Product', unit: 'পিস', costPrice: 25, sellPrice: 40, stock: 126, minAlert: 20, active: true, img: customStyleGarmentSvg('classic', 'রুমাল', '#f0fdf4', '#166534', '#059669') },
+        { id: 'prd-33', code: 'Code: 33', name: 'কলার স্টিক', category: 'Product', unit: 'পিস', costPrice: 26, sellPrice: 50, stock: 100, minAlert: 20, active: true, img: customStyleGarmentSvg('classic', 'কলার স্টিক', '#fffbeb', '#92400e', '#d97706') }
       ],
+      inventoryFilter: 'all',
       customers: [],
       orders: [],
       suppliers: [
@@ -393,6 +443,14 @@
     let newOrderMode = 'fabrics';
     let pendingFabricSelection = null;
     let pendingProductSelection = null;
+    let modalUploadedProductDataUrl = null;
+
+    function getInventoryItemImage(item) {
+      if (item && item.img) return item.img;
+      const bg = item && item.category === 'Fabrics' ? '#fffbeb' : '#eef2ff';
+      const fg = item && item.category === 'Fabrics' ? '#92400e' : '#3730a3';
+      return garmentSvgDataUri(item ? item.name : 'পণ্য', bg, fg);
+    }
 
     function showToast(message, type = 'success') {
       persistState();
@@ -575,6 +633,7 @@
         return;
       }
       state.activeTab = tabName;
+      state.mobileSidebarOpen = false;
       state.searchQuery = '';
       pendingFabricSelection = null;
       pendingProductSelection = null;
@@ -582,93 +641,158 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function setProfitSubTab(subTab) {
-      state.profitSubTab = subTab;
+    function toggleMobileSidebar(forceVal) {
+      state.mobileSidebarOpen = typeof forceVal === 'boolean' ? forceVal : !state.mobileSidebarOpen;
       renderApp();
     }
 
-    function renderTopNav() {
-      const fin = calculateFinancials();
+    function getNavItemsList() {
       const lowStockCount = state.inventory.filter((i) => i.active && Number(i.stock) <= Number(i.minAlert)).length;
-
-      const navItems = [
+      return [
         { id: 'dashboard', label: 'ড্যাশবোর্ড', icon: 'layout-dashboard', badge: null },
         { id: 'menu-hub', label: 'মেনু হাব', icon: 'grid', badge: null },
-        { id: 'new-order', label: 'নতুন অর্ডার', icon: 'scissors', badge: null, highlight: true },
-        { id: 'orders', label: 'অর্ডার তালিকা', icon: 'clipboard-list', badge: state.orders.length },
-        { id: 'quick-sale', label: 'কুইক সেল', icon: 'shopping-bag', badge: null },
-        { id: 'purchases', label: 'ক্রয় ও সাপ্লায়ার', icon: 'truck', badge: state.purchases.length },
-        { id: 'inventory', label: 'পণ্যের তালিকা', icon: 'layers', badge: lowStockCount > 0 ? `${toBnNum(lowStockCount)} কম` : null, badgeWarn: lowStockCount > 0 },
-        { id: 'customers', label: 'কাস্টমার', icon: 'users', badge: state.customers.length },
-        { id: 'services', label: 'পোশাক ও মাপ', icon: 'ruler', badge: null },
+        { id: 'new-order', label: 'নতুন অর্ডার', icon: 'scissors', badge: '+', highlight: true },
+        { id: 'orders', label: 'অর্ডার তালিকা', icon: 'clipboard-list', badge: toBnNum(state.orders.length) },
+        { id: 'quick-sale', label: 'কুইক সেল', icon: 'shopping-bag', badge: 'POS' },
+        { id: 'purchases', label: 'ক্রয় ও সাপ্লায়ার', icon: 'truck', badge: toBnNum(state.purchases.length) },
+        { id: 'inventory', label: 'পণ্যের তালিকা', icon: 'layers', badge: lowStockCount > 0 ? `${toBnNum(lowStockCount)} কম` : toBnNum(state.inventory.length), badgeWarn: lowStockCount > 0 },
+        { id: 'customers', label: 'কাস্টমার', icon: 'users', badge: toBnNum(state.customers.length) },
+        { id: 'services', label: 'পোশাক ও মাপ', icon: 'ruler', badge: toBnNum(state.garmentGallery.length) },
         ...(state.currentUser.canViewReports
           ? [{ id: 'profit-report', label: 'রিপোর্ট ও লাভ', icon: 'trending-up', badge: 'প্রিন্ট', accentProfit: true }]
           : []),
         { id: 'settings', label: 'সেটিংস', icon: 'settings', badge: null }
       ];
+    }
+
+    function renderLeftSidebar() {
+      const navItems = getNavItemsList();
+      const fin = calculateFinancials();
+
+      const buildMenuButtons = () => navItems.map((item) => {
+        const isActive = state.activeTab === item.id;
+        let btnClass = 'text-emerald-100/85 hover:bg-emerald-900/80 hover:text-white border-transparent';
+        if (isActive) {
+          btnClass = item.accentProfit
+            ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md font-extrabold'
+            : 'bg-emerald-700/95 text-amber-300 border-amber-400/50 shadow-md font-extrabold';
+        } else if (item.highlight) {
+          btnClass = 'bg-emerald-900/70 hover:bg-emerald-800 text-amber-300 border-emerald-700/80';
+        }
+        return `
+          <button type="button" onclick="setTab('${item.id}')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${btnClass}">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0"></i>
+              <span class="truncate">${item.label}</span>
+            </div>
+            ${item.badge !== null ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${isActive ? 'bg-slate-950/20 text-current' : item.badgeWarn ? 'bg-rose-500 text-white' : 'bg-emerald-950/80 text-emerald-200'}">${item.badge}</span>` : ''}
+          </button>
+        `;
+      }).join('');
 
       return `
-        <header class="royal-gradient text-white sticky top-0 z-40 shadow-lg border-b border-amber-500/40 no-print">
-          <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 border-b border-emerald-800/70">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-xl gold-gradient text-emerald-950 flex items-center justify-center shadow-md shrink-0 font-extrabold">
-                <i class="fas fa-cut"></i>
+        <!-- ল্যাপটপ / ডেস্কটপ ফিক্সড বাম সাইডবার -->
+        <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 royal-gradient text-white border-r border-amber-500/30 sticky top-0 h-screen overflow-y-auto no-print shadow-xl">
+          <div class="p-4 border-b border-emerald-800/80 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl gold-gradient text-emerald-950 flex items-center justify-center shadow-md shrink-0 font-extrabold">
+              <i class="fas fa-cut"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="text-sm font-extrabold text-amber-300 leading-tight truncate">${state.shop.name}</div>
+              <div class="text-[10px] text-emerald-200 mt-0.5 truncate">${state.currentUser.roleLabel}</div>
+            </div>
+          </div>
+
+          <div class="p-3 flex-1 space-y-1">
+            ${buildMenuButtons()}
+          </div>
+
+          <div class="p-3 border-t border-emerald-800/80 space-y-2 text-xs">
+            ${state.currentUser.canViewReports ? `
+              <button type="button" onclick="setTab('profit-report')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 text-amber-300 border border-amber-400/30 font-bold cursor-pointer">
+                <span>মোট নিট লাভ</span>
+                <strong>${formatTk(fin.combinedProfit)}</strong>
+              </button>
+            ` : ''}
+            <button type="button" onclick="logoutActiveProfile()" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-rose-900/80 hover:bg-rose-800 text-rose-100 border border-rose-400/30 font-bold cursor-pointer">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span>লগআউট (${state.currentUser.name.split(' ')[0]})</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- মোবাইল স্লাইড-ইন বাম সাইডবার ড্রয়ার -->
+        ${state.mobileSidebarOpen ? `
+          <div class="fixed inset-0 z-50 lg:hidden flex no-print">
+            <div onclick="toggleMobileSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"></div>
+            <aside class="relative w-72 max-w-[82vw] royal-gradient text-white h-full flex flex-col overflow-y-auto shadow-2xl border-r border-amber-500/40 z-10">
+              <div class="p-4 border-b border-emerald-800/80 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-9 h-9 rounded-xl gold-gradient text-emerald-950 flex items-center justify-center font-extrabold shrink-0">
+                    <i class="fas fa-cut"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-extrabold text-amber-300 truncate">${state.shop.name}</div>
+                    <div class="text-[10px] text-emerald-200 truncate">${state.currentUser.roleLabel}</div>
+                  </div>
+                </div>
+                <button type="button" onclick="toggleMobileSidebar(false)" class="p-1.5 rounded-lg bg-white/10 text-white cursor-pointer">✕</button>
               </div>
+              <div class="p-3 flex-1 space-y-1">
+                ${buildMenuButtons()}
+              </div>
+              <div class="p-3 border-t border-emerald-800/80">
+                <button type="button" onclick="logoutActiveProfile()" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-rose-900/90 text-rose-100 text-xs font-bold cursor-pointer">
+                  <i data-lucide="log-out" class="w-4 h-4"></i>
+                  <span>লগআউট</span>
+                </button>
+              </div>
+            </aside>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function renderTopNav() {
+      const fin = calculateFinancials();
+      const activeMeta = getNavItemsList().find((x) => x.id === state.activeTab) || { label: 'ড্যাশবোর্ড' };
+
+      return `
+        <header class="bg-white text-slate-800 sticky top-0 z-30 shadow-xs border-b border-slate-200 no-print">
+          <div class="px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <button type="button" onclick="toggleMobileSidebar(true)" title="মেনু খুলুন" class="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl royal-gradient text-amber-300 shadow-xs cursor-pointer shrink-0">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+              </button>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <h1 class="text-base sm:text-lg font-extrabold text-amber-300 truncate">${state.shop.name}</h1>
-                  <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-900/90 text-emerald-200 border border-emerald-700">
-                    ${state.currentUser.roleLabel}
-                  </span>
+                  <h1 class="text-sm sm:text-base font-extrabold text-emerald-950 truncate">${activeMeta.label}</h1>
+                  <span class="hidden sm:inline-block text-xs text-slate-400">•</span>
+                  <span class="hidden sm:inline-block text-xs font-bold text-slate-600 truncate">${state.shop.name}</span>
                 </div>
-                <p class="text-[11px] text-emerald-200 truncate">
+                <p class="text-[11px] text-slate-500 truncate">
                   ${state.shop.address} • ${state.shop.phone}
                 </p>
               </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-              <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl gold-gradient text-emerald-950 font-extrabold text-xs shadow-sm hover:opacity-95 transition cursor-pointer">
+              <span id="net-status-badge" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${navigator.onLine ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-500 text-slate-950 border border-amber-300'}">
+                <span class="w-2 h-2 rounded-full ${navigator.onLine ? 'bg-emerald-500' : 'bg-slate-950'}"></span>
+                <span>${navigator.onLine ? 'অনলাইন' : 'অফলাইন রেডি'}</span>
+              </span>
+              <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl gold-gradient text-emerald-950 font-extrabold text-xs shadow-xs hover:opacity-95 transition cursor-pointer">
                 <i data-lucide="download" class="w-4 h-4"></i>
-                <span>অ্যাপ ইনস্টল</span>
+                <span class="hidden sm:inline">অ্যাপ ইনস্টল</span>
               </button>
               ${state.currentUser.canViewReports ? `
-                <button onclick="setTab('profit-report')" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-900/90 hover:bg-emerald-800 text-amber-300 border border-amber-400/40 transition text-xs font-bold cursor-pointer">
-                  <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                <button onclick="setTab('profit-report')" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 transition text-xs font-bold cursor-pointer">
+                  <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-700"></i>
                   <span>মোট লাভ: <strong>${formatTk(fin.combinedProfit)}</strong></span>
                 </button>
               ` : ''}
-              <button onclick="logoutActiveProfile()" title="প্রোফাইল লগআউট" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-900/80 hover:bg-rose-800 text-rose-100 border border-rose-400/30 text-xs font-bold transition cursor-pointer">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-                <span class="hidden md:inline">লগআউট</span>
-              </button>
             </div>
           </div>
-
-          <nav class="bg-white text-slate-800 border-b border-slate-200">
-            <div class="max-w-7xl mx-auto px-2 sm:px-6 py-2 overflow-x-auto">
-              <div class="flex items-center gap-1.5 sm:gap-2 min-w-max">
-                ${navItems.map((item) => {
-                  const isActive = state.activeTab === item.id;
-                  let btnClass = 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
-                  if (isActive) {
-                    btnClass = item.accentProfit
-                      ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-xs'
-                      : 'bg-emerald-700 text-white border-emerald-800 shadow-xs';
-                  } else if (item.highlight) {
-                    btnClass = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300';
-                  }
-                  return `
-                    <button onclick="setTab('${item.id}')" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs sm:text-sm font-bold transition cursor-pointer ${btnClass}">
-                      <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0"></i>
-                      <span>${item.label}</span>
-                      ${item.badge !== null ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/25 text-current' : item.badgeWarn ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}">${toBnNum(item.badge)}</span>` : ''}
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          </nav>
         </header>
       `;
     }
@@ -1879,18 +2003,21 @@
                     ` : otherProductItems.map((prod) => {
                       const isSelected = activeProductObj && activeProductObj.id === prod.id;
                       return `
-                        <button type="button" onclick="selectProductForSale('${prod.id}')" class="text-left p-3 rounded-xl border transition flex flex-col justify-between gap-1.5 cursor-pointer ${
+                        <button type="button" onclick="selectProductForSale('${prod.id}')" class="text-left p-2.5 rounded-xl border transition flex items-center gap-2.5 cursor-pointer ${
                           isSelected
                             ? 'bg-indigo-100/80 border-indigo-500 ring-2 ring-indigo-300'
                             : 'bg-slate-50/80 hover:bg-indigo-50 border-slate-200 hover:border-indigo-300'
                         }">
-                          <div class="flex items-start justify-between gap-2">
-                            <span class="font-bold text-xs text-slate-900 leading-snug">${prod.name}</span>
-                            <span class="text-[11px] font-extrabold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-md shrink-0">${formatTk(prod.sellPrice)}/${prod.unit}</span>
-                          </div>
-                          <div class="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-200/70">
-                            <span>${prod.category || 'প্রোডাক্ট'}</span>
-                            <span class="font-bold text-slate-700">স্টক: ${toBnNum(prod.stock)} ${prod.unit}</span>
+                          <img src="${getInventoryItemImage(prod)}" alt="${prod.name}" class="w-12 h-12 rounded-xl object-cover border border-indigo-200 bg-white shrink-0" />
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-1.5">
+                              <span class="font-bold text-xs text-slate-900 truncate">${prod.name}</span>
+                              <span class="text-[11px] font-extrabold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-md shrink-0">${formatTk(prod.sellPrice)}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 flex items-center justify-between mt-1 pt-1 border-t border-slate-200/70">
+                              <span>${prod.category || 'প্রোডাক্ট'}</span>
+                              <span class="font-bold text-slate-700">স্টক: ${toBnNum(prod.stock)} ${prod.unit}</span>
+                            </div>
                           </div>
                         </button>
                       `;
@@ -1997,11 +2124,324 @@
       `;
     }
 
-    function updateOrderStatus(orderId, newStatus) {
-      const ord = state.orders.find((o) => o.id === orderId);
-      if (!ord) return;
-      ord.status = newStatus;
-      showToast(`অর্ডার #${ord.id} স্ট্যাটাস "${newStatus}" করা হয়েছে।`, 'success');
+    function handleModalProductFileChange(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      processImageFileToDataUrl(file, function(finalUrl) {
+        modalUploadedProductDataUrl = finalUrl;
+        const preview = document.getElementById('inv-live-preview');
+        if (preview) preview.src = finalUrl;
+        showToast('পণ্যের ছবি লোড হয়েছে!', 'info');
+      });
+    }
+
+    function handleProductPasteZone(e) {
+      const items = (e.clipboardData || window.clipboardData)?.items || [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          processImageFileToDataUrl(blob, function(finalUrl) {
+            modalUploadedProductDataUrl = finalUrl;
+            const preview = document.getElementById('inv-live-preview');
+            if (preview) preview.src = finalUrl;
+            showToast('কপি করা পণ্যের ছবি যুক্ত হয়েছে!', 'success');
+          });
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    function openAddInventoryModal() {
+      modalUploadedProductDataUrl = null;
+      const defaultPreview = garmentSvgDataUri('নতুন পণ্য', '#eef2ff', '#3730a3');
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-slate-900">নতুন পণ্য / ফেব্রিক্স যোগ করুন</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="handleAddInventoryItem(event)" class="p-5 space-y-3 text-xs overflow-y-auto">
+          <div class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 flex items-center gap-3">
+            <img id="inv-live-preview" src="${defaultPreview}" alt="Product" class="w-16 h-16 rounded-xl object-cover border-2 border-indigo-400 bg-white shrink-0" />
+            <div class="flex-1 space-y-1.5">
+              <div class="font-extrabold text-indigo-950">পণ্যের ছবি দিন</div>
+              <div class="flex flex-wrap gap-1.5">
+                <label class="px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white font-bold cursor-pointer inline-flex items-center">
+                  <span>📁 ফাইল থেকে ছবি</span>
+                  <input type="file" accept="image/*" onchange="handleModalProductFileChange(event)" class="hidden" />
+                </label>
+              </div>
+              <div contenteditable="true" onpaste="handleProductPasteZone(event)" class="px-2.5 py-1 rounded-lg border border-dashed border-indigo-400 bg-white text-[10px] text-slate-500 outline-none">
+                অথবা গ্যালারি থেকে ছবি Copy করে এখানে ট্যাপ করে Paste চাপুন...
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
+              <input id="new-inv-name" type="text" required placeholder="যেমন: জাপানি টের কাপড় বা আতর" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">কোড</label>
+              <input id="new-inv-code" type="text" value="PRD-${state.inventory.length + 1}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
+              <select id="new-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                <option value="রেডিমেড">রেডিমেড (প্রোডাক্ট)</option>
+                <option value="আতর">আতর (প্রোডাক্ট)</option>
+                <option value="তসবি">তসবি (প্রোডাক্ট)</option>
+                <option value="Fabrics">Fabrics (গজ কাপড়)</option>
+                <option value="Accessories">Accessories</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">একক (Unit)</label>
+              <select id="new-inv-unit" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                <option value="পিস">পিস</option>
+                <option value="গজ">গজ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳) *</label>
+              <input id="new-inv-cost" type="number" min="0" value="150" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳) *</label>
+              <input id="new-inv-sell" type="number" min="0" value="250" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">প্রাথমিক স্টক *</label>
+              <input id="new-inv-stock" type="number" step="0.1" min="0" value="50" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">যোগ করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-lg');
+    }
+
+    function handleAddInventoryItem(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-inv-name').value.trim();
+      const code = document.getElementById('new-inv-code').value.trim();
+      const category = document.getElementById('new-inv-cat').value;
+      const unit = document.getElementById('new-inv-unit').value;
+      const costPrice = Number(document.getElementById('new-inv-cost').value || 0);
+      const sellPrice = Number(document.getElementById('new-inv-sell').value || 0);
+      const stock = Number(document.getElementById('new-inv-stock').value || 0);
+
+      state.inventory.unshift({
+        id: `inv-${Date.now()}`,
+        code,
+        name,
+        category,
+        unit,
+        costPrice,
+        sellPrice,
+        stock,
+        minAlert: 10,
+        active: true,
+        img: modalUploadedProductDataUrl || garmentSvgDataUri(name, category === 'Fabrics' ? '#fffbeb' : '#eef2ff', category === 'Fabrics' ? '#92400e' : '#3730a3')
+      });
+      modalUploadedProductDataUrl = null;
+      closeModal();
+      showToast(`"${name}" পণ্যের তালিকায় যোগ হয়েছে।`, 'success');
+      renderApp();
+    }
+
+    function renderInventory() {
+      const currentFilter = state.inventoryFilter || 'all';
+      const searchVal = (state.searchQuery || '').trim().toLowerCase();
+
+      const filteredList = state.inventory.filter((item) => {
+        const matchesType =
+          currentFilter === 'all'
+            ? true
+            : currentFilter === 'fabrics'
+            ? item.category === 'Fabrics'
+            : item.category !== 'Fabrics';
+        const matchesSearch =
+          !searchVal ||
+          item.name.toLowerCase().includes(searchVal) ||
+          item.code.toLowerCase().includes(searchVal) ||
+          (item.category || '').toLowerCase().includes(searchVal);
+        return matchesType && matchesSearch;
+      });
+
+      const fabricsCount = state.inventory.filter((i) => i.category === 'Fabrics').length;
+      const productsCount = state.inventory.filter((i) => i.category !== 'Fabrics').length;
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900">পণ্যের তালিকা ও স্টক (${toBnNum(state.inventory.length)}টি)</h2>
+              <p class="text-xs text-slate-500">সব প্রোডাক্ট ও ফেব্রিক্সের ছবি, ক্রয়-বিক্রয় দর ও স্টক এখান থেকে পরিচালনা করুন</p>
+            </div>
+            <button onclick="openAddInventoryModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm cursor-pointer">
+              + নতুন পণ্য / ফেব্রিক্স যোগ
+            </button>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="state.inventoryFilter='all'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'all' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+                সব তালিকা (${toBnNum(state.inventory.length)})
+              </button>
+              <button type="button" onclick="state.inventoryFilter='products'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'products' ? 'bg-indigo-700 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+                প্রোডাক্ট (${toBnNum(productsCount)})
+              </button>
+              <button type="button" onclick="state.inventoryFilter='fabrics'; renderApp();" class="px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${currentFilter === 'fabrics' ? 'bg-amber-500 text-slate-950' : 'bg-white text-slate-700 border border-slate-200'}">
+                ফেব্রিক্স (${toBnNum(fabricsCount)})
+              </button>
+            </div>
+            <input type="text" value="${state.searchQuery}" oninput="state.searchQuery=this.value; renderApp();" placeholder="🔍 পণ্য বা কোড খুঁজুন..." class="w-full sm:w-64 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold outline-none" />
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 bg-slate-50">
+                  <th class="py-2.5 px-3">ছবি ও পণ্যের নাম</th>
+                  <th class="py-2.5 px-3">ক্যাটাগরি</th>
+                  <th class="py-2.5 px-3 text-right">ক্রয় মূল্য</th>
+                  <th class="py-2.5 px-3 text-right">বিক্রয় মূল্য</th>
+                  <th class="py-2.5 px-3 text-right">স্টক</th>
+                  <th class="py-2.5 px-3 text-center">এক্টিভ</th>
+                  <th class="py-2.5 px-3 text-right">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${filteredList.length === 0 ? `
+                  <tr><td colspan="7" class="py-8 text-center text-slate-400">কোনো পণ্য পাওয়া যায়নি।</td></tr>
+                ` : filteredList.map((i) => {
+                  const realIdx = state.inventory.findIndex((x) => x.id === i.id);
+                  return `
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-2.5 px-3">
+                        <div class="flex items-center gap-2.5">
+                          <img src="${getInventoryItemImage(i)}" alt="${i.name}" class="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-white shrink-0" />
+                          <div>
+                            <div class="font-bold text-slate-900">${i.name}</div>
+                            <div class="text-[11px] font-mono text-slate-400">Code: ${i.code}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-2.5 px-3 text-xs font-semibold">${i.category}</td>
+                      <td class="py-2.5 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-xs">${formatTk(i.costPrice)}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 font-bold text-xs">${formatTk(i.sellPrice)}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-extrabold ${Number(i.stock) <= Number(i.minAlert) ? 'text-rose-600' : 'text-emerald-700'}">${toBnNum(i.stock)} ${i.unit}</td>
+                      <td class="py-2.5 px-3 text-center">
+                        <button type="button" onclick="state.inventory[${realIdx}].active = !state.inventory[${realIdx}].active; persistState(); renderApp();" class="w-10 h-5 rounded-full transition p-0.5 cursor-pointer ${i.active ? 'bg-emerald-600' : 'bg-slate-300'}">
+                          <span class="block w-4 h-4 rounded-full bg-white transition-transform ${i.active ? 'translate-x-5' : 'translate-x-0'}"></span>
+                        </button>
+                      </td>
+                      <td class="py-2.5 px-3 text-right">
+                        <div class="inline-flex items-center gap-1">
+                          <button onclick="openEditInventoryModal('${i.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold cursor-pointer">ছবি / এডিট</button>
+                          <button onclick="deleteInventoryItem('${i.id}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer">✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function openEditInventoryModal(invId) {
+      const item = state.inventory.find((i) => i.id === invId);
+      if (!item) return;
+      modalUploadedProductDataUrl = null;
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-slate-900">পণ্য / ফেব্রিক্স ও ছবি এডিট করুন</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="handleUpdateInventoryItem(event, '${item.id}')" class="p-5 space-y-3 text-xs overflow-y-auto">
+          <div class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 flex items-center gap-3">
+            <img id="inv-live-preview" src="${getInventoryItemImage(item)}" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover border-2 border-indigo-400 bg-white shrink-0" />
+            <div class="flex-1 space-y-1.5">
+              <div class="font-extrabold text-indigo-950">পণ্যের ছবি পরিবর্তন করুন</div>
+              <label class="px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white font-bold cursor-pointer inline-flex items-center">
+                <span>📁 ফাইল থেকে ছবি</span>
+                <input type="file" accept="image/*" onchange="handleModalProductFileChange(event)" class="hidden" />
+              </label>
+              <div contenteditable="true" onpaste="handleProductPasteZone(event)" class="px-2.5 py-1 rounded-lg border border-dashed border-indigo-400 bg-white text-[10px] text-slate-500 outline-none">
+                অথবা গ্যালারি থেকে ছবি Copy করে এখানে ট্যাপ করে Paste চাপুন...
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
+              <input id="edit-inv-name" type="text" value="${item.name}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">কোড</label>
+              <input id="edit-inv-code" type="text" value="${item.code}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">ক্যাটাগরি</label>
+              <select id="edit-inv-cat" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                <option value="Fabrics" ${item.category === 'Fabrics' ? 'selected' : ''}>Fabrics (গজ কাপড়)</option>
+                <option value="রেডিমেড" ${item.category === 'রেডিমেড' ? 'selected' : ''}>রেডিমেড</option>
+                <option value="আতর" ${item.category === 'আতর' ? 'selected' : ''}>আতর</option>
+                <option value="তসবি" ${item.category === 'তসবি' ? 'selected' : ''}>তসবি</option>
+                <option value="Accessories" ${item.category === 'Accessories' ? 'selected' : ''}>Accessories</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">বর্তমান স্টক (${item.unit})</label>
+              <input id="edit-inv-stock" type="number" step="0.1" value="${Number(item.stock)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">ক্রয় দর (৳)</label>
+              <input id="edit-inv-cost" type="number" value="${Number(item.costPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">বিক্রয় দর (৳)</label>
+              <input id="edit-inv-sell" type="number" value="${Number(item.sellPrice)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">সেভ করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-lg');
+    }
+
+    function handleUpdateInventoryItem(e, invId) {
+      e.preventDefault();
+      const item = state.inventory.find((i) => i.id === invId);
+      if (!item) return;
+      item.name = document.getElementById('edit-inv-name').value.trim();
+      item.code = document.getElementById('edit-inv-code').value.trim();
+      item.category = document.getElementById('edit-inv-cat').value;
+      item.stock = Number(document.getElementById('edit-inv-stock').value || 0);
+      item.costPrice = Number(document.getElementById('edit-inv-cost').value || 0);
+      item.sellPrice = Number(document.getElementById('edit-inv-sell').value || 0);
+      if (modalUploadedProductDataUrl) {
+        item.img = modalUploadedProductDataUrl;
+      }
+      modalUploadedProductDataUrl = null;
+      closeModal();
+      showToast(`"${item.name}" ও ছবি আপডেট হয়েছে।`, 'success');
       renderApp();
     }
 
@@ -3622,13 +4062,18 @@
       }
 
       root.innerHTML = `
-        ${renderTopNav()}
-        <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-6">
-          ${bodyContent}
-        </main>
-        <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500 no-print">
-          ${state.shop.name} • মোবাইল ও ল্যাপটপ রেসপন্সিভ টেইলার্স ও ইনভেন্টরি সিস্টেম
-        </footer>
+        <div class="min-h-screen flex bg-[#f3f5f4]">
+          ${renderLeftSidebar()}
+          <div class="flex-1 flex flex-col min-w-0">
+            ${renderTopNav()}
+            <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
+              ${bodyContent}
+            </main>
+            <footer class="bg-white border-t border-slate-200 py-3.5 px-4 text-center text-xs text-slate-500 no-print">
+              ${state.shop.name} • মোবাইল ও ল্যাপটপ রেসপন্সিভ টেইলার্স ও ইনভেন্টরি সিস্টেম
+            </footer>
+          </div>
+        </div>
       `;
 
       if (window.lucide) lucide.createIcons();
@@ -3693,10 +4138,46 @@
 
         if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
           const swCode = `
-            self.addEventListener('install', (e) => { self.skipWaiting(); });
-            self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+            const CACHE_NAME = 'alkarim-offline-v1';
+            const OFFLINE_ASSETS = [
+              './',
+              './index.html',
+              'https://cdn.tailwindcss.com',
+              'https://unpkg.com/lucide@latest',
+              'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+              'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap'
+            ];
+
+            self.addEventListener('install', (e) => {
+              e.waitUntil(
+                caches.open(CACHE_NAME).then((cache) => {
+                  return Promise.allSettled(OFFLINE_ASSETS.map((url) => cache.add(url)));
+                })
+              );
+              self.skipWaiting();
+            });
+
+            self.addEventListener('activate', (e) => {
+              e.waitUntil(
+                caches.keys().then((keys) =>
+                  Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+                ).then(() => clients.claim())
+              );
+            });
+
             self.addEventListener('fetch', (e) => {
-              e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+              e.respondWith(
+                caches.match(e.request).then((cached) => {
+                  const networkFetch = fetch(e.request).then((res) => {
+                    if (res && res.status === 200) {
+                      const copy = res.clone();
+                      caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
+                    }
+                    return res;
+                  }).catch(() => cached);
+                  return cached || networkFetch;
+                })
+              );
             });
           `;
           const swBlob = new Blob([swCode], { type: 'application/javascript' });
@@ -3705,6 +4186,16 @@
         }
       } catch (err) {}
     }
+
+    window.addEventListener('online', () => {
+      showToast('ইন্টারনেট সংযোগ ফিরে এসেছে (অনলাইন)।', 'success');
+      renderApp();
+    });
+
+    window.addEventListener('offline', () => {
+      showToast('অফলাইন মোড চালু! ডাটা ছাড়াই অর্ডার, স্টক ও মেমো সব চলবে।', 'warn');
+      renderApp();
+    });
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
