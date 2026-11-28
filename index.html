@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: 'Hind Siliguri', 'Inter', sans-serif; }
     .royal-gradient { background: linear-gradient(135deg, #064e3b 0%, #065f46 55%, #047857 100%); }
@@ -204,10 +206,116 @@
 
     let state = loadInitialState();
 
+    // ==========================================
+    // CLOUD FIRESTORE LIVE SYNC (al-karim-panjabi-tailors)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTgzhGTGazRsoV4O287kCcEPGNTwOaLZg",
+      authDomain: "al-karim-panjabi-tailors.firebaseapp.com",
+      projectId: "al-karim-panjabi-tailors",
+      storageBucket: "al-karim-panjabi-tailors.firebasestorage.app",
+      messagingSenderId: "678363367951",
+      appId: "1:678363367951:web:d23e4aee47db884ffeb17a",
+      measurementId: "G-655F8SKRKR"
+    };
+
+    let cloudDb = null;
+    let cloudSyncStatus = 'CONNECTING';
+    let isApplyingRemoteSnapshot = false;
+
+    function initCloudFirestoreSync() {
+      try {
+        if (!window.firebase) {
+          cloudSyncStatus = 'OFFLINE';
+          return;
+        }
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        cloudDb = firebase.firestore();
+        const docRef = cloudDb.collection('alkarim_erp_store').doc('main_state');
+
+        docRef.onSnapshot((snap) => {
+          cloudSyncStatus = 'ONLINE';
+          if (snap.exists) {
+            const remote = snap.data();
+            if (remote && remote.payloadJson) {
+              try {
+                const remoteParsed = JSON.parse(remote.payloadJson);
+                const currentActiveTab = state.activeTab;
+                const currentRole = state.auth?.currentRole || 'MASTER';
+                const currentUserName = state.auth?.activeUserName || '';
+                const currentOrderForm = state.orderForm;
+
+                isApplyingRemoteSnapshot = true;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                  ...remoteParsed,
+                  activeTab: currentActiveTab,
+                  auth: {
+                    ...(remoteParsed.auth || {}),
+                    currentRole,
+                    activeUserName: currentUserName
+                  },
+                  orderForm: currentOrderForm
+                }));
+                state = loadInitialState();
+                isApplyingRemoteSnapshot = false;
+                renderApp();
+              } catch (parseErr) {
+                isApplyingRemoteSnapshot = false;
+              }
+            }
+          } else {
+            pushStateToCloudFirestore();
+          }
+          updateCloudBadgeUI();
+        }, () => {
+          cloudSyncStatus = 'OFFLINE';
+          updateCloudBadgeUI();
+        });
+      } catch (err) {
+        cloudSyncStatus = 'OFFLINE';
+      }
+    }
+
+    function pushStateToCloudFirestore() {
+      if (!cloudDb || isApplyingRemoteSnapshot) return;
+      try {
+        const cleanPayload = { ...state };
+        delete cleanPayload.mobileDrawerOpen;
+        cloudDb.collection('alkarim_erp_store').doc('main_state').set({
+          payloadJson: JSON.stringify(cleanPayload),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).then(() => {
+          cloudSyncStatus = 'ONLINE';
+          updateCloudBadgeUI();
+        }).catch(() => {
+          cloudSyncStatus = 'OFFLINE';
+          updateCloudBadgeUI();
+        });
+      } catch (e) {}
+    }
+
+    function updateCloudBadgeUI() {
+      const badge = document.getElementById('cloud-sync-badge');
+      if (!badge) return;
+      if (cloudSyncStatus === 'ONLINE') {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-extrabold';
+        badge.innerHTML = '☁️ লাইভ সিঙ্ক';
+      } else if (cloudSyncStatus === 'CONNECTING') {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold';
+        badge.innerHTML = '⏳ সিঙ্ক হচ্ছে...';
+      } else {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-300 text-[10px] font-extrabold';
+        badge.innerHTML = '📴 অফলাইন';
+      }
+    }
+
     function persistState() {
       try {
         state.lastSyncedAt = new Date().toLocaleTimeString('bn-BD');
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        pushStateToCloudFirestore();
       } catch (e) {}
     }
 
@@ -596,6 +704,9 @@
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
+                <span id="cloud-sync-badge" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-extrabold">
+                  ${cloudSyncStatus === 'ONLINE' ? '☁️ লাইভ সিঙ্ক' : cloudSyncStatus === 'CONNECTING' ? '⏳ সিঙ্ক হচ্ছে...' : '📴 অফলাইন'}
+                </span>
                 <button type="button" onclick="karigorSubTab='WORKLOG'; state.unreadSignals=0; persistState(); navigateToTab('karigor');" title="কারিগর ও কমপ্লিট কাজের সংকেত" class="relative w-9 h-9 rounded-xl bg-slate-100 hover:bg-amber-100 flex items-center justify-center text-base cursor-pointer">
                   <span>🔔</span>
                   ${unreadCount > 0 ? `<span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[10px] font-extrabold">${toBnNum(unreadCount)}</span>` : ''}
@@ -3163,9 +3274,11 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      initCloudFirestoreSync();
       renderApp();
     });
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      initCloudFirestoreSync();
       renderApp();
     }
   </script>
