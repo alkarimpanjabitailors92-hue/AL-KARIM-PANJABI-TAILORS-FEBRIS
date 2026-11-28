@@ -5,25 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স — ERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: 'Hind Siliguri', 'Inter', sans-serif; }
-    .royal-gradient { background: linear-gradient(135deg, #064e3b 0%, #065f46 55%, #047857 100%); }
+    body {
+      font-family: 'Hind Siliguri', 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .royal-gradient {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 55%, #047857 100%);
+    }
     @media print {
-      body * { visibility: hidden !important; }
-      #print-area, #print-area * { visibility: visible !important; }
-      #print-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; background: #fff !important; }
+      body * {
+        visibility: hidden !important;
+      }
+      #print-area, #print-area * {
+        visibility: visible !important;
+      }
+      #print-area {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        background: #fff !important;
+      }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
   <div id="app-root"></div>
   <div id="modal-root" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"></div>
-  <div id="toast-root" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+  <div id="toast-root" class="fixed bottom-4 right-4 z-[60] space-y-2 pointer-events-none"></div>
   <div id="print-area" class="hidden"></div>
 
   <script>
@@ -129,6 +145,7 @@
       { id: 'PRD-19', category: 'Product', name: 'আসমুক্কাম পাঁচ কলি টুপি (74)', unit: 'পিস', stock: 60, costPrice: 120, sellPrice: 200, colorHex: '#ffffff', colorName: 'সাদা', image: '', cutPiecesNote: '' }
     ];
 
+    // UI & Filter State
     let cartItems = [];
     let editingOrderId = null;
     let activePosTab = 'TAILOR';
@@ -414,6 +431,18 @@
       return `${parts[2]} ${months[mIdx]} ${parts[0]}`;
     }
 
+    function getNextSafeOrderNumber() {
+      let maxNum = 5656;
+      (state.orders || []).forEach((o) => {
+        const m = String(o.id || '').match(/(\d+)/);
+        if (m) {
+          const val = parseInt(m[1], 10);
+          if (!isNaN(val) && val > maxNum) maxNum = val;
+        }
+      });
+      return maxNum + 1;
+    }
+
     function showToast(msg, type = 'success') {
       const root = document.getElementById('toast-root');
       if (!root) return;
@@ -577,46 +606,6 @@
       (state.auth?.managerAdmins || []).forEach((a) => list.push({ ...a, role: 'MANAGER', roleLabel: 'ম্যানেজার অ্যাডমিন' }));
       (state.auth?.karigorAdmins || []).forEach((a) => list.push({ ...a, role: 'KARIGOR', roleLabel: 'কারিগর অ্যাডমিন' }));
       return list;
-    }
-
-    function hasAnyConfiguredAdmin() {
-      return getAllConfiguredAdmins().length > 0;
-    }
-
-    function handleDirectPhonePasswordLogin(e) {
-      e.preventDefault();
-      const enteredPhone = (document.getElementById('entry-login-phone')?.value || '').replace(/\D/g, '');
-      const enteredPass = (document.getElementById('entry-login-pass')?.value || '').trim();
-      const allAdmins = getAllConfiguredAdmins();
-
-      const matched = allAdmins.find((acc) => {
-        const accPhone = String(acc.phone || '').replace(/\D/g, '');
-        const accPass = String(acc.pin || '').trim();
-        return accPhone === enteredPhone && accPass === enteredPass;
-      });
-
-      if (!matched) {
-        showToast('মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়!', 'warn');
-        return;
-      }
-
-      state.auth.activeRole = matched.role;
-      state.auth.activeUserId = matched.id;
-      state.auth.activeUserName = matched.name;
-      adminPinUnlocked = (matched.role === 'MASTER');
-      if (matched.role === 'KARIGOR') state.activeTab = 'orders';
-      else state.activeTab = 'dashboard';
-
-      saveRememberedAuth({
-        role: matched.role,
-        userId: matched.id,
-        userName: matched.name,
-        phone: enteredPhone,
-        remembered: true
-      });
-      persistState();
-      showToast(`স্বাগতম ${matched.name} (${matched.roleLabel})!`, 'success');
-      renderApp();
     }
 
     function navigateToTab(tabId) {
@@ -1454,6 +1443,15 @@
       renderApp();
     }
 
+    function restoreInventoryFromOrderItems(itemsList) {
+      (itemsList || []).forEach((it) => {
+        if (it.type !== 'tailor' && it.refId) {
+          const inv = state.inventory.find((x) => x.id === it.refId);
+          if (inv) inv.stock = Number(inv.stock || 0) + Number(it.qty || 1);
+        }
+      });
+    }
+
     function confirmAndSaveOrder() {
       const phone = (state.orderForm.customerPhone || '').trim();
       const name = (state.orderForm.customerName || '').trim();
@@ -1473,8 +1471,17 @@
       if (editingOrderId) {
         const idx = state.orders.findIndex((o) => o.id === editingOrderId);
         if (idx !== -1) {
+          const prevOrd = state.orders[idx];
+          restoreInventoryFromOrderItems(prevOrd.items);
+          cartItems.forEach((it) => {
+            if (it.type !== 'tailor' && it.refId) {
+              const inv = state.inventory.find((x) => x.id === it.refId);
+              if (inv) inv.stock = Math.max(0, Number(inv.stock || 0) - Number(it.qty || 1));
+            }
+          });
+
           state.orders[idx] = {
-            ...state.orders[idx],
+            ...prevOrd,
             orderDate: state.orderForm.orderDate,
             deliveryDate: deliv,
             customerPhone: phone,
@@ -1496,11 +1503,11 @@
         }
       }
 
-      const nextNum = 5655 + state.orders.length + 1;
+      const nextNum = getNextSafeOrderNumber();
       const newId = 'ORD-' + nextNum;
 
       cartItems.forEach((it) => {
-        if (it.type !== 'tailor') {
+        if (it.type !== 'tailor' && it.refId) {
           const inv = state.inventory.find((x) => x.id === it.refId);
           if (inv) inv.stock = Math.max(0, Number(inv.stock || 0) - Number(it.qty || 1));
         }
@@ -1560,6 +1567,13 @@
       closeModal();
     }
 
+    window.addEventListener('afterprint', () => {
+      const area = document.getElementById('print-area');
+      if (area && document.getElementById('modal-root')?.classList.contains('hidden')) {
+        area.classList.add('hidden');
+      }
+    });
+
     function printOrderMemo(orderId) {
       const ord = state.orders.find((o) => o.id === orderId);
       if (!ord) return;
@@ -1579,19 +1593,19 @@
       const noticeLines = String(state.shop.memoNotice || '').split('\n').filter(Boolean);
 
       const sheetHtml = `
-        <div style="width: 210mm; min-height: 285mm; margin: 0 auto; padding: 7mm; background: #fff; color: #000; font-family: 'Hind Siliguri', sans-serif; box-sizing: border-box;">
+        <div style="max-width: 210mm; width: 100%; min-height: 270mm; margin: 0 auto; padding: 6mm; background: #fff; color: #000; font-family: 'Hind Siliguri', sans-serif; box-sizing: border-box;">
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #064e3b; padding-bottom: 6px; margin-bottom: 8px;">
-            <div style="width: 56px; height: 56px;">${getRoyalBrandLogoSvg('prt-logo')}</div>
+            <div style="width: 52px; height: 52px; flex-shrink: 0;">${getRoyalBrandLogoSvg('prt-logo')}</div>
             <div style="text-align: center; flex: 1; padding: 0 8px;">
-              <div style="font-size: 21px; font-weight: 800; color: #064e3b; line-height: 1.15;">${state.shop.nameBn}</div>
-              <div style="font-size: 12px; font-weight: 700; color: #1e293b; margin-top: 2px;">${state.shop.address}</div>
-              <div style="display: inline-block; margin-top: 4px; background: #0f172a; color: #fff; padding: 2px 16px; border-radius: 999px; font-size: 13px; font-weight: 800;">
+              <div style="font-size: 20px; font-weight: 800; color: #064e3b; line-height: 1.15;">${state.shop.nameBn}</div>
+              <div style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-top: 2px;">${state.shop.address}</div>
+              <div style="display: inline-block; margin-top: 4px; background: #0f172a; color: #fff; padding: 2px 14px; border-radius: 999px; font-size: 12px; font-weight: 800;">
                 মোবাইলঃ ${state.shop.phones}
               </div>
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 33% 43% 24%; gap: 8px; align-items: start; font-size: 11px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; align-items: start; font-size: 11px;">
             <div>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Serial:</td><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 800;">${serialNum}</td></tr>
@@ -1638,17 +1652,17 @@
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Total Due</td><td style="border: 1px solid #64748b; padding: 3px 5px; text-align: right; font-weight: 800;">${formatTk(totalDue)}</td></tr>
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Due</td><td style="border: 1px solid #64748b; padding: 3px 5px; text-align: right; font-weight: 800;">${formatTk(bd.due)}</td></tr>
               </table>
-              <div style="margin-top: 20px; text-align: center;">
+              <div style="margin-top: 16px; text-align: center;">
                 <div style="border-top: 1px dashed #334155; padding-top: 3px; font-size: 10px; font-weight: 700;">Authority Signature</div>
               </div>
             </div>
           </div>
 
-          <div style="margin: 10px 0; border-top: 2px dashed #000; border-bottom: 2px dashed #000; background: #0f172a; color: #fff; text-align: center; padding: 5px 8px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.4px;">
+          <div style="margin: 10px 0; border-top: 2px dashed #000; border-bottom: 2px dashed #000; background: #0f172a; color: #fff; text-align: center; padding: 5px 8px; font-size: 12px; font-weight: 800;">
             ★★ ধন্যবাদ, আবার আসবেন (Thank you, please come again) ★★
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
             ${tailorItems.map((item) => {
               const qty = Math.max(1, Number(item.qty || 1));
               const smallTagsHtml = Array.from({ length: qty }).map((_, qIdx) => {
@@ -1670,11 +1684,11 @@
 
               return `
                 <div style="border: 1.5px solid #334155; border-radius: 6px; padding: 7px; background: #fff; break-inside: avoid;">
-                  <div style="display: grid; grid-template-columns: repeat(${qty > 1 ? 2 : 1}, 1fr); gap: 5px; margin-bottom: 6px;">
+                  <div style="display: grid; grid-template-columns: repeat(${qty > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px;">
                     ${smallTagsHtml}
                   </div>
 
-                  <div style="display: flex; justify-content: space-between; border: 1px solid #64748b; padding: 3px 6px; font-size: 10.5px; font-weight: 800; background: #f8fafc; margin-bottom: 4px;">
+                  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px; border: 1px solid #64748b; padding: 3px 6px; font-size: 10.5px; font-weight: 800; background: #f8fafc; margin-bottom: 4px;">
                     <span>${item.name}</span>
                     <span>Serial: ${serialNum}</span>
                     <span>Delivery: ${formatDateNice(ord.deliveryDate)}</span>
@@ -2453,6 +2467,8 @@
 
     function deleteOrderRecord(orderId) {
       if (!requireMasterGuard('অর্ডার ডিলিট')) return;
+      const ord = state.orders.find((o) => o.id === orderId);
+      if (ord) restoreInventoryFromOrderItems(ord.items);
       state.orders = state.orders.filter((o) => o.id !== orderId);
       persistState();
       showToast('অর্ডারটি তালিকা থেকে মুছে ফেলা হয়েছে।', 'warn');
@@ -2829,13 +2845,19 @@
       renderApp();
     }
 
-    function handleFileToHiddenInput(e, hiddenId) {
+    function handleFileToHiddenInput(e, hiddenId, previewId = '') {
       const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
         const inp = document.getElementById(hiddenId);
         if (inp) inp.value = reader.result;
+        if (previewId) {
+          const box = document.getElementById(previewId);
+          if (box) {
+            box.innerHTML = `<img src="${reader.result}" alt="Preview" class="w-full h-full object-cover rounded-full border-2 border-amber-400" />`;
+          }
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -4104,12 +4126,12 @@
               <h3 class="text-sm sm:text-base font-extrabold text-slate-900">🏪 শোরুম, লোগো ও মেমো শর্তাবলী সেটিংস</h3>
               <form onsubmit="saveShopSettingsForm(event)" class="space-y-3">
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                  <div class="w-14 h-14 shrink-0">${getRoyalBrandLogoSvg('set-logo')}</div>
+                  <div id="set-shop-logo-preview" class="w-14 h-14 shrink-0">${getRoyalBrandLogoSvg('set-logo')}</div>
                   <div class="space-y-1">
                     <div class="font-extrabold text-slate-800">🖼️ দোকানের লোগো পরিবর্তন করুন</div>
                     <label class="inline-block px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-extrabold cursor-pointer">
                       লোগো ছবি আপলোড
-                      <input type="file" accept="image/*" onchange="handleFileToHiddenInput(event, 'set-shop-logo-data')" class="hidden" />
+                      <input type="file" accept="image/*" onchange="handleFileToHiddenInput(event, 'set-shop-logo-data', 'set-shop-logo-preview')" class="hidden" />
                     </label>
                     <input id="set-shop-logo-data" type="hidden" value="${state.shop.logoImage || ''}" />
                   </div>
