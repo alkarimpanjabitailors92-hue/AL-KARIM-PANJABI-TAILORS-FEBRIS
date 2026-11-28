@@ -158,6 +158,12 @@
           adminPin: parsed?.shop?.adminPin || '',
           memoNotice: parsed?.shop?.memoNotice || '***নির্ভুল কাজের প্রতিশ্রুতি নিয়ে আমরা আছি আপনার পাশে***\n#বৈদ্যুতিক গোলযোগের কারণে ডেলিভারি ডেট পরিবর্তন হতে পারে।\n#ডেলিভারি স্লিপ ছাড়া কোনো অভিযোগ গ্রহণযোগ্য নয়।\n#আপনার অর্ডারকৃত পোশাকটি ৩ মাসের ভিতরে ডেলিভারি না নিলে কর্তৃপক্ষ কোন প্রকার দায়ী থাকবে না।'
         },
+        whatsappApi: {
+          enabled: Boolean(parsed?.whatsappApi?.enabled),
+          apiUrl: parsed?.whatsappApi?.apiUrl || '',
+          instanceId: parsed?.whatsappApi?.instanceId || '',
+          token: parsed?.whatsappApi?.token || ''
+        },
         auth: {
           currentRole: parsed?.auth?.currentRole || 'MASTER',
           activeUserName: parsed?.auth?.activeUserName || 'এইচ এম জাহিদ রায়হান',
@@ -567,13 +573,60 @@
       return { tailorSales, retailSales, retailCogs, karigorWageTotal, totalCollected, totalDue, totalExpenses, netProfit, orderBreakdown };
     }
 
-    function buildWhatsAppOrderUrl(ord) {
-      const cleanPhone = String(ord.customerPhone || '').replace(/\D/g, '');
-      if (!cleanPhone) return '';
-      const intlPhone = cleanPhone.startsWith('88') ? cleanPhone : '88' + cleanPhone;
+    function formatIntlBdPhone(phone) {
+      const clean = String(phone || '').replace(/\D/g, '');
+      if (!clean) return '';
+      return clean.startsWith('88') ? clean : '88' + clean;
+    }
+
+    function buildWhatsAppOrderUrl(ord, mode = 'ORDER') {
+      const intlPhone = formatIntlBdPhone(ord.customerPhone);
+      if (!intlPhone) return '';
       const bd = calculateFinancials([ord]).orderBreakdown[0];
-      const msg = `আসসালামু আলাইকুম ${ord.customerName},\n${state.shop.nameBn}-এ আপনার অর্ডার #${ord.id.replace('ORD-', '')} গৃহীত হয়েছে।\nডেলিভারি তারিখ: ${formatDateNice(ord.deliveryDate)}\nমোট বিল: ${formatTk(bd.netTotal)} | জমা: ${formatTk(ord.paidAmount)} | বাকি: ${formatTk(bd.due)}। ধন্যবাদ!`;
+      const memoNo = ord.id.replace('ORD-', '');
+      let msg = '';
+      if (mode === 'READY') {
+        msg = `আসসালামু আলাইকুম ${ord.customerName},\nআপনার অর্ডারকৃত পোশাক (মেমো #${memoNo}) সম্পূর্ণ প্রস্তুত (Ready) হয়েছে।\nমোট বিল: ${formatTk(bd.netTotal)} | জমা: ${formatTk(ord.paidAmount)} | বাকি: ${formatTk(bd.due)}।\n${state.shop.nameBn} থেকে ডেলিভারি নেওয়ার জন্য অনুরোধ রইল। ধন্যবাদ!`;
+      } else if (mode === 'DELIVERED') {
+        msg = `আসসালামু আলাইকুম ${ord.customerName},\n${state.shop.nameBn} থেকে আপনার অর্ডার (মেমো #${memoNo}) ডেলিভারি সম্পন্ন হয়েছে।\nমোট বিল: ${formatTk(bd.netTotal)} | মোট জমা: ${formatTk(ord.paidAmount)} | অবশিষ্ট বাকি: ${formatTk(bd.due)}।\nআমাদের সাথে থাকার জন্য আন্তরিক ধন্যবাদ!`;
+      } else {
+        msg = `আসসালামু আলাইকুম ${ord.customerName},\n${state.shop.nameBn}-এ আপনার অর্ডার #${memoNo} গৃহীত হয়েছে।\nডেলিভারি তারিখ: ${formatDateNice(ord.deliveryDate)}\nমোট বিল: ${formatTk(bd.netTotal)} | জমা: ${formatTk(ord.paidAmount)} | বাকি: ${formatTk(bd.due)}। ধন্যবাদ!`;
+      }
       return `https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`;
+    }
+
+    function dispatchAutomatedWhatsApp(ord, mode = 'READY') {
+      const intlPhone = formatIntlBdPhone(ord.customerPhone);
+      if (!intlPhone) return;
+      const bd = calculateFinancials([ord]).orderBreakdown[0];
+      const memoNo = ord.id.replace('ORD-', '');
+      const textMsg = mode === 'READY'
+        ? `আসসালামু আলাইকুম ${ord.customerName}, আপনার অর্ডারকৃত পোশাক (মেমো #${memoNo}) সম্পূর্ণ প্রস্তুত (Ready) হয়েছে। মোট বিল: ${formatTk(bd.netTotal)}, জমা: ${formatTk(ord.paidAmount)}, বাকি: ${formatTk(bd.due)}। ${state.shop.nameBn} থেকে ডেলিভারি নেওয়ার জন্য অনুরোধ রইল। ধন্যবাদ!`
+        : `আসসালামু আলাইকুম ${ord.customerName}, ${state.shop.nameBn} থেকে আপনার অর্ডার (মেমো #${memoNo}) ডেলিভারি সম্পন্ন হয়েছে। মোট বিল: ${formatTk(bd.netTotal)}, মোট জমা: ${formatTk(ord.paidAmount)}, অবশিষ্ট বাকি: ${formatTk(bd.due)}। ধন্যবাদ!`;
+
+      // Background Gateway API if configured by owner
+      if (state.whatsappApi?.enabled && state.whatsappApi?.apiUrl && state.whatsappApi?.token) {
+        try {
+          fetch(state.whatsappApi.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: state.whatsappApi.token,
+              instanceId: state.whatsappApi.instanceId || '',
+              to: intlPhone,
+              body: textMsg
+            })
+          }).catch(() => {});
+          showToast(`📲 ব্যাকগ্রাউন্ড WhatsApp API-তে মেসেজ পাঠানো হয়েছে!`, 'success');
+          return;
+        } catch (e) {}
+      }
+
+      // Free Instant One-Touch WhatsApp Launch
+      const waUrl = buildWhatsAppOrderUrl(ord, mode);
+      if (waUrl) {
+        window.open(waUrl, '_blank');
+      }
     }
 
     // ==========================================
@@ -857,6 +910,18 @@
       }, 200);
     }
 
+    function unlockReportsWithPin(e) {
+      e.preventDefault();
+      const masterPin = (state.auth?.masterAdmins?.[0]?.pin || state.shop.adminPin || '').trim();
+      const entered = (document.getElementById('rep-pin-inp')?.value || '').trim();
+      if (entered === masterPin) {
+        adminPinUnlocked = true;
+        renderApp();
+      } else {
+        showToast('ভুল মাস্টার পিন!', 'warn');
+      }
+    }
+
     function renderReports() {
       if (!isMasterAdmin()) return `<div class="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-extrabold text-center">⛔ শুধুমাত্র মাস্টার অ্যাডমিন লাভ-ক্ষতি ও পার্টনার রিপোর্ট দেখতে পারবেন।</div>`;
 
@@ -911,7 +976,6 @@
 
       return `
         <div class="space-y-4">
-          <!-- Top Selector & Date Range Card -->
           <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-2xs space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3 relative">
               <div class="relative">
@@ -976,7 +1040,6 @@
             </div>
           </div>
 
-          <!-- Active Sector Output Area -->
           <div id="report-printable-body" class="space-y-4">
             ${activeReportSubTab === 'TAILOR' ? `
               <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
@@ -1121,6 +1184,46 @@
       `;
     }
 
+    function openEditPartnersModal() {
+      const html = `
+        <div class="px-5 py-4 border-b royal-gradient text-white flex justify-between items-center">
+          <h3 class="text-sm font-extrabold text-amber-300">✏️ ৩ পার্টনারের নাম, মূলধন ও শেয়ার % এডিট</h3>
+          <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="saveEditedPartners(event)" class="p-5 space-y-3 text-xs">
+          ${state.partners.map((p, idx) => `
+            <div class="p-3 rounded-xl bg-slate-50 border space-y-2">
+              <div class="font-extrabold text-emerald-900">পার্টনার ${toBnNum(idx + 1)}</div>
+              <div class="grid grid-cols-3 gap-2">
+                <input id="prt-name-${idx}" type="text" value="${p.name}" required class="col-span-3 sm:col-span-1 px-2.5 py-1.5 rounded-lg border font-bold" />
+                <input id="prt-cap-${idx}" type="number" value="${p.capital || 0}" placeholder="মূলধন" class="px-2.5 py-1.5 rounded-lg border font-bold" />
+                <input id="prt-pct-${idx}" type="number" value="${p.sharePct || 0}" placeholder="শেয়ার %" class="px-2.5 py-1.5 rounded-lg border font-extrabold text-center" />
+              </div>
+            </div>
+          `).join('')}
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white font-extrabold cursor-pointer">✓ সেভ করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-lg');
+    }
+
+    function saveEditedPartners(e) {
+      e.preventDefault();
+      state.partners = state.partners.map((p, idx) => ({
+        ...p,
+        name: document.getElementById(`prt-name-${idx}`)?.value.trim() || p.name,
+        capital: Number(document.getElementById(`prt-cap-${idx}`)?.value || 0),
+        sharePct: Number(document.getElementById(`prt-pct-${idx}`)?.value || 0)
+      }));
+      persistState();
+      closeModal();
+      showToast('পার্টনার তথ্য আপডেট হয়েছে!', 'success');
+      renderApp();
+    }
+
     // ==========================================
     // 4. NEW ORDER / POS BUILDER
     // ==========================================
@@ -1197,7 +1300,6 @@
 
       return `
         <div class="space-y-4">
-          <!-- Top Colorful Customer Info Card -->
           <div class="royal-gradient rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3">
             <div class="flex items-center justify-between">
               <h2 class="text-sm sm:text-base font-extrabold text-amber-300">
@@ -1231,7 +1333,6 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Left 7 Cols: 3 Tabs + Grid -->
             <div class="lg:col-span-7 bg-white rounded-2xl p-4 border border-slate-200 space-y-3">
               <div class="grid grid-cols-3 gap-2">
                 <button type="button" onclick="activePosTab='FABRICS'; renderApp();" class="py-2.5 px-2 rounded-xl text-xs font-extrabold cursor-pointer ${activePosTab === 'FABRICS' ? 'bg-emerald-800 text-amber-300 shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
@@ -1287,7 +1388,6 @@
               `}
             </div>
 
-            <!-- Right 5 Cols: Cart & Billing -->
             <div class="lg:col-span-5 bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between space-y-3">
               <div class="space-y-2.5">
                 <div class="flex items-center justify-between border-b pb-2">
@@ -1434,7 +1534,6 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <!-- Left 5 Cols: 12 Measurement Inputs -->
             <div class="md:col-span-5 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
               <div class="font-extrabold text-slate-800">📏 ইঞ্চি মাপসমূহ</div>
               <div class="grid grid-cols-2 gap-1.5">
@@ -1447,7 +1546,6 @@
               </div>
             </div>
 
-            <!-- Right 7 Cols: Designs & Notes -->
             <div class="md:col-span-7 space-y-3">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">কাপড়ের নাম (ঐচ্ছিক)</label>
@@ -1664,7 +1762,6 @@
 
       printArea.innerHTML = `
         <div style="width: 210mm; min-height: 290mm; margin: 0 auto; padding: 8mm; background: #fff; color: #000; font-family: 'Hind Siliguri', sans-serif; box-sizing: border-box;">
-          <!-- TOP CUSTOMER COPY HEADER -->
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #064e3b; padding-bottom: 6px; margin-bottom: 8px;">
             <div style="width: 56px; height: 56px;">${getRoyalBrandLogoSvg('prt-logo')}</div>
             <div style="text-align: center; flex: 1; padding: 0 8px;">
@@ -1676,9 +1773,7 @@
             </div>
           </div>
 
-          <!-- 3-COLUMN CUSTOMER TABLE -->
           <div style="display: grid; grid-template-columns: 33% 43% 24%; gap: 8px; align-items: start; font-size: 11px;">
-            <!-- Left Col: Customer Info + Notice -->
             <div>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Serial:</td><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 800;">${serialNum}</td></tr>
@@ -1692,7 +1787,6 @@
               </div>
             </div>
 
-            <!-- Middle Col: Items Table -->
             <div>
               <table style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -1716,7 +1810,6 @@
               </table>
             </div>
 
-            <!-- Right Col: Billing Summary -->
             <div>
               <table style="width: 100%; border-collapse: collapse;">
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Total</td><td style="border: 1px solid #64748b; padding: 3px 5px; text-align: right; font-weight: 800;">${formatTk(subTotal)}</td></tr>
@@ -1733,12 +1826,10 @@
             </div>
           </div>
 
-          <!-- DIVIDING THANK YOU BAR -->
           <div style="margin: 12px 0; border-top: 2px dashed #000; border-bottom: 2px dashed #000; background: #0f172a; color: #fff; text-align: center; padding: 5px 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.4px;">
             ★★ ধন্যবাদ, আবার আসবেন (Thank you, please come again) ★★
           </div>
 
-          <!-- BOTTOM KARIGOR COPY (1 MAIN CARD PER ITEM, SMALL TAG BOXES MULTIPLY BY QTY) -->
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
             ${tailorItems.map((item) => {
               const qty = Math.max(1, Number(item.qty || 1));
@@ -1760,12 +1851,10 @@
 
               return `
                 <div style="border: 1.5px solid #334155; border-radius: 6px; padding: 7px; background: #fff; break-inside: avoid;">
-                  <!-- Top Small Tags Grid (Multiplies by Qty) -->
                   <div style="display: grid; grid-template-columns: repeat(${qty > 1 ? 2 : 1}, 1fr); gap: 5px; margin-bottom: 6px;">
                     ${smallTagsHtml}
                   </div>
 
-                  <!-- Garment & Serial Strip -->
                   <div style="display: flex; justify-content: space-between; border: 1px solid #64748b; padding: 3px 6px; font-size: 10.5px; font-weight: 800; background: #f8fafc; margin-bottom: 4px;">
                     <span>${item.name}</span>
                     <span>Serial: ${serialNum}</span>
@@ -1783,7 +1872,6 @@
                     Karigor Fee: ${formatTk(item.karigorFee || 0)}
                   </div>
 
-                  <!-- Slash-separated Measurements -->
                   <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 10.5px;">
                     ${measEntries.map(([k, v]) => `
                       <div style="border-right: 1.5px solid #475569; padding-right: 6px; text-align: center;">
@@ -1807,7 +1895,7 @@
     }
 
     // ==========================================
-    // 6. ORDERS LIST, WORKFLOW DONE & PAYMENT
+    // 6. ORDERS LIST, WORKFLOW DONE, DELIVERY POPUP & PAYMENT
     // ==========================================
     function markOrderCuttingDone(orderId) {
       const ord = state.orders.find((o) => o.id === orderId);
@@ -1872,7 +1960,7 @@
       if (krg.pin && String(krg.pin).trim() !== '') {
         const html = `
           <div class="px-5 py-4 border-b border-slate-200 royal-gradient text-white flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-amber-30">🔒 কারিগর পিন দিন — ${krg.name}</h3>
+            <h3 class="text-sm font-extrabold text-amber-300">🔒 কারিগর পিন দিন — ${krg.name}</h3>
             <button type="button" onclick="closeModal()" class="p-1.5 text-white cursor-pointer">✕</button>
           </div>
           <form onsubmit="verifyWorkerPinAndCredit(event, '${orderId}', '${stage}', '${krg.id}')" class="p-5 space-y-3 text-xs">
@@ -1947,13 +2035,180 @@
 
       const tailorItems = (ord.items || []).filter((it) => it.type === 'tailor');
       if (isSewing && tailorItems.every((it) => it.sewingDoneBy) && ord.status !== 'Delivered') ord.status = 'Sewing';
-      if (!isSewing && tailorItems.every((it) => it.completeDoneBy) && ord.status !== 'Delivered') ord.status = 'Ready';
+
+      let becameReadyNow = false;
+      if (!isSewing && tailorItems.every((it) => it.completeDoneBy) && ord.status !== 'Delivered') {
+        ord.status = 'Ready';
+        becameReadyNow = true;
+      }
 
       state.unreadSignals = Number(state.unreadSignals || 0) + 1;
       persistState();
       closeModal();
       showToast(`✓ ${krg.name}-এর অ্যাকাউন্টে ${formatTk(creditedTotal)} জমা হয়েছে এবং অ্যাডমিনের কাছে সংকেত পাঠানো হয়েছে!`, 'success');
       renderApp();
+
+      // When order becomes Ready, offer/trigger automated WhatsApp notification
+      if (becameReadyNow) {
+        if (state.whatsappApi?.enabled && state.whatsappApi?.apiUrl && state.whatsappApi?.token) {
+          dispatchAutomatedWhatsApp(ord, 'READY');
+        } else {
+          const readyWaUrl = buildWhatsAppOrderUrl(ord, 'READY');
+          const readyHtml = `
+            <div class="px-5 py-4 border-b royal-gradient text-white flex justify-between items-center">
+              <h3 class="text-sm font-extrabold text-amber-300">✨ অর্ডার #${ord.id.replace('ORD-', '')} সম্পূর্ণ প্রস্তুত (Ready)!</h3>
+              <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
+            </div>
+            <div class="p-5 space-y-3 text-xs">
+              <p class="font-bold text-slate-700">কাস্টমার <b>${ord.customerName}</b> (${ord.customerPhone})-এর পোশাক ডেলিভারির জন্য প্রস্তুত। এখনই তার WhatsApp নম্বরে Ready মেসেজ পাঠিয়ে দিন:</p>
+              <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">পরে পাঠাব</button>
+                ${readyWaUrl ? `<a href="${readyWaUrl}" target="_blank" onclick="closeModal()" class="px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-extrabold inline-flex items-center gap-1.5">📲 কাস্টমারকে WhatsApp মেসেজ পাঠান</a>` : ''}
+              </div>
+            </div>
+          `;
+          openModal(readyHtml, 'max-w-md');
+        }
+      }
+    }
+
+    // ==========================================
+    // SMART DELIVERY COUNTER POPUP & SETTLEMENT
+    // ==========================================
+    function openDeliveryCheckoutModal(orderId) {
+      if (isKarigorAdmin()) { showToast('⛔ কারিগর প্যানেল থেকে ডেলিভারি দেওয়া যাবে না।', 'warn'); return; }
+      const ord = state.orders.find((o) => o.id === orderId);
+      if (!ord) return;
+
+      const bd = calculateFinancials([ord]).orderBreakdown[0];
+      const dueAmt = Number(bd?.due || 0);
+      const cust = state.customers.find((c) => c.phone === ord.customerPhone);
+      const otherOldDue = Math.max(0, Number(cust?.due || 0) - dueAmt);
+      const itemsSummary = (ord.items || []).map((it) => `${it.name} (x${toBnNum(it.qty)})`).join(', ');
+
+      const html = `
+        <div class="px-5 py-4 border-b border-slate-200 royal-gradient text-white flex items-center justify-between">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-amber-300">📦 অর্ডার ডেলিভারি ও হিসাব — মেমো #${ord.id.replace('ORD-', '')}</h3>
+            <p class="text-[11px] text-emerald-200">${ord.customerName} (${ord.customerPhone})</p>
+          </div>
+          <button type="button" onclick="closeModal()" class="p-1.5 text-white cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-3.5 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-bold">
+            🛍️ পোশাক ও পণ্য: <span class="text-slate-900">${itemsSummary}</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-xl bg-slate-50 border">
+              <div class="text-[10px] text-slate-500 font-bold">মোট বিল</div>
+              <div class="text-sm font-extrabold text-slate-900">${formatTk(bd.netTotal)}</div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div class="text-[10px] text-emerald-700 font-bold">পূর্বের জমা</div>
+              <div class="text-sm font-extrabold text-emerald-800">${formatTk(ord.paidAmount)}</div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+              <div class="text-[10px] text-rose-700 font-bold">বর্তমান পাওনা</div>
+              <div class="text-sm font-extrabold text-rose-700">${formatTk(dueAmt)}</div>
+            </div>
+          </div>
+
+          ${otherOldDue > 0 ? `
+            <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 font-extrabold flex justify-between">
+              <span>⚠️ কাস্টমারের পূর্বের অন্য মেমোর বকেয়া:</span>
+              <span>${formatTk(otherOldDue)}</span>
+            </div>
+          ` : ''}
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-extrabold text-slate-800 mb-1">এখন কয় টাকা জমা দিচ্ছেন (৳)</label>
+              <input id="deliv-pay-now" type="number" min="0" value="${dueAmt}" oninput="updateDeliveryRemainingPreview(${dueAmt})" class="w-full px-3 py-2.5 rounded-xl border-2 border-emerald-500 font-extrabold text-base outline-none" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">পেমেন্ট মাধ্যম</label>
+              <select id="deliv-pay-method" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold">
+                <option value="Cash">Cash</option>
+                <option value="bKash">bKash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Bank">Bank</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="deliv-rem-preview" class="p-2.5 rounded-xl ${dueAmt === 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900'} border font-extrabold flex justify-between items-center">
+            <span>ডেলিভারির পর অবশিষ্ট বাকি থাকবে:</span>
+            <span class="text-sm">${formatTk(0)}</span>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ডেলিভারি নোট (ঐচ্ছিক)</label>
+            <input id="deliv-note-inp" type="text" value="${ord.deliveryNote || ''}" placeholder="যেমন: কাস্টমার নিজে নিয়েছেন / ভাই নিয়ে গেছেন" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+
+          <label class="flex items-center gap-2 p-2.5 rounded-xl bg-green-50 border border-green-200 text-green-950 font-extrabold cursor-pointer">
+            <input id="deliv-send-wa-chk" type="checkbox" checked class="accent-green-700 w-4 h-4" />
+            <span>📲 ডেলিভারি সম্পন্ন হওয়ার সাথে সাথে কাস্টমারের WhatsApp-এ রসিদ পাঠান</span>
+          </label>
+
+          <div class="pt-2 flex flex-wrap justify-end gap-2 border-t">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="button" onclick="confirmOrderDelivery('${ord.id}', false)" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold cursor-pointer">✅ ডেলিভারি সম্পন্ন করুন</button>
+            <button type="button" onclick="confirmOrderDelivery('${ord.id}', true)" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold cursor-pointer">✅ ডেলিভারি ও 🖨️ মেমো প্রিন্ট</button>
+          </div>
+        </div>
+      `;
+      openModal(html, 'max-w-lg');
+    }
+
+    function updateDeliveryRemainingPreview(dueAmt) {
+      const payingNow = Math.max(0, Number(document.getElementById('deliv-pay-now')?.value || 0));
+      const rem = Math.max(0, Number(dueAmt || 0) - payingNow);
+      const box = document.getElementById('deliv-rem-preview');
+      if (!box) return;
+      if (rem > 0) {
+        box.className = 'p-2.5 rounded-xl bg-rose-50 border-rose-200 text-rose-800 border font-extrabold flex justify-between items-center';
+        box.innerHTML = `<span>⚠️ ডেলিভারির পর অবশিষ্ট বাকি থাকবে (কাস্টমার খাতায় যুক্ত হবে):</span><span class="text-sm">${formatTk(rem)}</span>`;
+      } else {
+        box.className = 'p-2.5 rounded-xl bg-emerald-50 border-emerald-200 text-emerald-900 border font-extrabold flex justify-between items-center';
+        box.innerHTML = `<span>✓ ডেলিভারির পর অবশিষ্ট বাকি থাকবে:</span><span class="text-sm">${formatTk(0)}</span>`;
+      }
+    }
+
+    function confirmOrderDelivery(orderId, shouldPrintMemo = false) {
+      if (isKarigorAdmin()) return;
+      const ord = state.orders.find((o) => o.id === orderId);
+      if (!ord) return;
+
+      const payNow = Math.max(0, Number(document.getElementById('deliv-pay-now')?.value || 0));
+      const method = document.getElementById('deliv-pay-method')?.value || ord.paymentMethod || 'Cash';
+      const note = (document.getElementById('deliv-note-inp')?.value || '').trim();
+      const sendWa = Boolean(document.getElementById('deliv-send-wa-chk')?.checked);
+
+      if (payNow > 0) {
+        ord.paidAmount = Number(ord.paidAmount || 0) + payNow;
+        ord.paymentMethod = method;
+        const cust = state.customers.find((c) => c.phone === ord.customerPhone);
+        if (cust) cust.due = Math.max(0, Number(cust.due || 0) - payNow);
+      }
+
+      ord.status = 'Delivered';
+      ord.deliveredAt = new Date().toISOString();
+      if (note) ord.deliveryNote = note;
+
+      persistState();
+      closeModal();
+      showToast(`✅ মেমো #${ord.id.replace('ORD-', '')} ডেলিভারি সম্পন্ন হয়েছে!`, 'success');
+      renderApp();
+
+      if (sendWa) {
+        dispatchAutomatedWhatsApp(ord, 'DELIVERED');
+      }
+      if (shouldPrintMemo) {
+        printOrderMemo(ord.id);
+      }
     }
 
     function renderOrdersList() {
@@ -2003,7 +2258,8 @@
                 <tbody class="divide-y divide-slate-100">
                   ${filtered.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-semibold">কোনো অর্ডার পাওয়া যায়নি।</td></tr>` : filtered.map((ord) => {
                     const bd = calculateFinancials([ord]).orderBreakdown[0];
-                    const waUrl = buildWhatsAppOrderUrl(ord);
+                    const waMode = ord.status === 'Delivered' ? 'DELIVERED' : ord.status === 'Ready' ? 'READY' : 'ORDER';
+                    const waUrl = buildWhatsAppOrderUrl(ord, waMode);
                     const urg = getDeliveryUrgencyInfo(ord);
                     const tailorItems = (ord.items || []).filter((it) => it.type === 'tailor');
                     const allCutDone = tailorItems.length > 0 && tailorItems.every((it) => it.cuttingDone || it.sewingDoneBy || it.completeDoneBy);
@@ -2018,6 +2274,8 @@
                           <div class="flex flex-wrap items-center gap-1">
                             <span class="px-2 py-0.5 rounded-md bg-emerald-900 text-amber-300 font-extrabold">#${ord.id.replace('ORD-', '')}</span>
                             ${urg.badgeHtml}
+                            ${ord.status === 'Ready' ? `<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-extrabold">✨ Ready</span>` : ''}
+                            ${ord.status === 'Delivered' ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-extrabold">✅ ডেলিভারি সম্পন্ন</span>` : ''}
                           </div>
                           <div class="text-[11px] font-bold text-slate-700 mt-1">ডেলিভারি: ${formatDateNice(ord.deliveryDate)}</div>
                         </td>
@@ -2051,7 +2309,10 @@
                           <div class="inline-flex flex-wrap justify-end gap-1">
                             <button type="button" onclick="printOrderMemo('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 text-amber-300 font-extrabold cursor-pointer">🖨️ মেমো</button>
                             ${!isKarigorAdmin() ? `
-                              ${waUrl ? `<a href="${waUrl}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-extrabold">📲 WA</a>` : ''}
+                              ${ord.status !== 'Delivered' ? `
+                                <button type="button" onclick="openDeliveryCheckoutModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg ${ord.status === 'Ready' ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-2xs' : 'bg-blue-600 hover:bg-blue-700 text-white'} font-extrabold cursor-pointer">📦 ডেলিভারি দিন</button>
+                              ` : ''}
+                              ${waUrl ? `<a href="${waUrl}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-extrabold">📲 ${ord.status === 'Ready' ? 'Ready WA' : 'WA'}</a>` : ''}
                               <button type="button" onclick="openOrderPaymentModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-extrabold cursor-pointer">৳ পেমেন্ট</button>
                             ` : ''}
                             ${isMasterAdmin() ? `
@@ -2095,6 +2356,10 @@
 
     function updateOrderStatus(orderId, newStatus) {
       if (!requireMasterGuard('স্ট্যাটাস পরিবর্তন')) return;
+      if (newStatus === 'Delivered') {
+        openDeliveryCheckoutModal(orderId);
+        return;
+      }
       const ord = state.orders.find((o) => o.id === orderId);
       if (!ord) return;
       ord.status = newStatus;
@@ -2392,7 +2657,7 @@
           <div class="bg-white rounded-2xl p-4 border border-slate-200 flex items-center justify-between">
             <div>
               <h2 class="text-base font-extrabold text-slate-900">✂️ টেইলার্স আইটেম ও ডিজাইন ট্যাগ এডিটর (${toBnNum(state.garments.length)} টি)</h2>
-              <p class="text-xs text-slate-500">পোশাকের সেলাই মজুরি, সুইং কারিগর ফি ও কমপ্লিট ফি সেট করুন</p>
+              <p class="text-xs text-slate-500">পোশাকের ছবি, সেলাই মজুরি, সুইং কারিগর ফি ও কমপ্লিট ফি সেট করুন</p>
             </div>
             <button type="button" onclick="openAddGarmentModal()" class="px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-extrabold cursor-pointer">+ নতুন টেইলার্স আইটেম</button>
           </div>
@@ -2400,7 +2665,7 @@
             ${state.garments.map((g) => `
               <div class="bg-white rounded-2xl p-3.5 border border-slate-200 flex items-center justify-between gap-2 text-xs">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0">${g.icon || '👘'}</div>
+                  ${g.image ? `<img src="${g.image}" class="w-12 h-12 rounded-xl object-cover border border-amber-300 shrink-0" />` : `<div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0">${g.icon || '👘'}</div>`}
                   <div class="min-w-0">
                     <div class="font-extrabold text-sm text-slate-900 truncate">${g.name}</div>
                     <div class="text-[11px] font-bold text-emerald-700">মজুরি: ${formatTk(g.price)} • সুইং: ${formatTk(g.karigorFee)} • কমপ্লিট: ${formatTk(g.completeFee || 30)}</div>
@@ -2414,6 +2679,31 @@
       `;
     }
 
+    function handleGarmentImageUpload(e, hiddenId, previewBoxId) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const hiddenInp = document.getElementById(hiddenId);
+        if (hiddenInp) hiddenInp.value = dataUrl;
+        const previewBox = document.getElementById(previewBoxId);
+        if (previewBox) {
+          previewBox.innerHTML = `<img src="${dataUrl}" class="w-14 h-14 rounded-xl object-cover border border-emerald-400" />`;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearGarmentImagePreview(hiddenId, previewBoxId, fallbackIcon = '👘') {
+      const hiddenInp = document.getElementById(hiddenId);
+      if (hiddenInp) hiddenInp.value = '';
+      const previewBox = document.getElementById(previewBoxId);
+      if (previewBox) {
+        previewBox.innerHTML = `<div class="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-2xl">${fallbackIcon}</div>`;
+      }
+    }
+
     function openEditGarmentModal(garmentId) {
       const grm = state.garments.find((g) => g.id === garmentId);
       if (!grm) return;
@@ -2424,6 +2714,24 @@
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <form onsubmit="saveEditedGarment(event, '${grm.id}')" class="p-5 space-y-3 text-xs max-h-[82vh] overflow-y-auto">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div id="edit-grm-img-preview">
+                ${grm.image ? `<img src="${grm.image}" class="w-14 h-14 rounded-xl object-cover border border-emerald-400" />` : `<div class="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-2xl">${grm.icon || '👘'}</div>`}
+              </div>
+              <div class="space-y-1">
+                <div class="font-extrabold text-slate-800">📷 পোশাকের ছবি</div>
+                <div class="flex flex-wrap gap-1.5">
+                  <label class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold cursor-pointer">
+                    ছবি আপলোড করুন
+                    <input type="file" accept="image/*" onchange="handleGarmentImageUpload(event, 'edit-grm-img-data', 'edit-grm-img-preview')" class="hidden" />
+                  </label>
+                  <button type="button" onclick="clearGarmentImagePreview('edit-grm-img-data', 'edit-grm-img-preview', '${grm.icon || '👘'}')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold cursor-pointer">✕ ছবি সরান</button>
+                </div>
+              </div>
+            </div>
+            <input id="edit-grm-img-data" type="hidden" value="${grm.image || ''}" />
+          </div>
           <div><label class="block font-bold mb-1">পোশাকের নাম *</label><input id="edit-grm-name" type="text" value="${grm.name}" required class="w-full px-3 py-2 rounded-xl border font-bold" /></div>
           <div class="grid grid-cols-3 gap-2">
             <div><label class="block font-bold mb-1">কাস্টমার মজুরি (৳)</label><input id="edit-grm-price" type="number" value="${grm.price}" required class="w-full px-2.5 py-2 rounded-xl border border-emerald-400 font-extrabold" /></div>
@@ -2487,6 +2795,7 @@
       e.preventDefault();
       const grm = state.garments.find((g) => g.id === garmentId);
       if (!grm) return;
+      grm.image = document.getElementById('edit-grm-img-data')?.value || '';
       grm.name = document.getElementById('edit-grm-name')?.value.trim() || grm.name;
       grm.price = Number(document.getElementById('edit-grm-price')?.value || 0);
       grm.karigorFee = Number(document.getElementById('edit-grm-kfee')?.value || 0);
@@ -2507,6 +2816,17 @@
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <form onsubmit="submitNewGarment(event)" class="p-5 space-y-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+            <div id="new-grm-img-preview"><div class="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-2xl">👘</div></div>
+            <div class="space-y-1">
+              <div class="font-extrabold text-slate-800">📷 পোশাকের ছবি (ঐচ্ছিক)</div>
+              <label class="inline-block px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-extrabold cursor-pointer">
+                ছবি আপলোড করুন
+                <input type="file" accept="image/*" onchange="handleGarmentImageUpload(event, 'new-grm-img-data', 'new-grm-img-preview')" class="hidden" />
+              </label>
+            </div>
+            <input id="new-grm-img-data" type="hidden" value="" />
+          </div>
           <div><label class="block font-bold mb-1">পোশাকের নাম *</label><input id="new-grm-name" type="text" required class="w-full px-3 py-2 rounded-xl border font-bold" /></div>
           <div class="grid grid-cols-3 gap-2">
             <div><label class="block font-bold mb-1">মজুরি (৳)</label><input id="new-grm-price" type="number" value="600" class="w-full px-2.5 py-2 rounded-xl border font-bold" /></div>
@@ -2530,7 +2850,7 @@
         id: 'GRM-' + Date.now(),
         name,
         icon: '👘',
-        image: '',
+        image: document.getElementById('new-grm-img-data')?.value || '',
         price: Number(document.getElementById('new-grm-price')?.value || 600),
         karigorFee: Number(document.getElementById('new-grm-kfee')?.value || 200),
         completeFee: Number(document.getElementById('new-grm-cfee')?.value || 30),
@@ -2544,7 +2864,7 @@
     }
 
     // ==========================================
-    // 9. KARIGOR LEDGER + WORK LOG CHART, EXPENSES, CUSTOMERS, SUPPLIERS, REPORTS & SETTINGS
+    // 9. KARIGOR LEDGER + WORK LOG CHART, EXPENSES, CUSTOMERS, SUPPLIERS & SETTINGS
     // ==========================================
     function renderKarigorLedger() {
       const logs = state.workLogs || [];
@@ -3117,6 +3437,19 @@
       renderApp();
     }
 
+    function saveWhatsAppApiSettings(e) {
+      e.preventDefault();
+      state.whatsappApi = {
+        enabled: Boolean(document.getElementById('wa-api-enabled')?.checked),
+        apiUrl: (document.getElementById('wa-api-url')?.value || '').trim(),
+        instanceId: (document.getElementById('wa-api-inst')?.value || '').trim(),
+        token: (document.getElementById('wa-api-token')?.value || '').trim()
+      };
+      persistState();
+      showToast('📲 WhatsApp অটোমেশন সেটিংস সেভ হয়েছে!', 'success');
+      renderApp();
+    }
+
     function downloadJsonBackup() {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -3172,6 +3505,7 @@
 
       const masters = state.auth?.masterAdmins || [];
       const managers = state.auth?.managerAdmins || [];
+      const waCfg = state.whatsappApi || {};
 
       return `
         <div class="space-y-4">
@@ -3215,7 +3549,27 @@
             </form>
           </div>
 
-          <!-- 2. Showroom & Memo Settings -->
+          <!-- 2. WhatsApp Automation Settings (Free One-Touch + Optional API) -->
+          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3 text-xs">
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">📲 WhatsApp অটোমেশন সেটিংস (Ready ও Delivery মেসেজ)</h3>
+              <p class="text-slate-500">ডিফল্টভাবে ফ্রি ওয়ান-টাচ অটো মেসেজ চালু আছে। চাইলে থার্ড-পার্টি WhatsApp Gateway API বসিয়ে ব্যাকগ্রাউন্ডেও পাঠাতে পারবেন।</p>
+            </div>
+            <form onsubmit="saveWhatsAppApiSettings(event)" class="space-y-3">
+              <label class="flex items-center gap-2 font-extrabold text-emerald-950 cursor-pointer">
+                <input id="wa-api-enabled" type="checkbox" ${waCfg.enabled ? 'checked' : ''} class="accent-emerald-700 w-4 h-4" />
+                <span>ব্যাকগ্রাউন্ড WhatsApp API গেটওয়ে সক্রিয় করুন (ঐচ্ছিক)</span>
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div><label class="block font-bold mb-1">API Endpoint URL</label><input id="wa-api-url" type="text" value="${waCfg.apiUrl || ''}" placeholder="https://api.ultramsg.com/..." class="w-full px-3 py-2 rounded-xl border font-bold" /></div>
+                <div><label class="block font-bold mb-1">Instance ID</label><input id="wa-api-inst" type="text" value="${waCfg.instanceId || ''}" placeholder="instance12345" class="w-full px-3 py-2 rounded-xl border font-bold" /></div>
+                <div><label class="block font-bold mb-1">API Token</label><input id="wa-api-token" type="password" value="${waCfg.token || ''}" placeholder="••••••••••••" class="w-full px-3 py-2 rounded-xl border font-bold" /></div>
+              </div>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-green-700 text-white font-extrabold cursor-pointer">✓ WhatsApp সেটিংস সেভ করুন</button>
+            </form>
+          </div>
+
+          <!-- 3. Showroom & Memo Settings -->
           <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3 text-xs">
             <h3 class="text-sm sm:text-base font-extrabold text-slate-900">🏪 শোরুম ও মেমো শর্তাবলী সেটিংস</h3>
             <form onsubmit="saveShopSettingsForm(event)" class="space-y-3">
@@ -3229,7 +3583,7 @@
             </form>
           </div>
 
-          <!-- 3. JSON Backup & Restore -->
+          <!-- 4. JSON Backup & Restore -->
           <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3 text-xs">
             <h3 class="text-sm sm:text-base font-extrabold text-slate-900">💾 ডাটা ব্যাকআপ, রিস্টোর ও রিসেট (Offline JSON)</h3>
             <div class="flex flex-wrap items-center gap-3">
