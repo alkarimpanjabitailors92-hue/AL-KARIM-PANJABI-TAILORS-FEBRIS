@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: 'Hind Siliguri', 'Inter', sans-serif;
@@ -37,12 +37,42 @@
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
-  <div id="app-root"></div>
-  <div id="modal-root" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"></div>
+  <div id="app-root">
+    <div style="padding: 2rem; text-align: center; font-family: sans-serif; color: #064e3b; font-weight: bold;">
+      লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।
+    </div>
+  </div>
+  <div id="modal-root" class="hidden fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-2 sm:p-4"></div>
   <div id="toast-root" class="fixed bottom-4 right-4 z-[60] space-y-2 pointer-events-none"></div>
   <div id="print-area" class="hidden"></div>
 
   <script>
+    // ==========================================
+    // 0. SAFE STORAGE & HTML VIEWER FALLBACK
+    // ==========================================
+    const memoryStorageFallback = {};
+    function safeGetItem(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        return Object.prototype.hasOwnProperty.call(memoryStorageFallback, key) ? memoryStorageFallback[key] : null;
+      }
+    }
+    function safeSetItem(key, val) {
+      try {
+        window.localStorage.setItem(key, val);
+      } catch (e) {
+        memoryStorageFallback[key] = val;
+      }
+    }
+    function safeRemoveItem(key) {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (e) {
+        delete memoryStorageFallback[key];
+      }
+    }
+
     // ==========================================
     // 1. CONSTANTS, DEFAULT DATA & STATE
     // ==========================================
@@ -145,7 +175,6 @@
       { id: 'PRD-19', category: 'Product', name: 'আসমুক্কাম পাঁচ কলি টুপি (74)', unit: 'পিস', stock: 60, costPrice: 120, sellPrice: 200, colorHex: '#ffffff', colorName: 'সাদা', image: '', cutPiecesNote: '' }
     ];
 
-    // UI & Filter State
     let cartItems = [];
     let editingOrderId = null;
     let activePosTab = 'TAILOR';
@@ -171,7 +200,7 @@
 
     function loadRememberedAuth() {
       try {
-        const raw = localStorage.getItem(REMEMBERED_AUTH_KEY);
+        const raw = safeGetItem(REMEMBERED_AUTH_KEY);
         return raw ? JSON.parse(raw) : null;
       } catch (err) {
         return null;
@@ -180,13 +209,13 @@
 
     function saveRememberedAuth(payload) {
       try {
-        localStorage.setItem(REMEMBERED_AUTH_KEY, JSON.stringify(payload));
+        safeSetItem(REMEMBERED_AUTH_KEY, JSON.stringify(payload));
       } catch (err) {}
     }
 
     function clearRememberedAuth() {
       try {
-        localStorage.removeItem(REMEMBERED_AUTH_KEY);
+        safeRemoveItem(REMEMBERED_AUTH_KEY);
       } catch (err) {}
     }
 
@@ -202,8 +231,8 @@
         orderStatusFilter: 'ALL',
         unreadSignals: 0,
         shop: {
-          nameBn: 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স',
-          address: 'সৈয়দ আহমেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল',
+          nameBn: 'আল কারিম পাঞ্জাবি টেইলার্স অ্যান্ড ফেব্রিক্স',
+          address: 'সদর রোড, বাকেরগঞ্জ, বরিশাল',
           phones: '01787265892',
           logoImage: '',
           masterName: 'হাফেজ মো. আব্দুল কারীম',
@@ -288,7 +317,7 @@
       };
 
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ALKARIM_ERP_STATE_V5');
+        const raw = safeGetItem(STORAGE_KEY) || safeGetItem('ALKARIM_ERP_STATE_V5');
         if (!raw) return fallback;
         const saved = JSON.parse(raw);
         const merged = {
@@ -309,6 +338,13 @@
           purchases: Array.isArray(saved.purchases) ? saved.purchases : [],
           partners: Array.isArray(saved.partners) && saved.partners.length ? saved.partners : fallback.partners
         };
+        if (String(merged.shop.address || '').includes('সৈয়দ আহমেদ আলী প্লাজা')) {
+          merged.shop.address = 'সদর রোড, বাকেরগঞ্জ, বরিশাল';
+        }
+        if (merged.shop.nameBn === 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স') {
+          merged.shop.nameBn = 'আল কারিম পাঞ্জাবি টেইলার্স অ্যান্ড ফেব্রিক্স';
+        }
+        merged.shop.phones = '01787265892';
         if (!Array.isArray(merged.auth.masterAdmins)) merged.auth.masterAdmins = [];
         if (!Array.isArray(merged.auth.managerAdmins)) merged.auth.managerAdmins = [];
         if (!Array.isArray(merged.auth.karigorAdmins)) merged.auth.karigorAdmins = [];
@@ -327,7 +363,7 @@
 
     function persistState() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        safeSetItem(STORAGE_KEY, JSON.stringify(state));
       } catch (err) {}
       if (cloudDb && !isApplyingCloudUpdate) {
         const cloudPayload = {
@@ -373,7 +409,16 @@
             const remote = docSnap.data();
             if (remote) {
               isApplyingCloudUpdate = true;
-              if (remote.shop) state.shop = { ...state.shop, ...remote.shop };
+              if (remote.shop) {
+                state.shop = { ...state.shop, ...remote.shop };
+                if (String(state.shop.address || '').includes('সৈয়দ আহমেদ আলী প্লাজা')) {
+                  state.shop.address = 'সদর রোড, বাকেরগঞ্জ, বরিশাল';
+                }
+                if (state.shop.nameBn === 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স') {
+                  state.shop.nameBn = 'আল কারিম পাঞ্জাবি টেইলার্স অ্যান্ড ফেব্রিক্স';
+                }
+                state.shop.phones = '01787265892';
+              }
               if (remote.auth) {
                 if (Array.isArray(remote.auth.masterAdmins)) state.auth.masterAdmins = remote.auth.masterAdmins;
                 if (Array.isArray(remote.auth.managerAdmins)) state.auth.managerAdmins = remote.auth.managerAdmins;
@@ -391,7 +436,7 @@
               if (Array.isArray(remote.purchases)) state.purchases = remote.purchases;
               if (Array.isArray(remote.partners) && remote.partners.length) state.partners = remote.partners;
               if (typeof remote.unreadSignals === 'number') state.unreadSignals = remote.unreadSignals;
-              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+              try { safeSetItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
               isApplyingCloudUpdate = false;
               renderApp();
             }
@@ -429,18 +474,6 @@
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const mIdx = Math.max(0, Math.min(11, parseInt(parts[1], 10) - 1));
       return `${parts[2]} ${months[mIdx]} ${parts[0]}`;
-    }
-
-    function getNextSafeOrderNumber() {
-      let maxNum = 5656;
-      (state.orders || []).forEach((o) => {
-        const m = String(o.id || '').match(/(\d+)/);
-        if (m) {
-          const val = parseInt(m[1], 10);
-          if (!isNaN(val) && val > maxNum) maxNum = val;
-        }
-      });
-      return maxNum + 1;
     }
 
     function showToast(msg, type = 'success') {
@@ -809,7 +842,8 @@
               <div class="w-11 h-11 shrink-0">${getRoyalBrandLogoSvg('sb')}</div>
               <div class="min-w-0">
                 <div class="font-extrabold text-sm text-amber-300 truncate">${state.shop.nameBn}</div>
-                <div class="text-[11px] text-emerald-200 truncate">টেইলার্স এন্ড ফেব্রিক্স ERP</div>
+                <div class="text-[11px] text-emerald-100 truncate">${state.shop.address}</div>
+                <div class="text-[10px] text-amber-200 font-bold truncate">মোবাইলঃ ${state.shop.phones}</div>
               </div>
             </div>
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto text-xs">
@@ -925,9 +959,9 @@
         <div class="space-y-4">
           <div class="royal-gradient rounded-2xl p-4 sm:p-5 text-white flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div>
-              <div class="text-xs text-amber-300 font-bold">স্বাগতম, ${state.auth?.activeUserName || state.shop.masterName}</div>
-              <h2 class="text-lg sm:text-xl font-extrabold mt-0.5">${state.shop.nameBn}</h2>
-              <p class="text-xs text-emerald-200">${state.shop.address} • মোবাইলঃ ${state.shop.phones}</p>
+              <h2 class="text-lg sm:text-xl font-extrabold text-amber-300">আল কারিম পাঞ্জাবি টেইলার্স অ্যান্ড ফেব্রিক্স</h2>
+              <p class="text-xs sm:text-sm text-emerald-100 font-bold mt-0.5">সদর রোড, বাকেরগঞ্জ, বরিশাল</p>
+              <p class="text-xs text-white font-extrabold mt-0.5">মোবাইলঃ 01787265892</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button type="button" onclick="startFreshNewOrder()" class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold shadow cursor-pointer">+ নতুন অর্ডার নিন</button>
@@ -1443,15 +1477,6 @@
       renderApp();
     }
 
-    function restoreInventoryFromOrderItems(itemsList) {
-      (itemsList || []).forEach((it) => {
-        if (it.type !== 'tailor' && it.refId) {
-          const inv = state.inventory.find((x) => x.id === it.refId);
-          if (inv) inv.stock = Number(inv.stock || 0) + Number(it.qty || 1);
-        }
-      });
-    }
-
     function confirmAndSaveOrder() {
       const phone = (state.orderForm.customerPhone || '').trim();
       const name = (state.orderForm.customerName || '').trim();
@@ -1471,17 +1496,8 @@
       if (editingOrderId) {
         const idx = state.orders.findIndex((o) => o.id === editingOrderId);
         if (idx !== -1) {
-          const prevOrd = state.orders[idx];
-          restoreInventoryFromOrderItems(prevOrd.items);
-          cartItems.forEach((it) => {
-            if (it.type !== 'tailor' && it.refId) {
-              const inv = state.inventory.find((x) => x.id === it.refId);
-              if (inv) inv.stock = Math.max(0, Number(inv.stock || 0) - Number(it.qty || 1));
-            }
-          });
-
           state.orders[idx] = {
-            ...prevOrd,
+            ...state.orders[idx],
             orderDate: state.orderForm.orderDate,
             deliveryDate: deliv,
             customerPhone: phone,
@@ -1503,11 +1519,11 @@
         }
       }
 
-      const nextNum = getNextSafeOrderNumber();
+      const nextNum = 5655 + state.orders.length + 1;
       const newId = 'ORD-' + nextNum;
 
       cartItems.forEach((it) => {
-        if (it.type !== 'tailor' && it.refId) {
+        if (it.type !== 'tailor') {
           const inv = state.inventory.find((x) => x.id === it.refId);
           if (inv) inv.stock = Math.max(0, Number(inv.stock || 0) - Number(it.qty || 1));
         }
@@ -1567,13 +1583,6 @@
       closeModal();
     }
 
-    window.addEventListener('afterprint', () => {
-      const area = document.getElementById('print-area');
-      if (area && document.getElementById('modal-root')?.classList.contains('hidden')) {
-        area.classList.add('hidden');
-      }
-    });
-
     function printOrderMemo(orderId) {
       const ord = state.orders.find((o) => o.id === orderId);
       if (!ord) return;
@@ -1593,19 +1602,19 @@
       const noticeLines = String(state.shop.memoNotice || '').split('\n').filter(Boolean);
 
       const sheetHtml = `
-        <div style="max-width: 210mm; width: 100%; min-height: 270mm; margin: 0 auto; padding: 6mm; background: #fff; color: #000; font-family: 'Hind Siliguri', sans-serif; box-sizing: border-box;">
+        <div style="width: 210mm; min-height: 285mm; margin: 0 auto; padding: 7mm; background: #fff; color: #000; font-family: 'Hind Siliguri', sans-serif; box-sizing: border-box;">
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #064e3b; padding-bottom: 6px; margin-bottom: 8px;">
-            <div style="width: 52px; height: 52px; flex-shrink: 0;">${getRoyalBrandLogoSvg('prt-logo')}</div>
+            <div style="width: 56px; height: 56px;">${getRoyalBrandLogoSvg('prt-logo')}</div>
             <div style="text-align: center; flex: 1; padding: 0 8px;">
-              <div style="font-size: 20px; font-weight: 800; color: #064e3b; line-height: 1.15;">${state.shop.nameBn}</div>
-              <div style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-top: 2px;">${state.shop.address}</div>
-              <div style="display: inline-block; margin-top: 4px; background: #0f172a; color: #fff; padding: 2px 14px; border-radius: 999px; font-size: 12px; font-weight: 800;">
+              <div style="font-size: 21px; font-weight: 800; color: #064e3b; line-height: 1.15;">${state.shop.nameBn}</div>
+              <div style="font-size: 12px; font-weight: 700; color: #1e293b; margin-top: 2px;">${state.shop.address}</div>
+              <div style="display: inline-block; margin-top: 4px; background: #0f172a; color: #fff; padding: 2px 16px; border-radius: 999px; font-size: 13px; font-weight: 800;">
                 মোবাইলঃ ${state.shop.phones}
               </div>
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; align-items: start; font-size: 11px;">
+          <div style="display: grid; grid-template-columns: 33% 43% 24%; gap: 8px; align-items: start; font-size: 11px;">
             <div>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Serial:</td><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 800;">${serialNum}</td></tr>
@@ -1652,17 +1661,17 @@
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Total Due</td><td style="border: 1px solid #64748b; padding: 3px 5px; text-align: right; font-weight: 800;">${formatTk(totalDue)}</td></tr>
                 <tr><td style="border: 1px solid #64748b; padding: 3px 5px; font-weight: 700;">Due</td><td style="border: 1px solid #64748b; padding: 3px 5px; text-align: right; font-weight: 800;">${formatTk(bd.due)}</td></tr>
               </table>
-              <div style="margin-top: 16px; text-align: center;">
+              <div style="margin-top: 20px; text-align: center;">
                 <div style="border-top: 1px dashed #334155; padding-top: 3px; font-size: 10px; font-weight: 700;">Authority Signature</div>
               </div>
             </div>
           </div>
 
-          <div style="margin: 10px 0; border-top: 2px dashed #000; border-bottom: 2px dashed #000; background: #0f172a; color: #fff; text-align: center; padding: 5px 8px; font-size: 12px; font-weight: 800;">
+          <div style="margin: 10px 0; border-top: 2px dashed #000; border-bottom: 2px dashed #000; background: #0f172a; color: #fff; text-align: center; padding: 5px 8px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.4px;">
             ★★ ধন্যবাদ, আবার আসবেন (Thank you, please come again) ★★
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
             ${tailorItems.map((item) => {
               const qty = Math.max(1, Number(item.qty || 1));
               const smallTagsHtml = Array.from({ length: qty }).map((_, qIdx) => {
@@ -1684,11 +1693,11 @@
 
               return `
                 <div style="border: 1.5px solid #334155; border-radius: 6px; padding: 7px; background: #fff; break-inside: avoid;">
-                  <div style="display: grid; grid-template-columns: repeat(${qty > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px;">
+                  <div style="display: grid; grid-template-columns: repeat(${qty > 1 ? 2 : 1}, 1fr); gap: 5px; margin-bottom: 6px;">
                     ${smallTagsHtml}
                   </div>
 
-                  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px; border: 1px solid #64748b; padding: 3px 6px; font-size: 10.5px; font-weight: 800; background: #f8fafc; margin-bottom: 4px;">
+                  <div style="display: flex; justify-content: space-between; border: 1px solid #64748b; padding: 3px 6px; font-size: 10.5px; font-weight: 800; background: #f8fafc; margin-bottom: 4px;">
                     <span>${item.name}</span>
                     <span>Serial: ${serialNum}</span>
                     <span>Delivery: ${formatDateNice(ord.deliveryDate)}</span>
@@ -2467,8 +2476,6 @@
 
     function deleteOrderRecord(orderId) {
       if (!requireMasterGuard('অর্ডার ডিলিট')) return;
-      const ord = state.orders.find((o) => o.id === orderId);
-      if (ord) restoreInventoryFromOrderItems(ord.items);
       state.orders = state.orders.filter((o) => o.id !== orderId);
       persistState();
       showToast('অর্ডারটি তালিকা থেকে মুছে ফেলা হয়েছে।', 'warn');
@@ -2845,19 +2852,13 @@
       renderApp();
     }
 
-    function handleFileToHiddenInput(e, hiddenId, previewId = '') {
+    function handleFileToHiddenInput(e, hiddenId) {
       const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
         const inp = document.getElementById(hiddenId);
         if (inp) inp.value = reader.result;
-        if (previewId) {
-          const box = document.getElementById(previewId);
-          if (box) {
-            box.innerHTML = `<img src="${reader.result}" alt="Preview" class="w-full h-full object-cover rounded-full border-2 border-amber-400" />`;
-          }
-        }
       };
       reader.readAsDataURL(file);
     }
@@ -3981,7 +3982,7 @@
         try {
           const parsed = JSON.parse(reader.result);
           if (parsed && parsed.shop) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            safeSetItem(STORAGE_KEY, JSON.stringify(parsed));
             state = loadInitialState();
             persistState();
             showToast('ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!', 'success');
@@ -4126,12 +4127,12 @@
               <h3 class="text-sm sm:text-base font-extrabold text-slate-900">🏪 শোরুম, লোগো ও মেমো শর্তাবলী সেটিংস</h3>
               <form onsubmit="saveShopSettingsForm(event)" class="space-y-3">
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                  <div id="set-shop-logo-preview" class="w-14 h-14 shrink-0">${getRoyalBrandLogoSvg('set-logo')}</div>
+                  <div class="w-14 h-14 shrink-0">${getRoyalBrandLogoSvg('set-logo')}</div>
                   <div class="space-y-1">
                     <div class="font-extrabold text-slate-800">🖼️ দোকানের লোগো পরিবর্তন করুন</div>
                     <label class="inline-block px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-extrabold cursor-pointer">
                       লোগো ছবি আপলোড
-                      <input type="file" accept="image/*" onchange="handleFileToHiddenInput(event, 'set-shop-logo-data', 'set-shop-logo-preview')" class="hidden" />
+                      <input type="file" accept="image/*" onchange="handleFileToHiddenInput(event, 'set-shop-logo-data')" class="hidden" />
                     </label>
                     <input id="set-shop-logo-data" type="hidden" value="${state.shop.logoImage || ''}" />
                   </div>
@@ -4203,7 +4204,7 @@
     }
 
     function confirmResetAllData() {
-      localStorage.removeItem(STORAGE_KEY);
+      safeRemoveItem(STORAGE_KEY);
       state = loadInitialState();
       cartItems = [];
       editingOrderId = null;
@@ -4213,13 +4214,24 @@
       renderApp();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initCloudFirestoreSync();
-      renderApp();
-    });
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      initCloudFirestoreSync();
-      renderApp();
+    function bootAlKarimErpApp() {
+      try {
+        renderApp();
+      } catch (err) {
+        const root = document.getElementById('app-root');
+        if (root) {
+          root.innerHTML = `<div style="padding:20px;margin:20px;background:#fee2e2;color:#991b1b;border-radius:12px;font-weight:bold;">অ্যাপ চালু হতে সমস্যা হয়েছে: ${err?.message || err}</div>`;
+        }
+      }
+      try {
+        initCloudFirestoreSync();
+      } catch (e) {}
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootAlKarimErpApp);
+    } else {
+      bootAlKarimErpApp();
     }
   </script>
 </body>
