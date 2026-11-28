@@ -27,9 +27,6 @@
   <div id="print-area" class="hidden"></div>
 
   <script>
-    // ==========================================
-    // 1. CONSTANTS & DEFAULT CATALOGS
-    // ==========================================
     const STORAGE_KEY = 'ALKARIM_ERP_STATE_V5';
 
     const FIREBASE_CONFIG = {
@@ -150,9 +147,6 @@
     let cloudDb = null;
     let cloudSyncStatus = 'OFFLINE';
 
-    // ==========================================
-    // 2. STATE LOADING, PERSISTENCE & CLOUD SYNC
-    // ==========================================
     function createDefaultState() {
       const today = new Date().toISOString().split('T')[0];
       const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
@@ -165,7 +159,7 @@
         unreadSignals: 0,
         shop: {
           nameBn: 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স',
-          tagline: 'সৈয়দ আহমেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল • মোবাইল: 01787265892',
+          tagline: 'হোলসেল এন্ড রিটেইল ও উন্নত মানের পাঞ্জাবী-পাজামা টেইলারিং',
           address: 'সৈয়দ আহমেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল',
           phone: '01787265892',
           logoImage: '',
@@ -197,8 +191,8 @@
         karigorPayments: [],
         expenses: [],
         partners: [
-          { id: 'PRT-1', name: 'পার্টনার ১ (মূল মালিক)', phone: '01787265892', sharePercent: 50, scope: 'BOTH' },
-          { id: 'PRT-2', name: 'পার্টনার ২', phone: '', sharePercent: 50, scope: 'BOTH' }
+          { id: 'PRT-1', name: 'পার্টনার ১ (মাস্টার)', sharePct: 50, scope: 'BOTH', phone: '' },
+          { id: 'PRT-2', name: 'পার্টনার ২', sharePct: 50, scope: 'BOTH', phone: '' }
         ],
         partnerWithdrawals: [],
         orderForm: {
@@ -220,20 +214,10 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return def;
         const parsed = JSON.parse(raw);
-        const mergedShop = { ...def.shop, ...(parsed.shop || {}) };
-        if (!mergedShop.address || mergedShop.address === 'নতুন বাজার, ময়মনসিংহ') {
-          mergedShop.address = def.shop.address;
-        }
-        if (!mergedShop.phone || mergedShop.phone === '০১৭১১-০০০০০০') {
-          mergedShop.phone = def.shop.phone;
-        }
-        if (!mergedShop.tagline || mergedShop.tagline.includes('হোলসেল এন্ড রিটেইল')) {
-          mergedShop.tagline = def.shop.tagline;
-        }
         return {
           ...def,
           ...parsed,
-          shop: mergedShop,
+          shop: { ...def.shop, ...(parsed.shop || {}) },
           auth: { ...def.auth, ...(parsed.auth || {}) },
           orderForm: { ...def.orderForm, ...(parsed.orderForm || {}) },
           garments: Array.isArray(parsed.garments) && parsed.garments.length ? parsed.garments : def.garments,
@@ -297,10 +281,8 @@
             const data = docSnap.data() || {};
             if (Array.isArray(data.orders)) state.orders = data.orders;
             if (Array.isArray(data.customers)) state.customers = data.customers;
-            if (Array.isArray(data.garments) && data.garments.length > 0) state.garments = data.garments;
-            else if (!Array.isArray(state.garments) || state.garments.length === 0) state.garments = JSON.parse(JSON.stringify(DEFAULT_GARMENTS));
-            if (Array.isArray(data.inventory) && data.inventory.length > 0) state.inventory = data.inventory;
-            else if (!Array.isArray(state.inventory) || state.inventory.length === 0) state.inventory = JSON.parse(JSON.stringify(DEFAULT_INVENTORY));
+            if (Array.isArray(data.garments) && data.garments.length) state.garments = data.garments;
+            if (Array.isArray(data.inventory) && data.inventory.length) state.inventory = data.inventory;
             if (Array.isArray(data.suppliers)) state.suppliers = data.suppliers;
             if (Array.isArray(data.purchases)) state.purchases = data.purchases;
             if (Array.isArray(data.karigors)) state.karigors = data.karigors;
@@ -311,13 +293,7 @@
             if (Array.isArray(data.partnerWithdrawals)) state.partnerWithdrawals = data.partnerWithdrawals;
             if (data.lastMemoNo) state.lastMemoNo = Math.max(Number(state.lastMemoNo || 5660), Number(data.lastMemoNo));
             if (typeof data.unreadSignals === 'number') state.unreadSignals = data.unreadSignals;
-            if (data.shop) {
-              const incomingShop = { ...data.shop };
-              if (incomingShop.address === 'নতুন বাজার, ময়মনসিংহ') delete incomingShop.address;
-              if (incomingShop.phone === '০১৭১১-০০০০০০') delete incomingShop.phone;
-              if (incomingShop.tagline && incomingShop.tagline.includes('হোলসেল এন্ড রিটেইল')) delete incomingShop.tagline;
-              state.shop = { ...state.shop, ...incomingShop };
-            }
+            if (data.shop) state.shop = { ...state.shop, ...data.shop };
             if (data.auth?.masterAdmins) state.auth.masterAdmins = data.auth.masterAdmins;
             if (data.auth?.managerAdmins) state.auth.managerAdmins = data.auth.managerAdmins;
             persistState(true);
@@ -334,12 +310,15 @@
       }
     }
 
-    // ==========================================
-    // 3. SHARED HELPERS & FINANCIAL ENGINE
-    // ==========================================
     function toBnNum(num) {
       const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
       return String(num ?? 0).replace(/\d/g, (d) => bnDigits[Number(d)]);
+    }
+
+    function formatQtyBn(qty) {
+      const n = Number(qty || 0);
+      const formatted = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '');
+      return toBnNum(formatted);
     }
 
     function formatTk(amount) {
@@ -549,9 +528,6 @@
       }
     }
 
-    // ==========================================
-    // 4. ROLE SWITCHER & NAVIGATION
-    // ==========================================
     function startFreshNewOrder() {
       const today = new Date().toISOString().split('T')[0];
       const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
@@ -656,9 +632,6 @@
       renderApp();
     }
 
-    // ==========================================
-    // 5. DASHBOARD (DATE-BY-DATE & ACTION BOARDS)
-    // ==========================================
     function setDashPreset(preset) {
       dashPreset = preset;
       const now = new Date();
@@ -728,14 +701,12 @@
       return `
         <div class="space-y-4">
           <div class="royal-gradient rounded-2xl p-4 sm:p-5 text-white shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3.5 min-w-0">
-              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-amber-300/80 shadow-md shrink-0 bg-emerald-950">
-                ${getRoyalBrandLogoSvg('dash-hero-logo')}
-              </div>
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-300 shrink-0">${getRoyalBrandLogoSvg('hero-logo')}</div>
               <div class="space-y-0.5 min-w-0">
                 <div class="text-[11px] font-bold text-amber-300">আসসালামু আলাইকুম • ${todayFormatted}</div>
                 <h2 class="text-base sm:text-lg font-extrabold text-white truncate">${state.shop.nameBn}</h2>
-                <p class="text-[11px] text-emerald-100 font-semibold leading-snug">${state.shop.address} • মোবাইল: ${state.shop.phone}</p>
+                <p class="text-[11px] text-emerald-200">${state.shop.address} • মোবাইল: ${state.shop.phone}</p>
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -767,7 +738,7 @@
             <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs">
               <div class="text-slate-500 font-bold">মোট অর্ডার ও পিস</div>
               <div class="text-xl font-extrabold text-slate-900 mt-1">${toBnNum(filteredOrders.length)} টি অর্ডার</div>
-              <div class="text-[11px] font-bold text-emerald-700 mt-0.5">মোট ${toBnNum(totalPieces)} পিস/গজ</div>
+              <div class="text-[11px] font-bold text-emerald-700 mt-0.5">মোট ${formatQtyBn(totalPieces)} পিস/গজ</div>
             </div>
             <div class="bg-white rounded-2xl p-4 border border-emerald-200 shadow-2xs">
               <div class="text-emerald-800 font-bold">নগদ আদায় (Cash/bKash)</div>
@@ -807,7 +778,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
                       <button type="button" onclick="markOrderCuttingDone('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-[11px] cursor-pointer">✂️ কাটিং ডান</button>
-                      <button type="button" onclick="printOrderMemo('${ord.id}')" class="px-2 py-1.5 rounded-lg bg-slate-900 text-amber-300 font-bold text-[11px] cursor-pointer">🖨️</button>
+                      <button type="button" onclick="printCuttingTag('${ord.id}')" class="px-2 py-1.5 rounded-lg bg-slate-900 text-amber-300 font-bold text-[11px] cursor-pointer" title="কাটিং ট্যাগ প্রিন্ট">🏷️</button>
                     </div>
                   </div>
                 `;
@@ -863,9 +834,6 @@
       `;
     }
 
-    // ==========================================
-    // 6. NEW ORDER POS + PREVIOUS ORDER CLONE + SMOOTH PAYMENT
-    // ==========================================
     function onOrderPhoneInput(val) {
       state.orderForm.customerPhone = val;
       const clean = String(val || '').trim();
@@ -1075,17 +1043,97 @@
       renderApp();
     }
 
-    function addRetailItemToCart(invId) {
+    function openRetailItemOrderModal(invId, editCartUid = null) {
       const inv = (state.inventory || []).find((x) => x.id === invId);
       if (!inv) return;
-      if (Number(inv.stock || 0) <= 0) {
-        showToast('এই আইটেমটির স্টক শেষ!', 'warn');
-        return;
+      const existingCart = editCartUid ? cartItems.find((c) => c.uid === editCartUid) : null;
+      const isFabric = inv.category === 'Fabrics';
+      const defaultQty = existingCart ? Number(existingCart.qty || 1) : (isFabric ? 2.25 : 1);
+      const defaultPrice = existingCart ? Number(existingCart.unitPrice || inv.sellPrice || 0) : Number(inv.sellPrice || 0);
+      const quickYards = [1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.5];
+
+      const html = `
+        <div class="px-5 py-3.5 border-b royal-gradient text-white flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-full border-2 border-amber-300 shrink-0" style="background:${inv.colorHex || '#fff'}"></span>
+            <div>
+              <h3 class="text-sm font-extrabold text-amber-300">${inv.name}</h3>
+              <p class="text-[10px] text-emerald-200">মজুত স্টক: ${formatQtyBn(inv.stock)} ${inv.unit} • নির্ধারিত দর: ${formatTk(inv.sellPrice)}/${inv.unit}</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
+        </div>
+        <form onsubmit="saveRetailItemToCart(event, '${inv.id}', '${editCartUid || ''}'); return false;" class="p-4 space-y-3 text-xs">
+          ${isFabric ? `
+            <div>
+              <label class="block font-extrabold text-emerald-950 mb-1.5">⚡ দ্রুত গজ মাপ বাছাই করুন (Quick Yardage)</label>
+              <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                ${quickYards.map((y) => `
+                  <button type="button" onclick="document.getElementById('rtl-qty-inp').value='${y}'; recalcRetailModalTotal();" class="py-1.5 px-2 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-800 hover:text-amber-300 font-extrabold text-emerald-950 transition cursor-pointer">${formatQtyBn(y)} গজ</button>
+                `).join('')}
+              </div>
+            </div>
+          ` : `
+            <div>
+              <label class="block font-extrabold text-emerald-950 mb-1.5">⚡ দ্রুত সংখ্যা বাছাই করুন</label>
+              <div class="grid grid-cols-5 gap-1.5">
+                ${[1, 2, 3, 5, 10].map((q) => `
+                  <button type="button" onclick="document.getElementById('rtl-qty-inp').value='${q}'; recalcRetailModalTotal();" class="py-1.5 px-2 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-800 hover:text-amber-300 font-extrabold text-emerald-950 transition cursor-pointer">${toBnNum(q)} ${inv.unit}</button>
+                `).join('')}
+              </div>
+            </div>
+          `}
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">পরিমাণ (${inv.unit}) *</label>
+              <input id="rtl-qty-inp" type="number" step="0.01" min="0.05" value="${defaultQty}" oninput="recalcRetailModalTotal()" required class="w-full px-3 py-2 rounded-xl border-2 border-emerald-500 font-extrabold text-base text-center outline-none" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">প্রতি ${inv.unit} বিক্রয় দর (৳) *</label>
+              <input id="rtl-price-inp" type="number" min="0" value="${defaultPrice}" oninput="recalcRetailModalTotal()" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold text-base text-center text-emerald-900 outline-none" />
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <span class="font-bold text-slate-600">এই আইটেমের মোট টাকা:</span>
+            <span id="rtl-modal-total" class="text-lg font-extrabold text-emerald-900">${formatTk(Math.round(defaultQty * defaultPrice))}</span>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2 border-t">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-amber-300 font-extrabold cursor-pointer">✓ কার্টে যোগ করুন</button>
+          </div>
+        </form>
+      `;
+      openModal(html, 'max-w-md');
+      setTimeout(() => document.getElementById('rtl-qty-inp')?.select(), 20);
+    }
+
+    function recalcRetailModalTotal() {
+      const q = Math.max(0, Number(document.getElementById('rtl-qty-inp')?.value || 0));
+      const p = Math.max(0, Number(document.getElementById('rtl-price-inp')?.value || 0));
+      const el = document.getElementById('rtl-modal-total');
+      if (el) el.textContent = formatTk(Math.round(q * p));
+    }
+
+    function saveRetailItemToCart(e, invId, editCartUid) {
+      e.preventDefault();
+      const inv = (state.inventory || []).find((x) => x.id === invId);
+      if (!inv) return;
+      const qty = Math.max(0.05, Number(document.getElementById('rtl-qty-inp')?.value || 1));
+      const unitPrice = Math.max(0, Number(document.getElementById('rtl-price-inp')?.value || 0));
+      const lineTotal = Math.round(qty * unitPrice);
+
+      if (Number(inv.stock || 0) < qty && !editCartUid) {
+        showToast(`সতর্কতা: মজুত আছে ${formatQtyBn(inv.stock)} ${inv.unit}, তবুও কার্টে যোগ হলো।`, 'warn');
       }
-      const existing = cartItems.find((c) => c.type === 'retail' && c.invId === invId);
-      if (existing) {
-        existing.qty = Number(existing.qty || 1) + 1;
-        existing.lineTotal = existing.qty * Number(existing.unitPrice || 0);
+
+      if (editCartUid) {
+        const idx = cartItems.findIndex((c) => c.uid === editCartUid);
+        if (idx >= 0) {
+          cartItems[idx] = { ...cartItems[idx], qty, unitPrice, lineTotal };
+        }
       } else {
         cartItems.push({
           uid: 'CART-' + Date.now(),
@@ -1093,25 +1141,32 @@
           invId: inv.id,
           name: inv.name,
           unit: inv.unit || 'গজ',
-          qty: 1,
-          unitPrice: Number(inv.sellPrice || 0),
+          qty,
+          unitPrice,
           costPrice: Number(inv.costPrice || 0),
-          lineTotal: Number(inv.sellPrice || 0)
+          lineTotal
         });
       }
-      showToast(`"${inv.name}" কার্টে যোগ হয়েছে!`, 'success');
+
+      closeModal();
+      showToast(`"${inv.name}" (${formatQtyBn(qty)} ${inv.unit}) কার্টে যুক্ত হয়েছে!`, 'success');
       renderApp();
+    }
+
+    function addRetailItemToCart(invId) {
+      openRetailItemOrderModal(invId);
     }
 
     function updateCartItemQty(uid, delta) {
       const idx = cartItems.findIndex((c) => c.uid === uid);
       if (idx < 0) return;
-      const newQty = Number(cartItems[idx].qty || 1) + delta;
+      const step = cartItems[idx].unit === 'গজ' ? (delta > 0 ? 0.25 : -0.25) : delta;
+      const newQty = Math.round((Number(cartItems[idx].qty || 1) + step) * 100) / 100;
       if (newQty <= 0) {
         cartItems.splice(idx, 1);
       } else {
         cartItems[idx].qty = newQty;
-        cartItems[idx].lineTotal = newQty * Number(cartItems[idx].unitPrice || 0);
+        cartItems[idx].lineTotal = Math.round(newQty * Number(cartItems[idx].unitPrice || 0));
       }
       renderApp();
     }
@@ -1198,7 +1253,7 @@
         cartItems.forEach((it) => {
           if (it.type === 'retail' && it.invId) {
             const inv = state.inventory.find((x) => x.id === it.invId);
-            if (inv) inv.stock = Math.max(0, Number(inv.stock || 0) - Number(it.qty || 1));
+            if (inv) inv.stock = Math.max(0, Math.round((Number(inv.stock || 0) - Number(it.qty || 1)) * 100) / 100);
           }
         });
         savedOrder = {
@@ -1236,80 +1291,82 @@
       navigateToTab('orders');
     }
 
+    function restoreDefaultGarmentsNow() {
+      state.garments = JSON.parse(JSON.stringify(DEFAULT_GARMENTS));
+      persistState();
+      showToast('২০টি টেইলার্স পোশাক লোড করা হয়েছে!', 'success');
+      renderApp();
+    }
+
     function renderNewOrder() {
-      if (!Array.isArray(state.garments) || state.garments.length === 0) {
-        state.garments = JSON.parse(JSON.stringify(DEFAULT_GARMENTS));
-        persistState(true);
-      }
-      if (!Array.isArray(state.inventory) || state.inventory.length === 0) {
-        state.inventory = JSON.parse(JSON.stringify(DEFAULT_INVENTORY));
-        persistState(true);
-      }
       const subTotal = cartItems.reduce((s, it) => s + Number(it.lineTotal || 0), 0);
       const disc = Number(state.orderForm.discount || 0);
       const paid = Number(state.orderForm.paidAmount || 0);
       const grandTotal = Math.max(0, subTotal - disc);
       const due = Math.max(0, grandTotal - paid);
 
+      if (!Array.isArray(state.garments) || state.garments.length === 0) {
+        state.garments = JSON.parse(JSON.stringify(DEFAULT_GARMENTS));
+      }
+
       const q = posSearchTerm.trim().toLowerCase();
-      const filteredGarments = (state.garments || []).filter((g) => !q || String(g.name || '').toLowerCase().includes(q));
+      const filteredGarments = (state.garments || []).filter((g) => !q || g.name.toLowerCase().includes(q));
       const filteredInventory = (state.inventory || []).filter((inv) => {
         if (activePosTab === 'FABRICS' && inv.category !== 'Fabrics') return false;
         if (activePosTab === 'PRODUCTS' && inv.category !== 'Product') return false;
-        return !q || String(inv.name || '').toLowerCase().includes(q) || String(inv.colorName || '').toLowerCase().includes(q);
+        return !q || inv.name.toLowerCase().includes(q) || (inv.colorName || '').toLowerCase().includes(q);
       });
 
       setTimeout(() => renderPreviousOrdersPreviewBox(), 10);
 
       return `
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs">
-          <!-- Left: Garment / Fabric / Product Selector -->
           <div class="lg:col-span-7 bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex gap-1.5">
-                <button type="button" onclick="activePosTab='TAILOR'; posSearchTerm=''; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'TAILOR' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">✂️ টেইলারিং (${toBnNum(state.garments.length)})</button>
-                <button type="button" onclick="activePosTab='FABRICS'; posSearchTerm=''; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'FABRICS' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">🧵 গজ কাপড়</button>
-                <button type="button" onclick="activePosTab='PRODUCTS'; posSearchTerm=''; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'PRODUCTS' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">🧢 প্রোডাক্ট</button>
+                <button type="button" onclick="activePosTab='TAILOR'; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'TAILOR' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">✂️ টেইলারিং (${toBnNum(state.garments.length)})</button>
+                <button type="button" onclick="activePosTab='FABRICS'; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'FABRICS' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">🧵 গজ কাপড়</button>
+                <button type="button" onclick="activePosTab='PRODUCTS'; renderApp();" class="px-3.5 py-2 rounded-xl font-extrabold cursor-pointer ${activePosTab === 'PRODUCTS' ? 'bg-emerald-800 text-amber-300' : 'bg-slate-100 text-slate-700'}">🧢 প্রোডাক্ট</button>
               </div>
               <input type="text" value="${posSearchTerm}" oninput="posSearchTerm=this.value; renderApp();" placeholder="🔍 নাম বা নম্বর খুঁজুন..." class="px-3 py-1.5 rounded-xl border border-slate-300 font-bold w-full sm:w-48 outline-none" />
             </div>
 
-            ${activePosTab === 'TAILOR' ? `
-              ${filteredGarments.length === 0 ? `
+            ${activePosTab === 'TAILOR' ? (
+              filteredGarments.length === 0 ? `
                 <div class="py-10 text-center space-y-2">
-                  <div class="text-slate-500 font-bold">কোনো পোশাক খুঁজে পাওয়া যায়নি।</div>
-                  <button type="button" onclick="posSearchTerm=''; state.garments=JSON.parse(JSON.stringify(DEFAULT_GARMENTS)); persistState(); renderApp();" class="px-4 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">🔄 ২০টি টেইলার্স পোশাক লোড করুন</button>
+                  <div class="text-slate-400 font-bold">কোনো পোশাক মেলেনি।</div>
+                  <button type="button" onclick="restoreDefaultGarmentsNow()" class="px-4 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">🔄 ডিফল্ট ২০টি পোশাক লোড করুন</button>
                 </div>
               ` : `
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[68vh] overflow-y-auto pr-1">
-                ${filteredGarments.map((g) => `
-                  <button type="button" onclick="openGarmentOrderModal('${g.id}')" class="p-3 rounded-2xl border border-slate-200 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/50 text-left transition flex flex-col justify-between gap-2 cursor-pointer">
-                    <div class="flex items-center gap-2">
-                      ${g.image ? `<img src="${g.image}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0" />` : `<div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center text-xl shrink-0">${g.icon || '👘'}</div>`}
-                      <div class="font-extrabold text-slate-900 leading-snug">${g.name}</div>
-                    </div>
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/70">
-                      <span class="font-extrabold text-emerald-800">${formatTk(g.price)}</span>
-                      <span class="text-[10px] font-bold text-slate-500">+ মাপ দিন</span>
-                    </div>
-                  </button>
-                `).join('')}
-              </div>
-              `}
-            ` : `
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[68vh] overflow-y-auto pr-1">
+                  ${filteredGarments.map((g) => `
+                    <button type="button" onclick="openGarmentOrderModal('${g.id}')" class="p-3 rounded-2xl border border-slate-200 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/50 text-left transition flex flex-col justify-between gap-2 cursor-pointer">
+                      <div class="flex items-center gap-2">
+                        ${g.image ? `<img src="${g.image}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0" />` : `<div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center text-xl shrink-0">${g.icon || '👘'}</div>`}
+                        <div class="font-extrabold text-slate-900 leading-snug">${g.name}</div>
+                      </div>
+                      <div class="flex items-center justify-between pt-1 border-t border-slate-200/70">
+                        <span class="font-extrabold text-emerald-800">${formatTk(g.price)}</span>
+                        <span class="text-[10px] font-bold text-slate-500">+ মাপ দিন</span>
+                      </div>
+                    </button>
+                  `).join('')}
+                </div>
+              `
+            ) : `
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[68vh] overflow-y-auto pr-1">
                 ${filteredInventory.map((inv) => `
-                  <button type="button" onclick="addRetailItemToCart('${inv.id}')" class="p-3 rounded-2xl border border-slate-200 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/50 text-left transition flex flex-col justify-between gap-2 cursor-pointer">
+                  <button type="button" onclick="openRetailItemOrderModal('${inv.id}')" class="p-3 rounded-2xl border border-slate-200 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/50 text-left transition flex flex-col justify-between gap-2 cursor-pointer">
                     <div class="flex items-center gap-2">
                       ${inv.image ? `<img src="${inv.image}" class="w-10 h-10 rounded-xl object-cover border shrink-0" />` : `<span class="w-8 h-8 rounded-full border border-slate-300 shrink-0" style="background:${inv.colorHex || '#fff'}"></span>`}
                       <div class="min-w-0">
                         <div class="font-extrabold text-slate-900 truncate">${inv.name}</div>
-                        <div class="text-[10px] text-slate-500">মজুত: ${toBnNum(inv.stock)} ${inv.unit}</div>
+                        <div class="text-[10px] text-slate-500">মজুত: <b class="${Number(inv.stock || 0) <= 15 ? 'text-rose-700' : 'text-emerald-800'}">${formatQtyBn(inv.stock)} ${inv.unit}</b></div>
                       </div>
                     </div>
                     <div class="flex items-center justify-between pt-1 border-t border-slate-200/70">
                       <span class="font-extrabold text-emerald-800">${formatTk(inv.sellPrice)}/${inv.unit}</span>
-                      <span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[10px] font-extrabold">+ যোগ</span>
+                      <span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[10px] font-extrabold">${inv.category === 'Fabrics' ? '+ গজ দিন' : '+ যোগ'}</span>
                     </div>
                   </button>
                 `).join('')}
@@ -1317,80 +1374,66 @@
             `}
           </div>
 
-          <!-- Right: Customer, Previous Order Clone, Cart & Smooth Payment -->
-          <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col justify-between">
-            <!-- Gorgeous Royal Memo Header -->
-            <div class="royal-gradient px-4 py-3.5 text-white flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-2xl bg-amber-400/20 border border-amber-300/50 flex items-center justify-center text-base">🧾</div>
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-emerald-200 shadow-md overflow-hidden space-y-3">
+            <div class="royal-gradient px-4 py-3 text-white flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-extrabold flex items-center justify-center text-xs">🧾</span>
                 <div>
-                  <div class="text-[10px] font-bold text-amber-300 uppercase tracking-wider">${editingOrderId ? 'অর্ডার সংশোধন মোড' : 'অফিশিয়াল অর্ডার মেমো'}</div>
-                  <h3 class="font-extrabold text-sm text-white">${editingOrderId ? `🔄 মেমো #${editingOrderId.replace('ORD-', '')} এডিট` : `মেমো নং #${toBnNum(Number(state.lastMemoNo || 5660) + 1)}`}</h3>
+                  <div class="text-xs sm:text-sm font-extrabold text-amber-300">${editingOrderId ? `🔄 মেমো #${editingOrderId.replace('ORD-', '')} এডিট` : `রয়্যাল অর্ডার মেমো #${toBnNum(Number(state.lastMemoNo || 5660) + 1)}`}</div>
+                  <div class="text-[10px] text-emerald-200">কাস্টমার তথ্য, মাপ ক্লোন ও হিসাব</div>
                 </div>
               </div>
-              ${editingOrderId
-                ? `<button type="button" onclick="startFreshNewOrder()" class="px-2.5 py-1 rounded-xl bg-rose-600 text-white text-[11px] font-extrabold cursor-pointer">✕ বাতিল</button>`
-                : `<span class="px-2.5 py-1 rounded-full bg-white/15 text-amber-200 text-[10px] font-extrabold">✨ আল-কারীম POS</span>`}
+              ${editingOrderId ? `<button type="button" onclick="startFreshNewOrder()" class="px-2 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-extrabold cursor-pointer">✕ বাতিল</button>` : ''}
             </div>
 
-            <div class="p-4 space-y-3.5">
-              <!-- Gorgeous Customer Info Card -->
-              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-amber-50/60 border border-emerald-200/80 shadow-2xs space-y-2.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-extrabold text-emerald-950">👤 কাস্টমার ও ডেলিভারি তথ্য</span>
-                  <span class="text-[10px] font-bold text-emerald-700">নম্বর দিলে আগের মাপ আসবে</span>
-                </div>
-
+            <div class="px-4 space-y-2.5">
+              <div class="p-3 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-amber-50/50 border border-emerald-200/80 space-y-2 shadow-2xs">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div class="bg-white rounded-xl p-2 border border-emerald-200 focus-within:border-emerald-600 shadow-2xs">
-                    <label class="block text-[10px] font-extrabold text-emerald-800 mb-0.5">📱 মোবাইল নম্বর *</label>
-                    <input id="pos-cust-phone" type="tel" value="${state.orderForm.customerPhone || ''}" oninput="onOrderPhoneInput(this.value)" placeholder="017XXXXXXXX" class="w-full text-xs font-extrabold text-slate-900 bg-transparent outline-none" />
+                  <div>
+                    <label class="block text-[10px] font-extrabold text-emerald-950 mb-0.5">📱 মোবাইল নম্বর *</label>
+                    <input id="pos-cust-phone" type="tel" value="${state.orderForm.customerPhone || ''}" oninput="onOrderPhoneInput(this.value)" placeholder="017XXXXXXXX" class="w-full px-3 py-1.5 rounded-xl border border-emerald-300 bg-white font-extrabold focus:border-emerald-600 outline-none" />
                   </div>
-                  <div class="bg-white rounded-xl p-2 border border-slate-200 focus-within:border-emerald-600 shadow-2xs">
-                    <label class="block text-[10px] font-extrabold text-slate-600 mb-0.5">👤 কাস্টমারের নাম *</label>
-                    <input id="pos-cust-name" type="text" value="${state.orderForm.customerName || ''}" oninput="state.orderForm.customerName=this.value" placeholder="নাম লিখুন" class="w-full text-xs font-extrabold text-slate-900 bg-transparent outline-none" />
+                  <div>
+                    <label class="block text-[10px] font-extrabold text-emerald-950 mb-0.5">👤 কাস্টমারের নাম *</label>
+                    <input id="pos-cust-name" type="text" value="${state.orderForm.customerName || ''}" oninput="state.orderForm.customerName=this.value" placeholder="কাস্টমারের নাম" class="w-full px-3 py-1.5 rounded-xl border border-emerald-300 bg-white font-extrabold focus:border-emerald-600 outline-none" />
                   </div>
                 </div>
-
-                <div class="bg-white rounded-xl p-2 border border-slate-200 focus-within:border-emerald-600 shadow-2xs">
-                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">📍 ঠিকানা / মাদ্রাসা / প্রতিষ্ঠান</label>
-                  <input id="pos-cust-addr" type="text" value="${state.orderForm.customerAddress || ''}" oninput="state.orderForm.customerAddress=this.value" placeholder="ঠিকানা লিখুন (ঐচ্ছিক)" class="w-full text-xs font-bold text-slate-800 bg-transparent outline-none" />
+                <div>
+                  <label class="block text-[10px] font-extrabold text-slate-700 mb-0.5">📍 ঠিকানা / মাদ্রাসা / প্রতিষ্ঠান</label>
+                  <input id="pos-cust-addr" type="text" value="${state.orderForm.customerAddress || ''}" oninput="state.orderForm.customerAddress=this.value" placeholder="বাকেরগঞ্জ, বরিশাল / ঠিকানা লিখুন" class="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold outline-none" />
                 </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <div class="bg-white rounded-xl p-2 border border-slate-200 shadow-2xs">
-                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">📅 অর্ডার তারিখ</label>
-                    <input id="pos-order-date" type="date" value="${state.orderForm.orderDate}" onchange="state.orderForm.orderDate=this.value" class="w-full text-[11px] font-extrabold text-slate-800 bg-transparent outline-none" />
+                <div class="grid grid-cols-2 gap-2 pt-0.5">
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-600">📅 অর্ডার তারিখ</label>
+                    <input id="pos-order-date" type="date" value="${state.orderForm.orderDate}" onchange="state.orderForm.orderDate=this.value" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white font-bold" />
                   </div>
-                  <div class="bg-rose-50/70 rounded-xl p-2 border border-rose-200 shadow-2xs">
-                    <label class="block text-[10px] font-extrabold text-rose-700 mb-0.5">🚚 ডেলিভারি তারিখ *</label>
-                    <input id="pos-del-date" type="date" value="${state.orderForm.deliveryDate}" onchange="state.orderForm.deliveryDate=this.value" class="w-full text-[11px] font-extrabold text-rose-800 bg-transparent outline-none" />
+                  <div>
+                    <label class="block text-[10px] font-extrabold text-rose-700">🚚 ডেলিভারি তারিখ *</label>
+                    <input id="pos-del-date" type="date" value="${state.orderForm.deliveryDate}" onchange="state.orderForm.deliveryDate=this.value" class="w-full px-2.5 py-1.5 rounded-xl border border-rose-300 bg-white font-extrabold text-rose-800" />
                   </div>
                 </div>
               </div>
 
               <div id="pos-prev-orders-box"></div>
 
-              <!-- Cart Items -->
-              <div class="space-y-1.5 max-h-48 overflow-y-auto border-y border-slate-200 py-2.5">
-                ${cartItems.length === 0 ? `<div class="py-5 text-center text-slate-400 font-bold">বাম পাশ থেকে পোশাক বা কাপড় যোগ করুন</div>` : cartItems.map((it) => `
+              <div class="space-y-1.5 max-h-48 overflow-y-auto border-y border-slate-200 py-2">
+                ${cartItems.length === 0 ? `<div class="py-4 text-center text-slate-400 font-bold">বাম পাশ থেকে পোশাক বা কাপড় যোগ করুন</div>` : cartItems.map((it) => `
                   <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                       <div class="font-extrabold text-slate-900 truncate">${it.name}</div>
-                      <div class="text-[10px] text-slate-500">${formatTk(it.unitPrice)} × ${toBnNum(it.qty)} = <span class="font-extrabold text-emerald-800">${formatTk(it.lineTotal)}</span></div>
+                      <div class="text-[10px] text-slate-500">${formatTk(it.unitPrice)} × ${formatQtyBn(it.qty)} ${it.unit || 'পিস'} = <span class="font-extrabold text-emerald-800">${formatTk(it.lineTotal)}</span></div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                      ${it.type === 'tailor' ? `<button type="button" onclick="openGarmentOrderModal('${it.garmentId}', '${it.uid}')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[10px] cursor-pointer">📏 মাপ</button>` : ''}
-                      <button type="button" onclick="updateCartItemQty('${it.uid}', -1)" class="w-6 h-6 rounded-lg bg-slate-200 font-extrabold cursor-pointer">-</button>
-                      <span class="px-1.5 font-extrabold">${toBnNum(it.qty)}</span>
-                      <button type="button" onclick="updateCartItemQty('${it.uid}', 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-extrabold cursor-pointer">+</button>
+                      ${it.type === 'tailor' ? `<button type="button" onclick="openGarmentOrderModal('${it.garmentId}', '${it.uid}')" class="px-2 py-1 rounded bg-amber-100 text-amber-900 font-bold text-[10px] cursor-pointer">📏 মাপ</button>` : `<button type="button" onclick="openRetailItemOrderModal('${it.invId}', '${it.uid}')" class="px-2 py-1 rounded bg-amber-100 text-amber-900 font-bold text-[10px] cursor-pointer">✏️ গজ/দর</button>`}
+                      <button type="button" onclick="updateCartItemQty('${it.uid}', -1)" class="w-6 h-6 rounded bg-slate-200 font-extrabold cursor-pointer">-</button>
+                      <span class="px-1.5 font-extrabold">${formatQtyBn(it.qty)}</span>
+                      <button type="button" onclick="updateCartItemQty('${it.uid}', 1)" class="w-6 h-6 rounded bg-emerald-700 text-white font-extrabold cursor-pointer">+</button>
                     </div>
                   </div>
                 `).join('')}
               </div>
 
-              <!-- Smooth Payment & Totals -->
-              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <div class="flex justify-between font-bold text-slate-600">
                   <span>মোট সাব-টোটাল:</span>
                   <span>${formatTk(subTotal)}</span>
@@ -1408,7 +1451,7 @@
                     <input id="pos-paid-inp" type="number" min="0" value="${paid || ''}" oninput="syncPosTotalsLive()" placeholder="0" class="w-full px-3 py-1.5 rounded-xl border-2 border-emerald-500 bg-white font-extrabold text-emerald-900 outline-none" />
                   </div>
                 </div>
-                <div class="flex items-center justify-between pt-1.5 border-t border-slate-200">
+                <div class="flex items-center justify-between pt-1 border-t border-slate-200">
                   <div>
                     <div class="text-[10px] text-slate-500 font-bold">সর্বমোট বিল</div>
                     <div id="pos-grand-display" class="text-base font-extrabold text-slate-900">${formatTk(grandTotal)}</div>
@@ -1426,9 +1469,9 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" onclick="saveFinalOrder(false)" class="py-2.5 rounded-xl royal-gradient hover:opacity-95 text-amber-300 font-extrabold shadow-sm cursor-pointer">✓ অর্ডার সেভ করুন</button>
-                <button type="button" onclick="saveFinalOrder(true)" class="py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold shadow-sm cursor-pointer">🖨️ সেভ ও প্রিন্ট</button>
+              <div class="grid grid-cols-2 gap-2 pb-3">
+                <button type="button" onclick="saveFinalOrder(false)" class="py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-amber-300 font-extrabold cursor-pointer">✓ অর্ডার সেভ করুন</button>
+                <button type="button" onclick="saveFinalOrder(true)" class="py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold cursor-pointer">🖨️ সেভ ও প্রিন্ট</button>
               </div>
             </div>
           </div>
@@ -1436,9 +1479,6 @@
       `;
     }
 
-    // ==========================================
-    // 7. ORDERS LIST, MEASUREMENT VIEW/EDIT, ITEM CUTTING, DELIVERY POPUP
-    // ==========================================
     function openOrderMeasurementsViewModal(orderId) {
       const ord = (state.orders || []).find((o) => o.id === orderId);
       if (!ord) return;
@@ -1484,13 +1524,13 @@
           ${rItems.length ? `
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
               <div class="font-extrabold text-slate-700 mb-1">🧵 কাপড় ও রেডি প্রোডাক্ট:</div>
-              ${rItems.map((r) => `<div class="font-bold text-slate-800">• ${r.name} — ${toBnNum(r.qty)} ${r.unit || 'পিস'} (${formatTk(r.lineTotal)})</div>`).join('')}
+              ${rItems.map((r) => `<div class="font-bold text-slate-800">• ${r.name} — ${formatQtyBn(r.qty)} ${r.unit || 'পিস'} × ${formatTk(r.unitPrice)} = ${formatTk(r.lineTotal)}</div>`).join('')}
             </div>
           ` : ''}
 
           <div class="flex flex-wrap justify-end gap-2 pt-2 border-t">
-            ${isMasterAdmin() ? `<button type="button" onclick="openMeasurementsOnlyEditModal('${ord.id}')" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold cursor-pointer">✏️ মাপ এডিট করুন</button>` : ''}
-            <button type="button" onclick="printCuttingSlip('${ord.id}')" class="px-3.5 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">🏷️ কাটিং ট্যাগ প্রিন্ট</button>
+            ${isMasterAdmin() && tItems.length ? `<button type="button" onclick="openMeasurementsOnlyEditModal('${ord.id}')" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold cursor-pointer">✏️ মাপ এডিট করুন</button>` : ''}
+            ${tItems.length ? `<button type="button" onclick="printCuttingTag('${ord.id}')" class="px-3.5 py-2 rounded-xl bg-amber-100 text-amber-950 font-extrabold cursor-pointer">🏷️ কাটিং ট্যাগ</button>` : ''}
             <button type="button" onclick="printOrderMemo('${ord.id}')" class="px-3.5 py-2 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">🖨️ মেমো প্রিন্ট</button>
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বন্ধ করুন</button>
           </div>
@@ -1544,6 +1584,7 @@
       e.preventDefault();
       const ord = (state.orders || []).find((o) => o.id === orderId);
       if (!ord) return;
+      const measMap = {};
       (ord.items || []).forEach((it) => {
         if (it.type !== 'tailor') return;
         const newMeas = {};
@@ -1553,9 +1594,11 @@
           if (v) newMeas[f] = v;
         });
         it.measurements = newMeas;
+        measMap[it.name] = newMeas;
         const noteInp = document.querySelector(`[data-edit-note-uid="${it.uid}"]`);
         if (noteInp) it.tagNote = noteInp.value.trim();
       });
+      upsertCustomerRecord(ord.customerPhone, ord.customerName, ord.customerAddress, 0, measMap);
       persistState();
       closeModal();
       showToast('পোশাকের মাপ ও নোট আপডেট করা হয়েছে!', 'success');
@@ -1884,7 +1927,6 @@
                   ` : ''}
                 </div>
 
-                <!-- Item-level Cutting & Progress -->
                 ${tItems.length ? `
                   <div class="space-y-1.5 pt-1">
                     ${tItems.map((it) => `
@@ -1903,9 +1945,8 @@
                   </div>
                 ` : ''}
 
-                ${rItems.length ? `<div class="text-[11px] font-bold text-slate-600">🧵 কাপড়/প্রোডাক্ট: ${rItems.map((r) => `${r.name} (${toBnNum(r.qty)} ${r.unit || 'পিস'})`).join(', ')}</div>` : ''}
+                ${rItems.length ? `<div class="text-[11px] font-bold text-slate-600">🧵 কাপড়/প্রোডাক্ট: ${rItems.map((r) => `${r.name} (${formatQtyBn(r.qty)} ${r.unit || 'পিস'})`).join(', ')}</div>` : ''}
 
-                <!-- Action Buttons Bar -->
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
                   <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" onclick="openOrderMeasurementsViewModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-[11px] cursor-pointer">📏 মাপ</button>
@@ -1917,10 +1958,10 @@
                     ${!isKarigorAdmin() && ord.status !== 'Delivered' ? `<button type="button" onclick="openDeliveryCheckoutModal('${ord.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] cursor-pointer">📦 ডেলিভারি দিন</button>` : ''}
                     ${ord.status === 'Delivered' ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-extrabold text-[11px]">✅ ডেলিভারি সম্পন্ন</span>` : ''}
                     ${normalizeBdPhone(ord.customerPhone) ? `<button type="button" onclick="dispatchAutomatedWhatsApp(state.orders.find(o=>o.id==='${ord.id}'), '${ord.status === 'Delivered' ? 'DELIVERED' : 'READY'}', true)" class="px-2.5 py-1.5 rounded-lg bg-green-600 text-white font-extrabold text-[11px] cursor-pointer">📲 WA</button>` : ''}
-                    ${tItems.length ? `<button type="button" onclick="printCuttingSlip('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-[11px] cursor-pointer">🏷️ ট্যাগ</button>` : ''}
+                    ${tItems.length ? `<button type="button" onclick="printCuttingTag('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold text-[11px] cursor-pointer">🏷️ ট্যাগ</button>` : ''}
                     <button type="button" onclick="printOrderMemo('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 text-amber-300 font-extrabold text-[11px] cursor-pointer">🖨️ প্রিন্ট</button>
                     ${isMasterAdmin() ? `
-                      <button type="button" onclick="openMeasurementsOnlyEditModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold text-[11px] cursor-pointer">✏️ মাপ এডিট</button>
+                      ${tItems.length ? `<button type="button" onclick="openMeasurementsOnlyEditModal('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold text-[11px] cursor-pointer">✏️ মাপ এডিট</button>` : ''}
                       <button type="button" onclick="editFullOrderInPos('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-900 font-extrabold text-[11px] cursor-pointer">🔄 মেমো এডিট</button>
                       <button type="button" onclick="deleteOrder('${ord.id}')" class="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-[11px] cursor-pointer">🗑️</button>
                     ` : ''}
@@ -1933,15 +1974,12 @@
       `;
     }
 
-    // ==========================================
-    // 8. FULL STOCK LEDGER & CAPITAL VALUATION
-    // ==========================================
     function renderStockLedger() {
       const soldMap = {};
       (state.orders || []).forEach((o) => {
         (o.items || []).forEach((it) => {
           if (it.type === 'retail' && it.invId) {
-            soldMap[it.invId] = (soldMap[it.invId] || 0) + Number(it.qty || 0);
+            soldMap[it.invId] = Math.round(((soldMap[it.invId] || 0) + Number(it.qty || 0)) * 100) / 100;
           }
         });
       });
@@ -2031,8 +2069,8 @@
                         <td class="p-2.5 font-extrabold text-slate-900">${inv.name} <span class="text-[10px] font-normal text-slate-500">(${inv.category === 'Fabrics' ? 'কাপড়' : 'প্রোডাক্ট'})</span></td>
                         <td class="p-2.5 text-right font-bold">${formatTk(cp)}</td>
                         <td class="p-2.5 text-right font-bold">${formatTk(sp)}</td>
-                        <td class="p-2.5 text-center font-extrabold ${st <= 15 ? 'text-rose-700' : 'text-emerald-800'}">${toBnNum(st)} ${inv.unit}</td>
-                        <td class="p-2.5 text-center font-bold text-slate-600">${toBnNum(soldQty)} ${inv.unit}</td>
+                        <td class="p-2.5 text-center font-extrabold ${st <= 15 ? 'text-rose-700' : 'text-emerald-800'}">${formatQtyBn(st)} ${inv.unit}</td>
+                        <td class="p-2.5 text-center font-bold text-slate-600">${formatQtyBn(soldQty)} ${inv.unit}</td>
                         <td class="p-2.5 text-right font-extrabold text-emerald-900">${formatTk(st * cp)}</td>
                         <td class="p-2.5 text-right font-extrabold text-slate-900">${formatTk(st * sp)}</td>
                       </tr>
@@ -2053,9 +2091,6 @@
       `;
     }
 
-    // ==========================================
-    // 9. FABRICS & PRODUCTS INVENTORY MANAGEMENT
-    // ==========================================
     function openInventoryEditModal(category, invId = null) {
       if (!requireMasterGuard('স্টক আইটেম যোগ/এডিট')) return;
       const item = invId ? (state.inventory || []).find((x) => x.id === invId) : null;
@@ -2076,7 +2111,7 @@
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">বর্তমান মজুত</label>
-              <input id="inv-f-stock" type="number" step="0.5" min="0" required value="${item?.stock ?? 0}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold" />
+              <input id="inv-f-stock" type="number" step="0.05" min="0" required value="${item?.stock ?? 0}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold" />
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">কেনা দর (৳)</label>
@@ -2163,7 +2198,7 @@
                   <span class="w-10 h-10 rounded-full border-2 border-slate-300 shrink-0" style="background:${inv.colorHex || '#fff'}"></span>
                   <div class="min-w-0">
                     <div class="font-extrabold text-slate-900 truncate">${inv.name}</div>
-                    <div class="text-[11px] text-slate-500">রঙ: ${inv.colorName || '-'} • মজুত: <b class="${Number(inv.stock || 0) <= 15 ? 'text-rose-700' : 'text-emerald-800'}">${toBnNum(inv.stock)} ${inv.unit}</b></div>
+                    <div class="text-[11px] text-slate-500">রঙ: ${inv.colorName || '-'} • মজুত: <b class="${Number(inv.stock || 0) <= 15 ? 'text-rose-700' : 'text-emerald-800'}">${formatQtyBn(inv.stock)} ${inv.unit}</b></div>
                   </div>
                 </div>
                 ${inv.cutPiecesNote ? `<div class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 font-bold text-[10px]">✂️ ${inv.cutPiecesNote}</div>` : ''}
@@ -2171,7 +2206,7 @@
                   <div class="font-bold text-slate-600">কেনা: ${formatTk(inv.costPrice)} | বিক্রয়: <span class="font-extrabold text-emerald-800">${formatTk(inv.sellPrice)}</span></div>
                   <div class="flex gap-1">
                     <button type="button" onclick="openInventoryEditModal('${category}', '${inv.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-extrabold cursor-pointer">✏️ এডিট</button>
-                    <button type="button" onclick="deleteInventoryItem('${inv.id}')" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 font-extrabold cursor-pointer">🗑️</button>
+                    <button type="button" onclick="deleteInventoryItem('${inv.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-extrabold cursor-pointer">🗑️</button>
                   </div>
                 </div>
               </div>
@@ -2181,9 +2216,6 @@
       `;
     }
 
-    // ==========================================
-    // 10. TAILOR SERVICES & GARMENTS (WITH IMAGE UPLOAD)
-    // ==========================================
     function openGarmentCatalogEditModal(garmentId = null) {
       if (!requireMasterGuard('টেইলার্স আইটেম এডিট')) return;
       const g = garmentId ? (state.garments || []).find((x) => x.id === garmentId) : null;
@@ -2196,7 +2228,6 @@
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <form onsubmit="saveGarmentCatalogForm(event, '${garmentId || ''}'); return false;" class="p-4 space-y-3 text-xs max-h-[82vh] overflow-y-auto">
-          <!-- Image Upload & Preview -->
           <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <div id="grm-cat-img-preview" class="w-14 h-14 rounded-2xl bg-emerald-100 border border-slate-300 flex items-center justify-center overflow-hidden text-2xl shrink-0">
@@ -2347,9 +2378,6 @@
       `;
     }
 
-    // ==========================================
-    // 11. MULTI-ITEM PURCHASES & SUPPLIER LEDGER
-    // ==========================================
     function openNewMultiPurchaseModal() {
       if (!requireMasterGuard('নতুন ক্রয় চালান')) return;
       const firstInv = state.inventory[0];
@@ -2580,7 +2608,7 @@
                   <span>চালান: ${p.challanNo} (${formatDateNice(p.date)})</span>
                   <span>মোট: ${formatTk(p.totalAmount)} | বাকি: ${formatTk(p.dueAmount)}</span>
                 </div>
-                <div class="text-[11px] text-slate-600 mt-1">${(p.items || []).map((i) => `${i.name} (${toBnNum(i.qty)} ${i.unit})`).join(', ')}</div>
+                <div class="text-[11px] text-slate-600 mt-1">${(p.items || []).map((i) => `${i.name} (${formatQtyBn(i.qty)} ${i.unit})`).join(', ')}</div>
               </div>
             `).join('')}
           </div>
@@ -2647,9 +2675,6 @@
       `;
     }
 
-    // ==========================================
-    // 12. CUSTOMERS, KARIGOR (EDIT & DELETE INCLUDED), EXPENSES, REPORTS, SETTINGS, PRINT
-    // ==========================================
     function openCustomerDueCollectModal(custId) {
       const cust = (state.customers || []).find((c) => c.id === custId);
       if (!cust) return;
@@ -2690,50 +2715,24 @@
       renderApp();
     }
 
-    function renderCustomers() {
-      return `
-        <div class="space-y-3 text-xs">
-          <div class="bg-white rounded-2xl p-4 border border-slate-200">
-            <h2 class="text-sm font-extrabold text-slate-900">👥 কাস্টমার খাতা ও বকেয়া তালিকা (${toBnNum(state.customers.length)} জন)</h2>
-          </div>
-          ${state.customers.length === 0 ? `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">এখনো কোনো কাস্টমার যুক্ত হয়নি।</div>` : state.customers.map((c) => {
-            const savedCount = Object.keys(c.savedMeasurements || {}).length;
-            return `
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div class="font-extrabold text-sm text-slate-900">${c.name} <span class="text-xs font-bold text-slate-500">(${c.phone})</span></div>
-                <div class="text-[11px] text-slate-500">${c.address || 'ঠিকানা নেই'} • সেভ করা মাপ: <b>${toBnNum(savedCount)} টি</b></div>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="openCustomerSavedMeasurementsModal('${c.id}')" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold cursor-pointer">📏 মাপ দেখুন</button>
-                <span class="font-extrabold ${Number(c.totalDue || 0) > 0 ? 'text-rose-700' : 'text-emerald-700'}">${Number(c.totalDue || 0) > 0 ? `বাকি: ${formatTk(c.totalDue)}` : '✓ পরিশোধিত'}</span>
-                ${Number(c.totalDue || 0) > 0 ? `<button type="button" onclick="openCustomerDueCollectModal('${c.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">৳ আদায়</button>` : ''}
-              </div>
-            </div>
-          `;
-          }).join('')}
-        </div>
-      `;
-    }
-
     function openCustomerSavedMeasurementsModal(custId) {
       const cust = (state.customers || []).find((c) => c.id === custId);
       if (!cust) return;
-      const measEntries = Object.entries(cust.savedMeasurements || {});
+      const entries = Object.entries(cust.savedMeasurements || {});
       const html = `
         <div class="px-5 py-3.5 border-b royal-gradient text-white flex justify-between items-center">
           <div>
-            <h3 class="text-sm font-extrabold text-amber-300">📏 কাস্টমারের সেভ করা মাপ — ${cust.name}</h3>
+            <h3 class="text-sm font-extrabold text-amber-300">📏 সেভ করা মাপ — ${cust.name}</h3>
             <p class="text-[11px] text-emerald-200">${cust.phone} • ${cust.address || ''}</p>
           </div>
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <div class="p-4 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
-          ${measEntries.length === 0 ? `<div class="py-6 text-center text-slate-400 font-bold">এই কাস্টমারের কোনো মাপ এখনো সেভ করা নেই।</div>` : measEntries.map(([gName, mObj]) => `
+          ${entries.length === 0 ? `<div class="text-slate-400 text-center py-6 font-bold">এই কাস্টমারের কোনো সংরক্ষিত মাপ নেই।</div>` : entries.map(([gName, meas]) => `
             <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
-              <div class="font-extrabold text-sm text-emerald-950">👘 ${gName}</div>
+              <div class="font-extrabold text-emerald-950 text-sm">${gName}</div>
               <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
-                ${Object.entries(mObj || {}).map(([k, v]) => `
+                ${Object.entries(meas || {}).map(([k, v]) => `
                   <div class="p-2 rounded-lg bg-white border border-slate-200 text-center">
                     <div class="text-[10px] text-slate-500 font-bold">${k}</div>
                     <div class="text-sm font-extrabold text-slate-900">${v}</div>
@@ -2743,15 +2742,50 @@
             </div>
           `).join('')}
           <div class="flex justify-end gap-2 pt-2 border-t">
-            <button type="button" onclick="state.orderForm.customerPhone='${cust.phone}'; state.orderForm.customerName='${cust.name.replace(/'/g, "\\'")}'; state.orderForm.customerAddress='${(cust.address || '').replace(/'/g, "\\'")}'; closeModal(); navigateToTab('new-order');" class="px-4 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">+ এই কাস্টমারের নতুন অর্ডার নিন</button>
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বন্ধ করুন</button>
+            <button type="button" onclick="startOrderWithCustomer('${cust.id}'); closeModal();" class="px-4 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">+ এই কাস্টমারের নতুন অর্ডার</button>
           </div>
         </div>
       `;
-      openModal(html, 'max-w-xl');
+      openModal(html, 'max-w-lg');
     }
 
-    // Karigor Add, Edit, Delete & Payment
+    function startOrderWithCustomer(custId) {
+      const cust = (state.customers || []).find((c) => c.id === custId);
+      if (!cust) return;
+      startFreshNewOrder();
+      state.orderForm.customerPhone = cust.phone || '';
+      state.orderForm.customerName = cust.name || '';
+      state.orderForm.customerAddress = cust.address || '';
+      renderApp();
+    }
+
+    function renderCustomers() {
+      return `
+        <div class="space-y-3 text-xs">
+          <div class="bg-white rounded-2xl p-4 border border-slate-200">
+            <h2 class="text-sm font-extrabold text-slate-900">👥 কাস্টমার খাতা, মাপ ও বকেয়া তালিকা (${toBnNum(state.customers.length)} জন)</h2>
+          </div>
+          ${state.customers.length === 0 ? `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">এখনো কোনো কাস্টমার যুক্ত হয়নি।</div>` : state.customers.map((c) => {
+            const measCount = Object.keys(c.savedMeasurements || {}).length;
+            return `
+              <div class="bg-white rounded-2xl p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div class="font-extrabold text-sm text-slate-900">${c.name} <span class="text-xs font-bold text-slate-500">(${c.phone})</span></div>
+                  <div class="text-[11px] text-slate-500">${c.address || 'ঠিকানা নেই'} • ${measCount ? `<span class="text-emerald-800 font-bold">${toBnNum(measCount)}টি পোশাকের মাপ সেভ আছে</span>` : 'সেভ মাপ নেই'}</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="openCustomerSavedMeasurementsModal('${c.id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold cursor-pointer">📏 মাপ দেখুন</button>
+                  <span class="font-extrabold ${Number(c.totalDue || 0) > 0 ? 'text-rose-700' : 'text-emerald-700'}">${Number(c.totalDue || 0) > 0 ? `বাকি: ${formatTk(c.totalDue)}` : '✓ পরিশোধিত'}</span>
+                  ${Number(c.totalDue || 0) > 0 ? `<button type="button" onclick="openCustomerDueCollectModal('${c.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">৳ আদায়</button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     function openKarigorFormModal(karigorId = null) {
       if (!requireMasterGuard('কারিগর যোগ/এডিট')) return;
       const k = karigorId ? (state.karigors || []).find((x) => x.id === karigorId) : null;
@@ -3016,9 +3050,8 @@
       `;
     }
 
-    function setReportQuickPreset(preset) {
+    function setReportPreset(preset) {
       reportQuickPreset = preset;
-      reportDropdownOpen = false;
       const now = new Date();
       const todayIso = now.toISOString().split('T')[0];
       if (preset === 'TODAY') {
@@ -3032,14 +3065,13 @@
         reportFromDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         reportToDate = todayIso;
       } else if (preset === 'LAST_MONTH') {
-        const firstDayPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-        const lastDayPrev = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
-        reportFromDate = firstDayPrev;
-        reportToDate = lastDayPrev;
+        reportFromDate = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+        reportToDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
       } else {
         reportFromDate = '';
         reportToDate = '';
       }
+      reportDropdownOpen = false;
       renderApp();
     }
 
@@ -3048,31 +3080,31 @@
       const p = partnerId ? (state.partners || []).find((x) => x.id === partnerId) : null;
       const html = `
         <div class="px-5 py-3.5 border-b royal-gradient text-white flex justify-between items-center">
-          <h3 class="text-sm font-extrabold text-amber-300">${p ? `✏️ পার্টনার তথ্য এডিট — ${p.name}` : '🤝 নতুন পার্টনার যোগ করুন'}</h3>
+          <h3 class="text-sm font-extrabold text-amber-300">${p ? `✏️ পার্টনার এডিট — ${p.name}` : '🤝 নতুন পার্টনার যোগ করুন'}</h3>
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <form onsubmit="savePartnerForm(event, '${partnerId || ''}'); return false;" class="p-4 space-y-3 text-xs">
           <div>
             <label class="block font-bold text-slate-700 mb-1">পার্টনারের নাম *</label>
-            <input id="prt-f-name" type="text" required value="${p?.name || ''}" placeholder="যেমন: মোঃ আব্দুল করিম" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold" />
+            <input id="prt-name" type="text" required value="${p?.name || ''}" placeholder="পার্টনারের নাম" class="w-full px-3 py-2 rounded-xl border font-extrabold" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">লাভের শতকরা ভাগ (%) *</label>
-              <input id="prt-f-share" type="number" step="0.5" min="0" max="100" required value="${p?.sharePercent ?? 50}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold text-emerald-900" />
+              <label class="block font-bold text-slate-700 mb-1">লাভের শেয়ার (%)</label>
+              <input id="prt-share" type="number" min="0" max="100" step="0.5" required value="${p?.sharePct ?? 50}" class="w-full px-3 py-2 rounded-xl border font-extrabold text-emerald-800" />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">অংশীদারিত্বের বিভাগ *</label>
-              <select id="prt-f-scope" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-extrabold">
-                <option value="BOTH" ${(!p?.scope || p?.scope === 'BOTH') ? 'selected' : ''}>উভয় বিভাগ (টেইলারিং + ফেব্রিক্স)</option>
-                <option value="TAILOR" ${p?.scope === 'TAILOR' ? 'selected' : ''}>শুধু টেইলারিং লাভ</option>
-                <option value="RETAIL" ${p?.scope === 'RETAIL' ? 'selected' : ''}>শুধু ফেব্রিক্স ও প্রোডাক্ট লাভ</option>
+              <label class="block font-bold text-slate-700 mb-1">কোন বিভাগের লাভে অংশ?</label>
+              <select id="prt-scope" class="w-full px-3 py-2 rounded-xl border font-extrabold">
+                <option value="BOTH" ${p?.scope === 'BOTH' || !p?.scope ? 'selected' : ''}>উভয় বিভাগ (টেইলারিং + রিটেইল)</option>
+                <option value="TAILOR" ${p?.scope === 'TAILOR' ? 'selected' : ''}>শুধু টেইলারিং বিভাগ</option>
+                <option value="RETAIL" ${p?.scope === 'RETAIL' ? 'selected' : ''}>শুধু ফেব্রিক্স ও প্রোডাক্ট</option>
               </select>
             </div>
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">মোবাইল নম্বর</label>
-            <input id="prt-f-phone" type="tel" value="${p?.phone || ''}" placeholder="017XXXXXXXX" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            <input id="prt-phone" type="tel" value="${p?.phone || ''}" placeholder="017XXXXXXXX" class="w-full px-3 py-2 rounded-xl border font-bold" />
           </div>
           <div class="flex justify-end gap-2 pt-2 border-t">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
@@ -3080,28 +3112,25 @@
           </div>
         </form>
       `;
-      openModal(html, 'max-w-md');
+      openModal(html, 'max-w-sm');
     }
 
     function savePartnerForm(e, partnerId) {
       e.preventDefault();
-      const name = (document.getElementById('prt-f-name')?.value || '').trim();
-      const sharePercent = Math.max(0, Math.min(100, Number(document.getElementById('prt-f-share')?.value || 0)));
-      const scope = document.getElementById('prt-f-scope')?.value || 'BOTH';
-      const phone = (document.getElementById('prt-f-phone')?.value || '').trim();
+      const name = (document.getElementById('prt-name')?.value || '').trim();
+      const sharePct = Number(document.getElementById('prt-share')?.value || 0);
+      const scope = document.getElementById('prt-scope')?.value || 'BOTH';
+      const phone = (document.getElementById('prt-phone')?.value || '').trim();
       if (!name) return;
-
       if (partnerId) {
-        const idx = (state.partners || []).findIndex((x) => x.id === partnerId);
-        if (idx >= 0) state.partners[idx] = { ...state.partners[idx], name, sharePercent, scope, phone };
-        showToast(`"${name}" এর পার্টনার শেয়ার আপডেট হয়েছে!`, 'success');
+        const idx = state.partners.findIndex((x) => x.id === partnerId);
+        if (idx >= 0) state.partners[idx] = { ...state.partners[idx], name, sharePct, scope, phone };
       } else {
-        if (!Array.isArray(state.partners)) state.partners = [];
-        state.partners.push({ id: 'PRT-' + Date.now(), name, sharePercent, scope, phone });
-        showToast(`নতুন পার্টনার "${name}" যুক্ত হয়েছে!`, 'success');
+        state.partners.push({ id: 'PRT-' + Date.now(), name, sharePct, scope, phone });
       }
       persistState();
       closeModal();
+      showToast('পার্টনার তথ্য সেভ হয়েছে!', 'success');
       renderApp();
     }
 
@@ -3109,34 +3138,38 @@
       if (!requireMasterGuard('পার্টনার ডিলিট')) return;
       state.partners = (state.partners || []).filter((x) => x.id !== partnerId);
       persistState();
-      showToast('পার্টনার তালিকা থেকে সরানো হয়েছে।', 'warn');
+      showToast('পার্টনার তালিকা থেকে বাদ দেওয়া হয়েছে।', 'warn');
       renderApp();
     }
 
-    function openPartnerWithdrawModal(partnerId) {
+    function openPartnerWithdrawModal(partnerId = null) {
       if (!requireMasterGuard('পার্টনার উত্তোলন এন্ট্রি')) return;
-      const p = (state.partners || []).find((x) => x.id === partnerId);
-      if (!p) return;
       const today = new Date().toISOString().split('T')[0];
       const html = `
         <div class="px-5 py-3.5 border-b royal-gradient text-white flex justify-between items-center">
-          <h3 class="text-sm font-extrabold text-amber-300">💸 পার্টনার উত্তোলন (Withdraw) — ${p.name}</h3>
+          <h3 class="text-sm font-extrabold text-amber-300">💸 পার্টনার লাভ উত্তোলন (Withdraw)</h3>
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
-        <form onsubmit="submitPartnerWithdraw(event, '${p.id}'); return false;" class="p-4 space-y-3 text-xs">
+        <form onsubmit="savePartnerWithdraw(event); return false;" class="p-4 space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">পার্টনার নির্বাচন *</label>
+            <select id="pw-prt-id" required class="w-full px-3 py-2 rounded-xl border font-extrabold">
+              ${(state.partners || []).map((p) => `<option value="${p.id}" ${p.id === partnerId ? 'selected' : ''}>${p.name} (${toBnNum(p.sharePct)}%)</option>`).join('')}
+            </select>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">উত্তোলনের টাকা (৳) *</label>
+              <label class="block font-bold text-slate-700 mb-1">টাকার পরিমাণ (৳) *</label>
               <input id="pw-amt" type="number" min="1" required placeholder="0" class="w-full px-3 py-2 rounded-xl border-2 border-emerald-600 font-extrabold text-base" />
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">তারিখ</label>
-              <input id="pw-date" type="date" value="${today}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <input id="pw-date" type="date" value="${today}" required class="w-full px-3 py-2 rounded-xl border font-bold" />
             </div>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">বিবরণ / নোট</label>
-            <input id="pw-note" type="text" placeholder="যেমন: মাসিক লাভ উত্তোলন / ব্যক্তিগত প্রয়োজন" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            <label class="block font-bold text-slate-700 mb-1">নোট / বিবরণ</label>
+            <input id="pw-note" type="text" placeholder="যেমন: মাসিক উত্তোলন / ক্যাশ" class="w-full px-3 py-2 rounded-xl border font-bold" />
           </div>
           <div class="flex justify-end gap-2 pt-2 border-t">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">বাতিল</button>
@@ -3147,25 +3180,25 @@
       openModal(html, 'max-w-sm');
     }
 
-    function submitPartnerWithdraw(e, partnerId) {
+    function savePartnerWithdraw(e) {
       e.preventDefault();
-      const p = (state.partners || []).find((x) => x.id === partnerId);
+      const partnerId = document.getElementById('pw-prt-id')?.value;
+      const partner = (state.partners || []).find((x) => x.id === partnerId);
       const amount = Number(document.getElementById('pw-amt')?.value || 0);
       const date = document.getElementById('pw-date')?.value || new Date().toISOString().split('T')[0];
       const note = (document.getElementById('pw-note')?.value || '').trim();
-      if (!p || amount <= 0) return;
-      if (!Array.isArray(state.partnerWithdrawals)) state.partnerWithdrawals = [];
+      if (!partner || amount <= 0) return;
       state.partnerWithdrawals.unshift({
         id: 'PW-' + Date.now(),
         date,
-        partnerId: p.id,
-        partnerName: p.name,
+        partnerId: partner.id,
+        partnerName: partner.name,
         amount,
         note
       });
       persistState();
       closeModal();
-      showToast(`${p.name} এর নামে ${formatTk(amount)} উত্তোলন রেকর্ড হয়েছে!`, 'success');
+      showToast(`${partner.name} এর ${formatTk(amount)} উত্তোলন রেকর্ড হয়েছে!`, 'success');
       renderApp();
     }
 
@@ -3184,6 +3217,44 @@
         return true;
       });
 
+      const fin = calculateFinancials(filteredOrders);
+      const totalExp = filteredExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+      const tailorNet = fin.tailorRevenue - fin.karigorCost;
+      const retailNet = fin.retailRevenue - fin.retailCost - (reportDeductExpFromRetail ? totalExp : 0);
+      const grandTotalNet = tailorNet + retailNet;
+
+      const presetLabels = {
+        TODAY: 'আজ',
+        YESTERDAY: 'গতকাল',
+        MONTH: 'চলতি মাস',
+        LAST_MONTH: 'গত মাস',
+        ALL: 'সর্বমোট',
+        CUSTOM: 'কাস্টম তারিখ'
+      };
+
+      const periodRangeText = (!reportFromDate && !reportToDate)
+        ? 'সর্বমোট (All Time)'
+        : (reportFromDate === reportToDate ? formatDateNice(reportFromDate) : `${formatDateNice(reportFromDate)} — ${formatDateNice(reportToDate)}`);
+
+      const tailorMemoRows = [];
+      const retailMemoRows = [];
+      filteredOrders.forEach((o) => {
+        let tRev = 0, tCost = 0, rRev = 0, rCost = 0;
+        (o.items || []).forEach((it) => {
+          const lt = Number(it.lineTotal || (Number(it.unitPrice || 0) * Number(it.qty || 1)));
+          if (it.type === 'tailor') {
+            tRev += lt;
+            tCost += (Number(it.karigorFee || 0) + Number(it.completeFee || 0)) * Number(it.qty || 1);
+          } else {
+            rRev += lt;
+            const inv = (state.inventory || []).find((x) => x.id === it.invId);
+            rCost += Number(it.costPrice ?? inv?.costPrice ?? 0) * Number(it.qty || 1);
+          }
+        });
+        if (tRev > 0 || tCost > 0) tailorMemoRows.push({ id: o.id, date: o.orderDate, customer: o.customerName, rev: tRev, cost: tCost, net: tRev - tCost });
+        if (rRev > 0 || rCost > 0) retailMemoRows.push({ id: o.id, date: o.orderDate, customer: o.customerName, rev: rRev, cost: rCost, net: rRev - rCost });
+      });
+
       const filteredWithdrawals = (state.partnerWithdrawals || []).filter((w) => {
         const dStr = String(w.date || '').slice(0, 10);
         if (reportFromDate && dStr < reportFromDate) return false;
@@ -3191,287 +3262,267 @@
         return true;
       });
 
-      const fin = calculateFinancials(filteredOrders);
-      const totalExp = filteredExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-      const tailorNet = fin.tailorRevenue - fin.karigorCost;
-      const retailGrossProfit = fin.retailRevenue - fin.retailCost;
-      const retailNet = retailGrossProfit - (reportDeductExpFromRetail ? totalExp : 0);
-      const combinedNetProfit = tailorNet + retailNet - (reportDeductExpFromRetail ? 0 : totalExp);
-
-      const presetLabels = {
-        TODAY: 'আজ',
-        YESTERDAY: 'গতকাল',
-        MONTH: 'চলতি মাস',
-        LAST_MONTH: 'গত মাস',
-        ALL: 'সর্বমোট (All Time)',
-        CUSTOM: 'কাস্টম তারিখ'
-      };
-      const dateLabel = (!reportFromDate && !reportToDate)
-        ? 'সর্বমোট (All Time)'
-        : (reportFromDate === reportToDate ? formatDateNice(reportFromDate) : `${formatDateNice(reportFromDate)} — ${formatDateNice(reportToDate)}`);
-
-      const orderProfitRows = filteredOrders.map((o) => {
-        let tRev = 0, tCost = 0, rRev = 0, rCost = 0;
-        (o.items || []).forEach((it) => {
-          const lineTotal = Number(it.lineTotal || (Number(it.unitPrice || 0) * Number(it.qty || 1)));
-          if (it.type === 'tailor') {
-            tRev += lineTotal;
-            tCost += (Number(it.karigorFee || 0) + Number(it.completeFee || 0)) * Number(it.qty || 1);
-          } else {
-            rRev += lineTotal;
-            const inv = (state.inventory || []).find((x) => x.id === it.invId);
-            rCost += Number(it.costPrice ?? inv?.costPrice ?? 0) * Number(it.qty || 1);
-          }
-        });
-        return {
-          id: o.id,
-          date: o.orderDate,
-          customerName: o.customerName,
-          tRev, tCost, tProfit: tRev - tCost,
-          rRev, rCost, rProfit: rRev - rCost
-        };
-      });
-
-      const partners = state.partners || [];
-      const partnerCardsHtml = partners.map((p) => {
-        const baseProfit = p.scope === 'TAILOR' ? tailorNet : p.scope === 'RETAIL' ? retailNet : combinedNetProfit;
-        const earnedShare = Math.round((baseProfit * Number(p.sharePercent || 0)) / 100);
-        const withdrawnAmt = filteredWithdrawals.filter((w) => w.partnerId === p.id).reduce((s, w) => s + Number(w.amount || 0), 0);
-        const remainingBalance = earnedShare - withdrawnAmt;
-        const scopeLabel = p.scope === 'TAILOR' ? 'শুধু টেইলারিং' : p.scope === 'RETAIL' ? 'শুধু ফেব্রিক্স ও প্রোডাক্ট' : 'উভয় বিভাগ (টেইলারিং + ফেব্রিক্স)';
-        return `
-          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-extrabold text-sm text-slate-900">${p.name}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-extrabold">${toBnNum(p.sharePercent)}% শেয়ার</span>
-                </div>
-                <div class="text-[11px] text-slate-500 mt-0.5">${scopeLabel} ${p.phone ? `• ${p.phone}` : ''}</div>
-              </div>
-              ${isMasterAdmin() ? `
-                <div class="flex gap-1">
-                  <button type="button" onclick="openPartnerFormModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold cursor-pointer">✏️ এডিট</button>
-                  <button type="button" onclick="deletePartnerItem('${p.id}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold cursor-pointer">🗑️</button>
-                </div>
-              ` : ''}
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100">
-              <div class="p-2 rounded-xl bg-emerald-50">
-                <div class="text-[10px] text-emerald-800 font-bold">প্রাপ্য লাভ</div>
-                <div class="font-extrabold text-emerald-950 text-sm">${formatTk(earnedShare)}</div>
-              </div>
-              <div class="p-2 rounded-xl bg-amber-50">
-                <div class="text-[10px] text-amber-800 font-bold">উত্তোলন</div>
-                <div class="font-extrabold text-amber-950 text-sm">${formatTk(withdrawnAmt)}</div>
-              </div>
-              <div class="p-2 rounded-xl ${remainingBalance >= 0 ? 'bg-blue-50' : 'bg-rose-50'}">
-                <div class="text-[10px] ${remainingBalance >= 0 ? 'text-blue-800' : 'text-rose-700'} font-bold">অবশিষ্ট পাওনা</div>
-                <div class="font-extrabold ${remainingBalance >= 0 ? 'text-blue-950' : 'text-rose-700'} text-sm">${formatTk(remainingBalance)}</div>
-              </div>
-            </div>
-
-            ${isMasterAdmin() ? `
-              <div class="flex justify-end">
-                <button type="button" onclick="openPartnerWithdrawModal('${p.id}')" class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">💸 উত্তোলন এন্ট্রি দিন</button>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-
       return `
         <div class="space-y-4 text-xs">
-          <!-- Top Compact Dropdown Date Filter & Print Header -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 class="text-base font-extrabold text-emerald-950">📈 রিপোর্ট, লাভ-ক্ষতি ও পার্টনার খাতা</h2>
-              <p class="text-[11px] text-slate-500">সময়কালঃ <b class="text-emerald-900">${dateLabel}</b> • সর্বমোট নিট লাভ: <b class="text-emerald-800">${formatTk(combinedNetProfit)}</b></p>
-            </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">📈 রিপোর্ট, লাভ-ক্ষতি ও পার্টনার খাতা</h2>
+                <p class="text-[11px] text-slate-500">সময়কালঃ <b class="text-emerald-900">${periodRangeText}</b> • সর্বমোট নিট লাভ: <b class="${grandTotalNet >= 0 ? 'text-emerald-800' : 'text-rose-700'}">${formatTk(grandTotalNet)}</b></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 relative">
+                <button type="button" onclick="reportDropdownOpen=!reportDropdownOpen; renderApp();" class="px-3.5 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">📅 ${presetLabels[reportQuickPreset] || 'চলতি মাস'} ▾</button>
+                <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                  <input type="date" value="${reportFromDate}" onchange="reportFromDate=this.value; reportQuickPreset='CUSTOM'; renderApp();" class="bg-transparent font-bold text-[11px] outline-none" />
+                  <span class="text-slate-400 font-bold">—</span>
+                  <input type="date" value="${reportToDate}" onchange="reportToDate=this.value; reportQuickPreset='CUSTOM'; renderApp();" class="bg-transparent font-bold text-[11px] outline-none" />
+                </div>
+                <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">🖨️ প্রিন্ট</button>
 
-            <div class="flex flex-wrap items-center gap-2 relative">
-              <!-- Compact Dropdown Preset Selector -->
-              <div class="relative">
-                <button type="button" onclick="reportDropdownOpen=!reportDropdownOpen; renderApp();" class="px-3.5 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold flex items-center gap-1.5 cursor-pointer">
-                  <span>📅 ${presetLabels[reportQuickPreset] || 'চলতি মাস'}</span>
-                  <span>▾</span>
-                </button>
                 ${reportDropdownOpen ? `
-                  <div class="absolute right-0 mt-1.5 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-30">
-                    <button type="button" onclick="setReportQuickPreset('TODAY')" class="w-full px-3.5 py-2 text-left hover:bg-emerald-50 font-bold cursor-pointer">আজ</button>
-                    <button type="button" onclick="setReportQuickPreset('YESTERDAY')" class="w-full px-3.5 py-2 text-left hover:bg-emerald-50 font-bold cursor-pointer">গতকাল</button>
-                    <button type="button" onclick="setReportQuickPreset('MONTH')" class="w-full px-3.5 py-2 text-left hover:bg-emerald-50 font-bold cursor-pointer">চলতি মাস</button>
-                    <button type="button" onclick="setReportQuickPreset('LAST_MONTH')" class="w-full px-3.5 py-2 text-left hover:bg-emerald-50 font-bold cursor-pointer">গত মাস</button>
-                    <button type="button" onclick="setReportQuickPreset('ALL')" class="w-full px-3.5 py-2 text-left hover:bg-emerald-50 font-bold cursor-pointer">সর্বমোট (All Time)</button>
+                  <div class="absolute right-0 top-11 z-30 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 space-y-1">
+                    <button type="button" onclick="setReportPreset('TODAY')" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-emerald-50 font-bold cursor-pointer">আজ</button>
+                    <button type="button" onclick="setReportPreset('YESTERDAY')" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-emerald-50 font-bold cursor-pointer">গতকাল</button>
+                    <button type="button" onclick="setReportPreset('MONTH')" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-emerald-50 font-bold cursor-pointer">চলতি মাস</button>
+                    <button type="button" onclick="setReportPreset('LAST_MONTH')" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-emerald-50 font-bold cursor-pointer">গত মাস</button>
+                    <button type="button" onclick="setReportPreset('ALL')" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-emerald-50 font-bold cursor-pointer">সর্বমোট</button>
                   </div>
                 ` : ''}
               </div>
-
-              <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
-                <input type="date" value="${reportFromDate}" onchange="reportFromDate=this.value; reportQuickPreset='CUSTOM'; renderApp();" class="bg-transparent font-bold text-[11px] outline-none" />
-                <span class="text-slate-400">—</span>
-                <input type="date" value="${reportToDate}" onchange="reportToDate=this.value; reportQuickPreset='CUSTOM'; renderApp();" class="bg-transparent font-bold text-[11px] outline-none" />
-              </div>
-
-              <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">🖨️ প্রিন্ট</button>
             </div>
           </div>
 
-          <!-- 3 Clean Division Tabs (No Clutter!) -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <button type="button" onclick="activeReportSubTab='TAILOR'; renderApp();" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${activeReportSubTab === 'TAILOR' ? 'royal-gradient text-white border-emerald-900 shadow-sm' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-400'}">
-              <div class="text-[11px] font-bold ${activeReportSubTab === 'TAILOR' ? 'text-amber-300' : 'text-slate-500'}">✂️ ১. টেইলারিং বিভাগ</div>
-              <div class="text-base font-extrabold mt-0.5">নিট লাভ: ${formatTk(tailorNet)}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button type="button" onclick="activeReportSubTab='TAILOR'; renderApp();" class="p-4 rounded-2xl border text-left transition cursor-pointer ${activeReportSubTab === 'TAILOR' ? 'royal-gradient text-white border-emerald-900 shadow-md' : 'bg-white text-slate-900 border-slate-200 hover:border-emerald-500'}">
+              <div class="text-xs font-extrabold ${activeReportSubTab === 'TAILOR' ? 'text-amber-300' : 'text-emerald-900'}">✂️ ১. টেইলারিং বিভাগ</div>
+              <div class="text-lg font-extrabold mt-1">নিট লাভ: ${formatTk(tailorNet)}</div>
             </button>
-
-            <button type="button" onclick="activeReportSubTab='RETAIL'; renderApp();" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${activeReportSubTab === 'RETAIL' ? 'royal-gradient text-white border-emerald-900 shadow-sm' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-400'}">
-              <div class="text-[11px] font-bold ${activeReportSubTab === 'RETAIL' ? 'text-amber-300' : 'text-slate-500'}">🧵 ২. ফেব্রিক্স ও প্রোডাক্ট</div>
-              <div class="text-base font-extrabold mt-0.5">নিট লাভ: ${formatTk(retailNet)}</div>
+            <button type="button" onclick="activeReportSubTab='RETAIL'; renderApp();" class="p-4 rounded-2xl border text-left transition cursor-pointer ${activeReportSubTab === 'RETAIL' ? 'royal-gradient text-white border-emerald-900 shadow-md' : 'bg-white text-slate-900 border-slate-200 hover:border-amber-500'}">
+              <div class="text-xs font-extrabold ${activeReportSubTab === 'RETAIL' ? 'text-amber-300' : 'text-amber-900'}">🧵 ২. ফেব্রিক্স ও প্রোডাক্ট</div>
+              <div class="text-lg font-extrabold mt-1">নিট লাভ: ${formatTk(retailNet)}</div>
             </button>
-
-            <button type="button" onclick="activeReportSubTab='PARTNERS'; renderApp();" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${activeReportSubTab === 'PARTNERS' ? 'royal-gradient text-white border-emerald-900 shadow-sm' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-400'}">
-              <div class="text-[11px] font-bold ${activeReportSubTab === 'PARTNERS' ? 'text-amber-300' : 'text-slate-500'}">🤝 ৩. পার্টনারশিপ ও বণ্টন</div>
-              <div class="text-base font-extrabold mt-0.5">সর্বমোট লাভ: ${formatTk(combinedNetProfit)}</div>
+            <button type="button" onclick="activeReportSubTab='PARTNERS'; renderApp();" class="p-4 rounded-2xl border text-left transition cursor-pointer ${activeReportSubTab === 'PARTNERS' ? 'royal-gradient text-white border-emerald-900 shadow-md' : 'bg-white text-slate-900 border-slate-200 hover:border-emerald-500'}">
+              <div class="text-xs font-extrabold ${activeReportSubTab === 'PARTNERS' ? 'text-amber-300' : 'text-slate-900'}">🤝 ৩. পার্টনারশিপ ও বণ্টন</div>
+              <div class="text-lg font-extrabold mt-1">সর্বমোট লাভ: ${formatTk(grandTotalNet)}</div>
             </button>
           </div>
 
           ${activeReportSubTab === 'TAILOR' ? `
-            <!-- Tab 1: Tailoring P&L Only -->
-            <div class="grid grid-cols-3 gap-3">
-              <div class="bg-white rounded-2xl p-4 border border-slate-200">
-                <div class="text-slate-500 font-bold">মোট সেলাই মজুরি আয়</div>
-                <div class="text-lg font-extrabold text-slate-900 mt-1">${formatTk(fin.tailorRevenue)}</div>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200">
+                  <div class="text-slate-500 font-bold">মোট সেলাই মজুরি আয়</div>
+                  <div class="text-xl font-extrabold text-slate-900 mt-1">${formatTk(fin.tailorRevenue)}</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-rose-200">
+                  <div class="text-rose-700 font-bold">(-) কারিগর ও কমপ্লিট খরচ</div>
+                  <div class="text-xl font-extrabold text-rose-700 mt-1">${formatTk(fin.karigorCost)}</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border-2 border-emerald-500">
+                  <div class="text-emerald-800 font-bold">নিট টেইলারিং লাভ</div>
+                  <div class="text-xl font-extrabold text-emerald-950 mt-1">${formatTk(tailorNet)}</div>
+                </div>
               </div>
-              <div class="bg-white rounded-2xl p-4 border border-rose-200">
-                <div class="text-rose-700 font-bold">(-) কারিগর ও কমপ্লিট খরচ</div>
-                <div class="text-lg font-extrabold text-rose-700 mt-1">${formatTk(fin.karigorCost)}</div>
-              </div>
-              <div class="bg-white rounded-2xl p-4 border border-emerald-300">
-                <div class="text-emerald-800 font-bold">নিট টেইলারিং লাভ</div>
-                <div class="text-lg font-extrabold text-emerald-950 mt-1">${formatTk(tailorNet)}</div>
-              </div>
-            </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 overflow-x-auto">
-              <h3 class="font-extrabold text-sm text-emerald-950 mb-3">✂️ টেইলারিং মেমো-বাই-মেমো লাভের চার্ট</h3>
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-emerald-950 text-amber-300 text-[11px]">
-                    <th class="p-2.5 rounded-tl-xl">মেমো নং</th>
-                    <th class="p-2.5">তারিখ</th>
-                    <th class="p-2.5">কাস্টমার</th>
-                    <th class="p-2.5 text-right">সেলাই বিল</th>
-                    <th class="p-2.5 text-right">কারিগর ও কমপ্লিট খরচ</th>
-                    <th class="p-2.5 text-right rounded-tr-xl">নিট লাভ</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                  ${orderProfitRows.filter((r) => r.tRev > 0).map((r) => `
-                    <tr class="hover:bg-slate-50">
-                      <td class="p-2.5 font-extrabold text-emerald-900">#${r.id.replace('ORD-', '')}</td>
-                      <td class="p-2.5">${formatDateNice(r.date)}</td>
-                      <td class="p-2.5 font-bold">${r.customerName}</td>
-                      <td class="p-2.5 text-right font-bold">${formatTk(r.tRev)}</td>
-                      <td class="p-2.5 text-right text-rose-700 font-bold">${formatTk(r.tCost)}</td>
-                      <td class="p-2.5 text-right font-extrabold text-emerald-800">${formatTk(r.tProfit)}</td>
-                    </tr>
-                  `).join('') || `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-bold">নির্বাচিত সময়ে টেইলারিংয়ের কোনো হিসাব নেই।</td></tr>`}
-                </tbody>
-              </table>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
+                <h3 class="font-extrabold text-sm text-slate-900">✂️ টেইলারিং মেমো-বাই-মেমো লাভের চার্ট</h3>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-emerald-950 text-amber-300 text-[11px]">
+                        <th class="p-2.5">মেমো নং</th>
+                        <th class="p-2.5">তারিখ</th>
+                        <th class="p-2.5">কাস্টমার</th>
+                        <th class="p-2.5 text-right">মজুরি আয়</th>
+                        <th class="p-2.5 text-right">কারিগর খরচ</th>
+                        <th class="p-2.5 text-right">নিট লাভ</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                      ${tailorMemoRows.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-bold">নির্বাচিত সময়ে কোনো টেইলারিং মেমো নেই।</td></tr>` : tailorMemoRows.map((r) => `
+                        <tr>
+                          <td class="p-2.5 font-extrabold">#${r.id.replace('ORD-', '')}</td>
+                          <td class="p-2.5">${formatDateNice(r.date)}</td>
+                          <td class="p-2.5 font-bold">${r.customer}</td>
+                          <td class="p-2.5 text-right font-bold">${formatTk(r.rev)}</td>
+                          <td class="p-2.5 text-right font-bold text-rose-700">${formatTk(r.cost)}</td>
+                          <td class="p-2.5 text-right font-extrabold text-emerald-800">${formatTk(r.net)}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           ` : activeReportSubTab === 'RETAIL' ? `
-            <!-- Tab 2: Fabrics & Products P&L Only -->
-            <div class="bg-white rounded-2xl p-3.5 border border-amber-200 flex items-center justify-between">
-              <span class="font-bold text-slate-700">দৈনিক দোকান খরচ (${formatTk(totalExp)}) কি ফেব্রিক্স ও প্রোডাক্ট লাভ থেকে বাদ দেবেন?</span>
-              <label class="flex items-center gap-2 font-extrabold text-amber-950 cursor-pointer">
-                <input type="checkbox" ${reportDeductExpFromRetail ? 'checked' : ''} onchange="reportDeductExpFromRetail=this.checked; renderApp();" class="accent-emerald-700" />
-                <span>হ্যাঁ, বাদ দিন</span>
-              </label>
-            </div>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200">
+                  <div class="text-slate-500 font-bold">মোট কাপড় ও প্রোডাক্ট বিক্রি</div>
+                  <div class="text-xl font-extrabold text-slate-900 mt-1">${formatTk(fin.retailRevenue)}</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-rose-200">
+                  <div class="text-rose-700 font-bold">(-) ক্রয়মূল্য ও দৈনিক খরচ</div>
+                  <div class="text-xl font-extrabold text-rose-700 mt-1">${formatTk(fin.retailCost + (reportDeductExpFromRetail ? totalExp : 0))}</div>
+                  <label class="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-slate-700 cursor-pointer">
+                    <input type="checkbox" ${reportDeductExpFromRetail ? 'checked' : ''} onchange="reportDeductExpFromRetail=this.checked; renderApp();" class="accent-emerald-700" />
+                    <span>দৈনিক খরচ (${formatTk(totalExp)}) বাদ দিন</span>
+                  </label>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border-2 border-amber-500">
+                  <div class="text-amber-900 font-bold">নিট ফেব্রিক্স ও প্রোডাক্ট লাভ</div>
+                  <div class="text-xl font-extrabold text-amber-950 mt-1">${formatTk(retailNet)}</div>
+                </div>
+              </div>
 
-            <div class="grid grid-cols-3 gap-3">
-              <div class="bg-white rounded-2xl p-4 border border-slate-200">
-                <div class="text-slate-500 font-bold">মোট কাপড় ও প্রোডাক্ট বিক্রি</div>
-                <div class="text-lg font-extrabold text-slate-900 mt-1">${formatTk(fin.retailRevenue)}</div>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
+                <h3 class="font-extrabold text-sm text-slate-900">🧵 কাপড় ও প্রোডাক্ট বিক্রির চার্ট</h3>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-emerald-950 text-amber-300 text-[11px]">
+                        <th class="p-2.5">মেমো নং</th>
+                        <th class="p-2.5">তারিখ</th>
+                        <th class="p-2.5">কাস্টমার</th>
+                        <th class="p-2.5 text-right">বিক্রি</th>
+                        <th class="p-2.5 text-right">ক্রয়মূল্য</th>
+                        <th class="p-2.5 text-right">নিট লাভ</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                      ${retailMemoRows.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-bold">নির্বাচিত সময়ে কোনো কাপড়/প্রোডাক্ট বিক্রি নেই।</td></tr>` : retailMemoRows.map((r) => `
+                        <tr>
+                          <td class="p-2.5 font-extrabold">#${r.id.replace('ORD-', '')}</td>
+                          <td class="p-2.5">${formatDateNice(r.date)}</td>
+                          <td class="p-2.5 font-bold">${r.customer}</td>
+                          <td class="p-2.5 text-right font-bold">${formatTk(r.rev)}</td>
+                          <td class="p-2.5 text-right font-bold text-rose-700">${formatTk(r.cost)}</td>
+                          <td class="p-2.5 text-right font-extrabold text-emerald-800">${formatTk(r.net)}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div class="bg-white rounded-2xl p-4 border border-rose-200">
-                <div class="text-rose-700 font-bold">(-) ক্রয়মূল্য ও খরচ</div>
-                <div class="text-lg font-extrabold text-rose-700 mt-1">${formatTk(fin.retailCost + (reportDeductExpFromRetail ? totalExp : 0))}</div>
-              </div>
-              <div class="bg-white rounded-2xl p-4 border border-amber-300">
-                <div class="text-amber-900 font-bold">নিট ফেব্রিক্স ও প্রোডাক্ট লাভ</div>
-                <div class="text-lg font-extrabold text-amber-950 mt-1">${formatTk(retailNet)}</div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 overflow-x-auto">
-              <h3 class="font-extrabold text-sm text-amber-950 mb-3">🧵 ফেব্রিক্স ও প্রোডাক্ট মেমো-বাই-মেমো লাভের চার্ট</h3>
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-emerald-950 text-amber-300 text-[11px]">
-                    <th class="p-2.5 rounded-tl-xl">মেমো নং</th>
-                    <th class="p-2.5">তারিখ</th>
-                    <th class="p-2.5">কাস্টমার</th>
-                    <th class="p-2.5 text-right">পণ্য বিক্রি</th>
-                    <th class="p-2.5 text-right">পণ্য ক্রয়মূল্য</th>
-                    <th class="p-2.5 text-right rounded-tr-xl">নিট লাভ</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                  ${orderProfitRows.filter((r) => r.rRev > 0).map((r) => `
-                    <tr class="hover:bg-slate-50">
-                      <td class="p-2.5 font-extrabold text-emerald-900">#${r.id.replace('ORD-', '')}</td>
-                      <td class="p-2.5">${formatDateNice(r.date)}</td>
-                      <td class="p-2.5 font-bold">${r.customerName}</td>
-                      <td class="p-2.5 text-right font-bold">${formatTk(r.rRev)}</td>
-                      <td class="p-2.5 text-right text-rose-700 font-bold">${formatTk(r.rCost)}</td>
-                      <td class="p-2.5 text-right font-extrabold text-emerald-800">${formatTk(r.rProfit)}</td>
-                    </tr>
-                  `).join('') || `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-bold">নির্বাচিত সময়ে কাপড় বা প্রোডাক্ট বিক্রির কোনো হিসাব নেই।</td></tr>`}
-                </tbody>
-              </table>
             </div>
           ` : `
-            <!-- Tab 3: Partnership & Profit Distribution Ledger -->
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 class="text-sm font-extrabold text-emerald-950">🤝 পার্টনারশিপ লাভ বণ্টন ও উত্তোলন খাতা</h3>
-                <p class="text-[11px] text-slate-500">সর্বমোট নিট লাভ: <b class="text-emerald-800">${formatTk(combinedNetProfit)}</b> (টেইলারিং: ${formatTk(tailorNet)} + ফেব্রিক্স/প্রোডাক্ট: ${formatTk(retailNet)})</p>
+            <div class="space-y-4">
+              <div class="bg-white rounded-2xl p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-sm font-extrabold text-slate-900">🤝 পার্টনার লাভ বণ্টন ও উত্তোলন খাতা</h3>
+                  <p class="text-[11px] text-slate-500">সর্বমোট নিট লাভ: <b class="text-emerald-900">${formatTk(grandTotalNet)}</b> (টেইলারিং: ${formatTk(tailorNet)} + রিটেইল: ${formatTk(retailNet)})</p>
+                </div>
+                <div class="flex gap-2">
+                  <button type="button" onclick="openPartnerWithdrawModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold cursor-pointer">💸 উত্তোলন এন্ট্রি</button>
+                  <button type="button" onclick="openPartnerFormModal()" class="px-3.5 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">+ পার্টনার যোগ</button>
+                </div>
               </div>
-              ${isMasterAdmin() ? `<button type="button" onclick="openPartnerFormModal()" class="px-4 py-2 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">+ নতুন পার্টনার যোগ</button>` : ''}
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              ${partnerCardsHtml || `<div class="col-span-2 bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">কোনো পার্টনার যুক্ত নেই।</div>`}
-            </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${(state.partners || []).map((prt) => {
+                  const baseProfit = prt.scope === 'TAILOR' ? tailorNet : (prt.scope === 'RETAIL' ? retailNet : grandTotalNet);
+                  const earnedShare = Math.round((baseProfit * Number(prt.sharePct || 0)) / 100);
+                  const withdrawnAmt = filteredWithdrawals.filter((w) => w.partnerId === prt.id).reduce((s, w) => s + Number(w.amount || 0), 0);
+                  const netBalance = earnedShare - withdrawnAmt;
+                  return `
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 space-y-2.5">
+                      <div class="flex items-start justify-between gap-2">
+                        <div>
+                          <div class="font-extrabold text-sm text-slate-900">${prt.name} <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-extrabold">${toBnNum(prt.sharePct)}% শেয়ার</span></div>
+                          <div class="text-[11px] text-slate-500">${prt.scope === 'TAILOR' ? 'শুধু টেইলারিং বিভাগ' : (prt.scope === 'RETAIL' ? 'শুধু ফেব্রিক্স ও প্রোডাক্ট' : 'উভয় বিভাগ (টেইলারিং + রিটেইল)')}</div>
+                        </div>
+                        <div class="flex gap-1">
+                          <button type="button" onclick="openPartnerWithdrawModal('${prt.id}')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-extrabold cursor-pointer">💸 উত্তোলন</button>
+                          <button type="button" onclick="openPartnerFormModal('${prt.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 font-extrabold cursor-pointer">✏️</button>
+                          ${state.partners.length > 1 ? `<button type="button" onclick="deletePartnerItem('${prt.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-extrabold cursor-pointer">🗑️</button>` : ''}
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100">
+                        <div class="p-2 rounded-xl bg-emerald-50">
+                          <div class="text-[10px] text-emerald-700">প্রাপ্য লাভ</div>
+                          <div class="font-extrabold text-emerald-950">${formatTk(earnedShare)}</div>
+                        </div>
+                        <div class="p-2 rounded-xl bg-amber-50">
+                          <div class="text-[10px] text-amber-800">(-) উত্তোলন</div>
+                          <div class="font-extrabold text-amber-950">${formatTk(withdrawnAmt)}</div>
+                        </div>
+                        <div class="p-2 rounded-xl bg-slate-100">
+                          <div class="text-[10px] text-slate-600">অবশিষ্ট পাওনা</div>
+                          <div class="font-extrabold ${netBalance >= 0 ? 'text-emerald-800' : 'text-rose-700'}">${formatTk(netBalance)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 overflow-x-auto">
-              <h4 class="font-extrabold text-sm text-slate-900 mb-2.5">💸 পার্টনার উত্তোলন (Withdrawals) ইতিহাস</h4>
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-emerald-950 text-amber-300 text-[11px]">
-                    <th class="p-2.5 rounded-tl-xl">তারিখ</th>
-                    <th class="p-2.5">পার্টনারের নাম</th>
-                    <th class="p-2.5">বিবরণ / নোট</th>
-                    <th class="p-2.5 text-right rounded-tr-xl">উত্তোলন (৳)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                  ${filteredWithdrawals.map((w) => `
-                    <tr>
-                      <td class="p-2.5">${formatDateNice(w.date)}</td>
-                      <td class="p-2.5 font-extrabold text-slate-900">${w.partnerName}</td>
-                      <td class="p-2.5 text-slate-600">${w.note || '-'}</td>
-                      <td class="p-2.5 text-right font-extrabold text-amber-800">${formatTk(w.amount)}</td>
-                    </tr>
-                  `).join('') || `<tr><td colspan="4" class="p-5 text-center text-slate-400 font-bold">নির্বাচিত সময়ে কোনো পার্টনার উত্তোলন রেকর্ড নেই।</td></tr>`}
-                </tbody>
-              </table>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
+                <h4 class="font-extrabold text-sm text-slate-900">📜 পার্টনার উত্তোলন খাতা (নির্বাচিত সময়কাল)</h4>
+                ${filteredWithdrawals.length === 0 ? `<div class="py-4 text-center text-slate-400 font-bold">নির্বাচিত সময়ে কোনো উত্তোলন রেকর্ড নেই।</div>` : `
+                  <div class="divide-y divide-slate-100">
+                    ${filteredWithdrawals.map((w) => `
+                      <div class="py-2 flex items-center justify-between gap-2">
+                        <div>
+                          <span class="font-extrabold text-slate-900">${w.partnerName}</span>
+                          <span class="text-slate-500 ml-2">${formatDateNice(w.date)}</span>
+                          ${w.note ? `<span class="text-slate-600 ml-2">• ${w.note}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-extrabold text-amber-900">${formatTk(w.amount)}</span>
+                          ${isMasterAdmin() ? `<button type="button" onclick="state.partnerWithdrawals=state.partnerWithdrawals.filter(x=>x.id!=='${w.id}'); persistState(); renderApp();" class="text-rose-600 font-extrabold cursor-pointer">✕</button>` : ''}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </div>
             </div>
           `}
         </div>
       `;
+    }
+
+    function downloadFullBackupJson() {
+      const dataStr = JSON.stringify(state, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `alkarim-erp-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('ব্যাকআপ ফাইল ডাউনলোড হয়েছে!', 'success');
+    }
+
+    function restoreBackupJsonFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (!parsed || typeof parsed !== 'object') {
+            showToast('ভুল ব্যাকআপ ফাইল!', 'warn');
+            return;
+          }
+          const def = createDefaultState();
+          state = {
+            ...def,
+            ...parsed,
+            shop: { ...def.shop, ...(parsed.shop || {}) },
+            auth: { ...def.auth, ...(parsed.auth || {}) },
+            orderForm: { ...def.orderForm, ...(parsed.orderForm || {}) }
+          };
+          persistState(false);
+          showToast('ব্যাকআপ ফাইল থেকে ডাটা রিস্টোর সম্পন্ন হয়েছে!', 'success');
+          renderApp();
+        } catch (err) {
+          showToast('ব্যাকআপ ফাইল পড়া যায়নি!', 'warn');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function renderSettings() {
@@ -3485,7 +3536,7 @@
               <div class="flex items-center gap-3">
                 <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-700 shrink-0">${getRoyalBrandLogoSvg('set-logo')}</div>
                 <div>
-                  <div class="font-extrabold text-slate-900">দোকানের অফিশিয়াল লোগো (হেডার ও মেমো প্রিন্ট)</div>
+                  <div class="font-extrabold text-slate-900">দোকানের অফিশিয়াল লোগো (হেডার, ব্যানার ও মেমো প্রিন্ট)</div>
                   <div class="flex flex-wrap items-center gap-1.5 mt-1">
                     <label class="px-3 py-1 rounded-lg bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">
                       📷 লোগো আপলোড
@@ -3523,92 +3574,41 @@
               <input id="set-wa-url" type="text" value="${state.shop.waGatewayUrl || ''}" placeholder="API Endpoint URL (না দিলে ফ্রি One-Touch WA চলবে)" class="w-full px-3 py-1.5 rounded-xl border bg-white font-bold" />
               <input id="set-wa-tok" type="text" value="${state.shop.waGatewayToken || ''}" placeholder="API Bearer Token" class="w-full px-3 py-1.5 rounded-xl border bg-white font-bold" />
             </div>
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <div class="font-extrabold text-slate-900">💾 সম্পূর্ণ ডাটা ব্যাকআপ ডাউনলোড ও রিস্টোর (JSON)</div>
-              <div class="flex flex-wrap gap-2">
-                <button type="button" onclick="downloadFullErpBackup()" class="px-4 py-2 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">⬇️ ব্যাকআপ ফাইল ডাউনলোড</button>
-                <label class="px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-extrabold cursor-pointer">
-                  ⬆️ ব্যাকআপ রিস্টোর করুন
-                  <input type="file" accept=".json,application/json" class="hidden" onchange="restoreFullErpBackup(this.files[0])" />
-                </label>
-              </div>
+            <button type="button" onclick="state.shop.nameBn=document.getElementById('set-shop-name').value; state.shop.address=document.getElementById('set-shop-addr').value; state.shop.phone=document.getElementById('set-shop-phone').value; if(state.auth?.masterAdmins?.[0]) state.auth.masterAdmins[0].pin=document.getElementById('set-master-pin').value.trim(); if(state.auth?.managerAdmins?.[0]) state.auth.managerAdmins[0].pin=document.getElementById('set-manager-pin').value.trim(); state.shop.waGatewayUrl=document.getElementById('set-wa-url').value; state.shop.waGatewayToken=document.getElementById('set-wa-tok').value; persistState(); showToast('সেটিংস ও নিরাপত্তা পিন সেভ হয়েছে!', 'success'); renderApp();" class="px-5 py-2.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">✓ সেটিংস সেভ করুন</button>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-900">💾 পূর্ণাঙ্গ JSON ব্যাকআপ ও রিস্টোর</h3>
+            <p class="text-[11px] text-slate-500">আপনার সব অর্ডার, মাপ, স্টক, কারিগর ও পার্টনার হিসাব ব্যাকআপ ফাইল হিসেবে ডাউনলোড বা রিস্টোর করুন।</p>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="downloadFullBackupJson()" class="px-4 py-2 rounded-xl bg-slate-900 text-amber-300 font-extrabold cursor-pointer">⬇️ ব্যাকআপ ফাইল ডাউনলোড</button>
+              <label class="px-4 py-2 rounded-xl bg-emerald-800 text-white font-extrabold cursor-pointer">
+                ⬆️ ব্যাকআপ ফাইল রিস্টোর
+                <input type="file" accept="application/json,.json" class="hidden" onchange="restoreBackupJsonFromFile(this.files[0])" />
+              </label>
             </div>
-            <button type="button" onclick="state.shop.nameBn=document.getElementById('set-shop-name').value; state.shop.address=document.getElementById('set-shop-addr').value; state.shop.phone=document.getElementById('set-shop-phone').value; state.shop.tagline=state.shop.address+' • মোবাইল: '+state.shop.phone; if(state.auth?.masterAdmins?.[0]) state.auth.masterAdmins[0].pin=document.getElementById('set-master-pin').value.trim(); if(state.auth?.managerAdmins?.[0]) state.auth.managerAdmins[0].pin=document.getElementById('set-manager-pin').value.trim(); state.shop.waGatewayUrl=document.getElementById('set-wa-url').value; state.shop.waGatewayToken=document.getElementById('set-wa-tok').value; persistState(); showToast('সেটিংস ও নিরাপত্তা পিন সেভ হয়েছে!', 'success'); renderApp();" class="px-5 py-2.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">✓ সেটিংস সেভ করুন</button>
           </div>
         </div>
       `;
     }
 
-    function downloadFullErpBackup() {
-      try {
-        const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `alkarim-erp-backup-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('ব্যাকআপ ফাইল ডাউনলোড হয়েছে!', 'success');
-      } catch (e) {
-        showToast('ব্যাকআপ ডাউনলোড ব্যর্থ হয়েছে।', 'warn');
-      }
-    }
-
-    function restoreFullErpBackup(file) {
-      if (!file || !requireMasterGuard('ব্যাকআপ রিস্টোর')) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const parsed = JSON.parse(ev.target.result);
-          if (!parsed || typeof parsed !== 'object') throw new Error('Invalid');
-          state = { ...createDefaultState(), ...parsed };
-          persistState();
-          showToast('ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!', 'success');
-          renderApp();
-        } catch (err) {
-          showToast('সঠিক ব্যাকআপ JSON ফাইল দিন!', 'warn');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function printCuttingSlip(orderId) {
+    function printCuttingTag(orderId) {
       const ord = (state.orders || []).find((o) => o.id === orderId);
       const printEl = document.getElementById('print-area');
       if (!ord || !printEl) return;
       const tItems = (ord.items || []).filter((it) => it.type === 'tailor');
       printEl.innerHTML = `
-        <div style="max-width:420px;margin:0 auto;padding:18px;font-family:'Hind Siliguri',sans-serif;color:#0f172a;border:2px dashed #064e3b;">
-          <div style="text-align:center;border-bottom:2px solid #064e3b;padding-bottom:8px;margin-bottom:10px;">
-            <div style="font-size:16px;font-weight:800;color:#064e3b;">${state.shop.nameBn}</div>
-            <div style="font-size:11px;color:#334155;">${state.shop.address} • ${state.shop.phone}</div>
-            <div style="font-size:12px;font-weight:800;background:#064e3b;color:#fde68a;display:inline-block;padding:2px 10px;border-radius:999px;margin-top:4px;">🏷️ কাটিং ও কারিগর স্লিপ</div>
+        <div style="max-width:720px;margin:0 auto;padding:20px;font-family:'Hind Siliguri',sans-serif;color:#0f172a;">
+          <div style="text-align:center;border-bottom:2px dashed #064e3b;padding-bottom:10px;margin-bottom:12px;">
+            <h2 style="font-size:18px;font-weight:800;margin:0;">✂️ কাটিং ও কারিগর স্লিপ — ${state.shop.nameBn}</h2>
+            <div style="font-size:12px;margin-top:4px;"><b>মেমো নং:</b> #${ord.id.replace('ORD-', '')} • <b>কাস্টমার:</b> ${ord.customerName} • <b>ডেলিভারি:</b> ${formatDateNice(ord.deliveryDate)}</div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;border-bottom:1px solid #cbd5e1;padding-bottom:6px;">
-            <div>
-              <div><b>মেমো নং:</b> #${ord.id.replace('ORD-', '')}</div>
-              <div><b>কাস্টমার:</b> ${ord.customerName}</div>
-            </div>
-            <div style="text-align:right;">
-              <div><b>অর্ডার:</b> ${formatDateNice(ord.orderDate)}</div>
-              <div style="color:#be123c;"><b>ডেলিভারি:</b> ${formatDateNice(ord.deliveryDate)}</div>
-            </div>
-          </div>
-          ${tItems.map((it, idx) => `
-            <div style="border:1.5px solid #064e3b;border-radius:10px;padding:10px;margin-bottom:10px;">
-              <div style="font-size:14px;font-weight:800;color:#064e3b;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:6px;">
-                ${toBnNum(idx + 1)}. ${it.name} — ${toBnNum(it.qty)} পিস ${it.fabricNote ? `(কাপড়: ${it.fabricNote})` : ''}
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;margin-bottom:6px;">
-                ${Object.entries(it.measurements || {}).map(([k, v]) => `
-                  <div style="border:1px solid #cbd5e1;padding:4px;border-radius:6px;text-align:center;">
-                    <div style="font-size:10px;color:#475569;">${k}</div>
-                    <div style="font-size:14px;font-weight:800;">${v}</div>
-                  </div>
-                `).join('')}
-              </div>
-              ${(it.selectedDesigns || []).length ? `<div style="font-size:11px;font-weight:700;color:#065f46;margin-top:4px;">🎨 ডিজাইন: ${it.selectedDesigns.join(', ')}</div>` : ''}
-              ${it.tagNote ? `<div style="font-size:12px;font-weight:800;background:#fef3c7;padding:4px 8px;border-radius:6px;margin-top:6px;">📝 নোট: ${it.tagNote}</div>` : ''}
+          ${tItems.map((it) => `
+            <div style="border:1.5px solid #0f172a;border-radius:10px;padding:12px;margin-bottom:12px;">
+              <div style="font-size:15px;font-weight:800;margin-bottom:6px;">${it.name} — ${toBnNum(it.qty)} পিস ${it.fabricNote ? `(কাপড়: ${it.fabricNote})` : ''}</div>
+              <div style="font-size:12px;margin-bottom:6px;"><b>মাপ:</b> ${Object.entries(it.measurements || {}).map(([k, v]) => `${k}: <b>${v}</b>`).join(' | ') || '-'}</div>
+              ${(it.selectedDesigns || []).length ? `<div style="font-size:12px;margin-bottom:4px;"><b>ডিজাইন:</b> ${it.selectedDesigns.join(', ')}</div>` : ''}
+              ${it.tagNote ? `<div style="font-size:12px;font-weight:700;"><b>বিশেষ নোট:</b> ${it.tagNote}</div>` : ''}
             </div>
           `).join('')}
         </div>
@@ -3629,7 +3629,7 @@
           <div style="text-align:center;border-bottom:2px solid #064e3b;padding-bottom:12px;margin-bottom:14px;">
             ${state.shop.logoImage ? `<img src="${state.shop.logoImage}" style="width:54px;height:54px;border-radius:9999px;object-fit:cover;margin:0 auto 6px;" />` : ''}
             <h1 style="font-size:22px;font-weight:800;color:#064e3b;margin:0;">${state.shop.nameBn}</h1>
-            <p style="font-size:12px;font-weight:600;margin:4px 0;">${state.shop.address} • মোবাইল: ${state.shop.phone}</p>
+            <p style="font-size:12px;margin:4px 0;">${state.shop.address} • মোবাইল: ${state.shop.phone}</p>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:12px;">
             <div>
@@ -3647,7 +3647,7 @@
             <thead>
               <tr style="background:#064e3b;color:#fde68a;">
                 <th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">বিবরণ ও মাপ</th>
-                <th style="padding:8px;border:1px solid #cbd5e1;text-align:center;">সংখ্যা</th>
+                <th style="padding:8px;border:1px solid #cbd5e1;text-align:center;">পরিমাণ</th>
                 <th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">দর</th>
                 <th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">মোট</th>
               </tr>
@@ -3660,7 +3660,7 @@
                     ${it.measurements ? `<div style="font-size:11px;color:#334155;">মাপ: ${Object.entries(it.measurements).map(([k, v]) => `${k}: ${v}`).join(', ')}</div>` : ''}
                     ${(it.selectedDesigns || []).length ? `<div style="font-size:11px;color:#065f46;">ডিজাইন: ${it.selectedDesigns.join(', ')}</div>` : ''}
                   </td>
-                  <td style="padding:8px;border:1px solid #cbd5e1;text-align:center;">${toBnNum(it.qty)}</td>
+                  <td style="padding:8px;border:1px solid #cbd5e1;text-align:center;">${formatQtyBn(it.qty)} ${it.unit || 'পিস'}</td>
                   <td style="padding:8px;border:1px solid #cbd5e1;text-align:right;">${formatTk(it.unitPrice)}</td>
                   <td style="padding:8px;border:1px solid #cbd5e1;text-align:right;font-weight:700;">${formatTk(it.lineTotal)}</td>
                 </tr>
@@ -3683,9 +3683,6 @@
       }, 100);
     }
 
-    // ==========================================
-    // 13. MAIN APP SHELL & BOOTSTRAP
-    // ==========================================
     function renderApp() {
       const root = document.getElementById('app-root');
       if (!root) return;
@@ -3753,13 +3750,13 @@
       root.innerHTML = `
         <div class="min-h-screen flex flex-col">
           <header class="royal-gradient text-white sticky top-0 z-30 shadow-md">
-            <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2 flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2.5 min-w-0">
+            <div class="max-w-7xl mx-auto px-3 sm:px-5 h-14 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
                 <button type="button" onclick="state.sidebarOpen=!state.sidebarOpen; renderApp();" class="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 font-extrabold cursor-pointer">☰</button>
-                <div class="w-10 h-10 rounded-full overflow-hidden border border-amber-300/60 shrink-0">${getRoyalBrandLogoSvg('top-logo')}</div>
+                <div class="w-9 h-9 rounded-full overflow-hidden shrink-0">${getRoyalBrandLogoSvg('top-logo')}</div>
                 <div class="min-w-0">
                   <div class="text-xs sm:text-sm font-extrabold text-amber-300 truncate">${state.shop.nameBn}</div>
-                  <div class="text-[10px] sm:text-[11px] text-emerald-100 font-medium leading-tight truncate">${state.shop.address} • ${state.shop.phone}</div>
+                  <div class="text-[10px] text-emerald-200 truncate hidden sm:block">${state.shop.address} • ${state.shop.phone}</div>
                 </div>
               </div>
 
