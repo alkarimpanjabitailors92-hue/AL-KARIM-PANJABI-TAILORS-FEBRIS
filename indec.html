@@ -37,8 +37,12 @@
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
-  <div id="app-root"></div>
-  <div id="modal-root" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"></div>
+  <div id="app-root">
+    <div style="padding: 2rem; text-align: center; font-family: sans-serif; color: #064e3b; font-weight: bold;">
+      লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।
+    </div>
+  </div>
+  <div id="modal-root" class="hidden fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-2 sm:p-4"></div>
   <div id="toast-root" class="fixed bottom-4 right-4 z-[60] space-y-2 pointer-events-none"></div>
   <div id="print-area" class="hidden"></div>
 
@@ -203,7 +207,7 @@
         unreadSignals: 0,
         shop: {
           nameBn: 'আল-কারীম পাঞ্জাবী টেইলার্স এন্ড ফেব্রিক্স',
-          address: 'সৈয়দ আহমেদ আলী প্লাজা, সদর রোড, বাকেরগঞ্জ, বরিশাল',
+          address: 'সদর রোড, বাকেরগঞ্জ, বরিশাল',
           phones: '01787265892',
           logoImage: '',
           masterName: 'হাফেজ মো. আব্দুল কারীম',
@@ -309,6 +313,12 @@
           purchases: Array.isArray(saved.purchases) ? saved.purchases : [],
           partners: Array.isArray(saved.partners) && saved.partners.length ? saved.partners : fallback.partners
         };
+        if (merged.shop.address && merged.shop.address.includes('সৈয়দ আহমেদ আলী প্লাজা')) {
+          merged.shop.address = 'সদর রোড, বাকেরগঞ্জ, বরিশাল';
+        }
+        if (!merged.shop.phones || !merged.shop.phones.includes('01787265892')) {
+          merged.shop.phones = '01787265892';
+        }
         if (!Array.isArray(merged.auth.masterAdmins)) merged.auth.masterAdmins = [];
         if (!Array.isArray(merged.auth.managerAdmins)) merged.auth.managerAdmins = [];
         if (!Array.isArray(merged.auth.karigorAdmins)) merged.auth.karigorAdmins = [];
@@ -373,7 +383,12 @@
             const remote = docSnap.data();
             if (remote) {
               isApplyingCloudUpdate = true;
-              if (remote.shop) state.shop = { ...state.shop, ...remote.shop };
+              if (remote.shop) {
+                state.shop = { ...state.shop, ...remote.shop };
+                if (state.shop.address && state.shop.address.includes('সৈয়দ আহমেদ আলী প্লাজা')) {
+                  state.shop.address = 'সদর রোড, বাকেরগঞ্জ, বরিশাল';
+                }
+              }
               if (remote.auth) {
                 if (Array.isArray(remote.auth.masterAdmins)) state.auth.masterAdmins = remote.auth.masterAdmins;
                 if (Array.isArray(remote.auth.managerAdmins)) state.auth.managerAdmins = remote.auth.managerAdmins;
@@ -809,7 +824,8 @@
               <div class="w-11 h-11 shrink-0">${getRoyalBrandLogoSvg('sb')}</div>
               <div class="min-w-0">
                 <div class="font-extrabold text-sm text-amber-300 truncate">${state.shop.nameBn}</div>
-                <div class="text-[11px] text-emerald-200 truncate">টেইলার্স এন্ড ফেব্রিক্স ERP</div>
+                <div class="text-[11px] text-emerald-200 truncate">সদর রোড, বাকেরগঞ্জ, বরিশাল</div>
+                <div class="text-[10px] text-amber-200 font-bold truncate">মোবাইলঃ ${state.shop.phones}</div>
               </div>
             </div>
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto text-xs">
@@ -927,7 +943,7 @@
             <div>
               <div class="text-xs text-amber-300 font-bold">স্বাগতম, ${state.auth?.activeUserName || state.shop.masterName}</div>
               <h2 class="text-lg sm:text-xl font-extrabold mt-0.5">${state.shop.nameBn}</h2>
-              <p class="text-xs text-emerald-200">${state.shop.address} • মোবাইলঃ ${state.shop.phones}</p>
+              <p class="text-xs text-emerald-100 font-bold mt-0.5">সদর রোড, বাকেরগঞ্জ, বরিশাল • মোবাইলঃ ${state.shop.phones}</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button type="button" onclick="startFreshNewOrder()" class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold shadow cursor-pointer">+ নতুন অর্ডার নিন</button>
@@ -4213,13 +4229,24 @@
       renderApp();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initCloudFirestoreSync();
-      renderApp();
-    });
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      initCloudFirestoreSync();
-      renderApp();
+    function bootAlKarimErpApp() {
+      try {
+        renderApp();
+      } catch (err) {
+        const root = document.getElementById('app-root');
+        if (root) {
+          root.innerHTML = `<div style="padding:20px;margin:20px;background:#fee2e2;color:#991b1b;border-radius:12px;font-weight:bold;">অ্যাপ চালু হতে সমস্যা হয়েছে: ${err?.message || err}</div>`;
+        }
+      }
+      try {
+        initCloudFirestoreSync();
+      } catch (e) {}
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootAlKarimErpApp);
+    } else {
+      bootAlKarimErpApp();
     }
   </script>
 </body>
