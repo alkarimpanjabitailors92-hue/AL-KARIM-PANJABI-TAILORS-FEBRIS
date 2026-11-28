@@ -149,6 +149,34 @@
     let purchaseDraftItems = [];
     let cloudDb = null;
     let cloudSyncStatus = 'OFFLINE';
+    let rememberedLoginKeys = [];
+
+    function loadRememberedLogins() {
+      try {
+        const raw = localStorage.getItem('ALKARIM_REMEMBERED_LOGINS_V1');
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRememberedLogin(role, userId, phone, pin) {
+      const key = `${role}:${userId}:${String(phone || '').trim()}:${String(pin || '').trim()}`;
+      if (!rememberedLoginKeys.includes(key)) {
+        rememberedLoginKeys.push(key);
+        try {
+          localStorage.setItem('ALKARIM_REMEMBERED_LOGINS_V1', JSON.stringify(rememberedLoginKeys));
+        } catch (e) {}
+      }
+    }
+
+    function isLoginAlreadyRemembered(role, userId, phone, pin) {
+      const key = `${role}:${userId}:${String(phone || '').trim()}:${String(pin || '').trim()}`;
+      return rememberedLoginKeys.includes(key);
+    }
+
+    rememberedLoginKeys = loadRememberedLogins();
 
     function createDefaultState() {
       const today = new Date().toISOString().split('T')[0];
@@ -175,8 +203,8 @@
           activeRole: 'MASTER',
           activeUserId: 'MSTR-1',
           activeUserName: 'মাস্টার অ্যাডমিন',
-          masterAdmins: [{ id: 'MSTR-1', name: 'মাস্টার অ্যাডমিন', pin: '' }],
-          managerAdmins: [{ id: 'MGR-1', name: 'ম্যানেজার কাউন্টার', pin: '' }]
+          masterAdmins: [{ id: 'MSTR-1', name: 'মাস্টার অ্যাডমিন', phone: '01787265892', pin: '' }],
+          managerAdmins: [{ id: 'MGR-1', name: 'ম্যানেজার কাউন্টার', phone: '', pin: '' }]
         },
         garments: JSON.parse(JSON.stringify(DEFAULT_GARMENTS)),
         inventory: JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
@@ -620,32 +648,38 @@
         <div class="px-5 py-4 border-b royal-gradient text-white flex justify-between items-center">
           <div>
             <h3 class="text-sm font-extrabold text-amber-300">🔐 প্যানেল ও রোল পরিবর্তন করুন</h3>
-            <p class="text-[11px] text-emerald-200">মাস্টার অ্যাডমিন, ম্যানেজার অথবা কারিগর ও কমপ্লিট প্যানেল বেছে নিন</p>
+            <p class="text-[11px] text-emerald-200">মোবাইল ও পিন দিয়ে একবার লগইন করলে আর পিন লাগবে না</p>
           </div>
           <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
         </div>
         <div class="p-5 space-y-3 text-xs max-h-[78vh] overflow-y-auto">
           <div class="space-y-1.5">
             <div class="font-extrabold text-amber-900">👑 মাস্টার অ্যাডমিন</div>
-            ${masters.map((m) => `
-              <button type="button" onclick="switchActiveRole('MASTER', '${m.id}', '${m.name}', '${m.pin || ''}')" class="w-full p-3 rounded-xl border border-amber-300 bg-amber-50/60 hover:bg-amber-100 flex justify-between items-center font-extrabold cursor-pointer">
-                <span>${m.name}</span>
-                <span>${m.pin ? '🔒 পিন' : '✓ প্রবেশ'}</span>
-              </button>
-            `).join('')}
+            ${masters.map((m) => {
+              const remembered = isLoginAlreadyRemembered('MASTER', m.id, m.phone || '', m.pin || '');
+              return `
+                <button type="button" onclick="switchActiveRole('MASTER', '${m.id}', '${m.name}', '${m.phone || ''}', '${m.pin || ''}')" class="w-full p-3 rounded-xl border border-amber-300 bg-amber-50/60 hover:bg-amber-100 flex justify-between items-center font-extrabold cursor-pointer">
+                  <span>${m.name} ${m.phone ? `<span class="text-[10px] font-bold text-slate-600">(${m.phone})</span>` : ''}</span>
+                  <span>${(!m.pin || remembered) ? '✓ সরাসরি প্রবেশ' : '📱🔒 লগইন'}</span>
+                </button>
+              `;
+            }).join('')}
           </div>
           <div class="space-y-1.5">
             <div class="font-extrabold text-blue-900">📋 ম্যানেজার অ্যাডমিন</div>
-            ${managers.map((mg) => `
-              <button type="button" onclick="switchActiveRole('MANAGER', '${mg.id}', '${mg.name}', '${mg.pin || ''}')" class="w-full p-3 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 flex justify-between items-center font-extrabold cursor-pointer">
-                <span>${mg.name}</span>
-                <span>${mg.pin ? '🔒 পিন' : '✓ প্রবেশ'}</span>
-              </button>
-            `).join('')}
+            ${managers.map((mg) => {
+              const remembered = isLoginAlreadyRemembered('MANAGER', mg.id, mg.phone || '', mg.pin || '');
+              return `
+                <button type="button" onclick="switchActiveRole('MANAGER', '${mg.id}', '${mg.name}', '${mg.phone || ''}', '${mg.pin || ''}')" class="w-full p-3 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 flex justify-between items-center font-extrabold cursor-pointer">
+                  <span>${mg.name} ${mg.phone ? `<span class="text-[10px] font-bold text-slate-600">(${mg.phone})</span>` : ''}</span>
+                  <span>${(!mg.pin || remembered) ? '✓ সরাসরি প্রবেশ' : '📱🔒 লগইন'}</span>
+                </button>
+              `;
+            }).join('')}
           </div>
           <div class="space-y-1.5">
             <div class="font-extrabold text-emerald-900">🪡 কারিগর ও কমপ্লিট ম্যান প্যানেল</div>
-            <button type="button" onclick="switchActiveRole('KARIGOR', 'KRG-PANEL', 'কারিগর ও কমপ্লিট প্যানেল', '')" class="w-full p-3 rounded-xl border border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 flex justify-between items-center font-extrabold cursor-pointer">
+            <button type="button" onclick="switchActiveRole('KARIGOR', 'KRG-PANEL', 'কারিগর ও কমপ্লিট প্যানেল', '', '')" class="w-full p-3 rounded-xl border border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 flex justify-between items-center font-extrabold cursor-pointer">
               <span>✂️ কাটিং / 🪡 সুইং / ✨ কমপ্লিট প্যানেল</span>
               <span>✓ প্রবেশ</span>
             </button>
@@ -655,15 +689,25 @@
       openModal(html, 'max-w-md');
     }
 
-    function switchActiveRole(role, userId, userName, pin) {
-      if (pin && String(pin).trim() !== '') {
+    function switchActiveRole(role, userId, userName, expectedPhone, pin) {
+      if (pin && String(pin).trim() !== '' && !isLoginAlreadyRemembered(role, userId, expectedPhone, pin)) {
         const html = `
           <div class="px-5 py-4 border-b royal-gradient text-white flex justify-between items-center">
-            <h3 class="text-sm font-extrabold text-amber-300">🔒 পিন দিন — ${userName}</h3>
+            <h3 class="text-sm font-extrabold text-amber-300">📱🔒 লগইন করুন — ${userName}</h3>
             <button type="button" onclick="closeModal()" class="text-white cursor-pointer">✕</button>
           </div>
-          <form onsubmit="verifyRoleSwitchPin(event, '${role}', '${userId}', '${userName}', '${pin}'); return false;" class="p-5 space-y-3 text-xs">
-            <input id="role-pin-inp" type="password" inputmode="numeric" required placeholder="****" class="w-full px-4 py-2.5 rounded-xl border-2 border-emerald-500 text-center text-lg font-extrabold tracking-widest outline-none" />
+          <form onsubmit="verifyRoleSwitchPin(event, '${role}', '${userId}', '${userName}', '${expectedPhone || ''}', '${pin}'); return false;" class="p-5 space-y-3 text-xs">
+            ${expectedPhone ? `
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">মোবাইল নম্বর *</label>
+                <input id="role-phone-inp" type="tel" required placeholder="017XXXXXXXX" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-extrabold outline-none focus:border-emerald-600" />
+              </div>
+            ` : ''}
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">গোপন পিন *</label>
+              <input id="role-pin-inp" type="password" inputmode="numeric" required placeholder="****" class="w-full px-4 py-2.5 rounded-xl border-2 border-emerald-500 text-center text-lg font-extrabold tracking-widest outline-none" />
+            </div>
+            <div class="text-[11px] text-emerald-800 font-bold">✓ একবার সঠিক মোবাইল ও পিন দিলে এই ডিভাইসে আর পিন চাওয়া হবে না।</div>
             <div class="flex justify-end gap-2">
               <button type="button" onclick="openRoleSwitcherModal()" class="px-4 py-2 rounded-xl border font-bold cursor-pointer">ফিরে যান</button>
               <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white font-extrabold cursor-pointer">✓ নিশ্চিত করুন</button>
@@ -671,19 +715,27 @@
           </form>
         `;
         openModal(html, 'max-w-sm');
-        setTimeout(() => document.getElementById('role-pin-inp')?.focus(), 20);
+        setTimeout(() => (document.getElementById('role-phone-inp') || document.getElementById('role-pin-inp'))?.focus(), 20);
         return;
       }
       applyRoleSwitch(role, userId, userName);
     }
 
-    function verifyRoleSwitchPin(e, role, userId, userName, expectedPin) {
+    function verifyRoleSwitchPin(e, role, userId, userName, expectedPhone, expectedPin) {
       e.preventDefault();
-      const entered = (document.getElementById('role-pin-inp')?.value || '').trim();
-      if (entered !== String(expectedPin).trim()) {
+      const cleanExpectedPhone = String(expectedPhone || '').replace(/\D/g, '');
+      const enteredPhone = String(document.getElementById('role-phone-inp')?.value || '').replace(/\D/g, '');
+      const enteredPin = (document.getElementById('role-pin-inp')?.value || '').trim();
+
+      if (cleanExpectedPhone && enteredPhone !== cleanExpectedPhone) {
+        showToast('নির্ধারিত মোবাইল নম্বর মেলেনি!', 'warn');
+        return;
+      }
+      if (enteredPin !== String(expectedPin).trim()) {
         showToast('ভুল পিন দেওয়া হয়েছে!', 'warn');
         return;
       }
+      saveRememberedLogin(role, userId, expectedPhone, expectedPin);
       applyRoleSwitch(role, userId, userName);
     }
 
@@ -3663,10 +3715,24 @@
     }
 
     function renderSettings() {
-      const masterPin = state.auth?.masterAdmins?.[0]?.pin || '';
-      const managerPin = state.auth?.managerAdmins?.[0]?.pin || '';
+      const masterObj = state.auth?.masterAdmins?.[0] || { name: 'মাস্টার অ্যাডমিন', phone: '', pin: '' };
+      const managerObj = state.auth?.managerAdmins?.[0] || { name: 'ম্যানেজার কাউন্টার', phone: '', pin: '' };
+      const masterPin = masterObj.pin || '';
+      const masterPhone = masterObj.phone || '';
+      const managerPin = managerObj.pin || '';
+      const managerPhone = managerObj.phone || '';
       return `
         <div class="max-w-2xl space-y-4 text-xs">
+          <div class="bg-white rounded-2xl p-5 border border-emerald-200 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">🔐 প্যানেল ও রোল পরিবর্তন (বর্তমান: ${roleBadge})</h3>
+                <p class="text-[11px] text-slate-500">মাস্টার অ্যাডমিন, ম্যানেজার বা কারিগর প্যানেলে এখান থেকেই পরিবর্তন করুন</p>
+              </div>
+              <button type="button" onclick="openRoleSwitcherModal()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold cursor-pointer">🔄 প্যানেল পরিবর্তন করুন ▾</button>
+            </div>
+          </div>
+
           <div class="bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
             <h3 class="text-sm font-extrabold text-slate-900">⚙️ দোকানের তথ্য, লোগো, নিরাপত্তা পিন ও WhatsApp সেটিংস</h3>
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
@@ -3696,14 +3762,16 @@
               <label class="block font-bold text-slate-600 mb-1">মোবাইল নম্বর</label>
               <input id="set-shop-phone" type="text" value="${state.shop.phone}" class="w-full px-3 py-2 rounded-xl border font-bold" />
             </div>
-            <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="block font-extrabold text-amber-950 mb-1">👑 মাস্টার অ্যাডমিন পিন (PIN)</label>
-                <input id="set-master-pin" type="text" inputmode="numeric" value="${masterPin}" placeholder="ঐচ্ছিক পিন" class="w-full px-3 py-1.5 rounded-xl border border-amber-400 bg-white font-extrabold" />
+            <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 space-y-2.5">
+              <div class="font-extrabold text-amber-950">👑 মাস্টার অ্যাডমিন — মোবাইল ও পিন</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input id="set-master-phone" type="tel" value="${masterPhone}" placeholder="মাস্টার মোবাইল নম্বর" class="w-full px-3 py-1.5 rounded-xl border border-amber-400 bg-white font-bold" />
+                <input id="set-master-pin" type="text" inputmode="numeric" value="${masterPin}" placeholder="মাস্টার পিন (যেমন: 1234)" class="w-full px-3 py-1.5 rounded-xl border border-amber-400 bg-white font-extrabold" />
               </div>
-              <div>
-                <label class="block font-extrabold text-blue-950 mb-1">📋 ম্যানেজার পিন (খালি রাখলে পিন লাগবে না)</label>
-                <input id="set-manager-pin" type="text" inputmode="numeric" value="${managerPin}" placeholder="ঐচ্ছিক পিন" class="w-full px-3 py-1.5 rounded-xl border border-blue-300 bg-white font-extrabold" />
+              <div class="font-extrabold text-blue-950 pt-1">📋 ম্যানেজার অ্যাডমিন — মোবাইল ও পিন (একবার ঢুকলে আর পিন লাগবে না)</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input id="set-manager-phone" type="tel" value="${managerPhone}" placeholder="ম্যানেজার মোবাইল নম্বর" class="w-full px-3 py-1.5 rounded-xl border border-blue-300 bg-white font-bold" />
+                <input id="set-manager-pin" type="text" inputmode="numeric" value="${managerPin}" placeholder="ম্যানেজার পিন (যেমন: 5678)" class="w-full px-3 py-1.5 rounded-xl border border-blue-300 bg-white font-extrabold" />
               </div>
             </div>
             <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
@@ -3711,7 +3779,7 @@
               <input id="set-wa-url" type="text" value="${state.shop.waGatewayUrl || ''}" placeholder="API Endpoint URL (না দিলে ফ্রি One-Touch WA চলবে)" class="w-full px-3 py-1.5 rounded-xl border bg-white font-bold" />
               <input id="set-wa-tok" type="text" value="${state.shop.waGatewayToken || ''}" placeholder="API Bearer Token" class="w-full px-3 py-1.5 rounded-xl border bg-white font-bold" />
             </div>
-            <button type="button" onclick="state.shop.nameBn=document.getElementById('set-shop-name').value; state.shop.address=document.getElementById('set-shop-addr').value; state.shop.phone=document.getElementById('set-shop-phone').value; if(state.auth?.masterAdmins?.[0]) state.auth.masterAdmins[0].pin=document.getElementById('set-master-pin').value.trim(); if(state.auth?.managerAdmins?.[0]) state.auth.managerAdmins[0].pin=document.getElementById('set-manager-pin').value.trim(); state.shop.waGatewayUrl=document.getElementById('set-wa-url').value; state.shop.waGatewayToken=document.getElementById('set-wa-tok').value; persistState(); showToast('সেটিংস ও নিরাপত্তা পিন সেভ হয়েছে!', 'success'); renderApp();" class="px-5 py-2.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">✓ সেটিংস সেভ করুন</button>
+            <button type="button" onclick="state.shop.nameBn=document.getElementById('set-shop-name').value; state.shop.address=document.getElementById('set-shop-addr').value; state.shop.phone=document.getElementById('set-shop-phone').value; if(state.auth?.masterAdmins?.[0]){ state.auth.masterAdmins[0].phone=document.getElementById('set-master-phone').value.trim(); state.auth.masterAdmins[0].pin=document.getElementById('set-master-pin').value.trim(); } if(state.auth?.managerAdmins?.[0]){ state.auth.managerAdmins[0].phone=document.getElementById('set-manager-phone').value.trim(); state.auth.managerAdmins[0].pin=document.getElementById('set-manager-pin').value.trim(); } rememberedLoginKeys=[]; localStorage.removeItem('ALKARIM_REMEMBERED_LOGINS_V1'); persistState(); showToast('মোবাইল ও পিন সেটিংস সেভ হয়েছে!', 'success'); renderApp();" class="px-5 py-2.5 rounded-xl bg-emerald-800 text-amber-300 font-extrabold cursor-pointer">✓ সেটিংস সেভ করুন</button>
           </div>
 
           <div class="bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
@@ -3812,7 +3880,6 @@
                   🔔
                   ${Number(state.unreadSignals || 0) > 0 ? `<span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[10px] font-extrabold">${toBnNum(state.unreadSignals)}</span>` : ''}
                 </button>
-                <button type="button" onclick="openRoleSwitcherModal()" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-extrabold cursor-pointer truncate max-w-[140px] sm:max-w-none">${roleBadge} ▾</button>
                 ${!isKarigorAdmin() ? `<button type="button" onclick="startFreshNewOrder()" class="px-3 py-1.5 rounded-xl bg-emerald-950 hover:bg-black text-amber-300 border border-amber-400/50 text-xs font-extrabold cursor-pointer">+ নতুন অর্ডার</button>` : ''}
               </div>
             </div>
